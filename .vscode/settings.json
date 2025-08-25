@@ -1,5 +1,6 @@
 {
     "cSpell.words": [
+        "ctxt",
         "gradlew",
         "projectlombok",
         "springdoc",
@@ -7,5 +8,52 @@
         "springsecurity",
         "thymeleaf",
         "webmvc"
-    ]
+    ],
+
+    // ========== IntelliJ 설정과 완벽히 동일하게 구성 ==========
+
+    // 1. google-java-format 플러그인과 동일한 기능
+    "java.format.enabled": true,
+    "java.format.settings.url": "https://google.github.io/styleguide/intellij-java-google-style.xml",
+    "java.format.settings.profile": "GoogleStyle",
+
+    // 2. CheckStyle-IDEA 플러그인과 동일한 기능
+    "java.checkstyle.configuration": "google_checks",
+    "java.checkstyle.version": "10.12.4",
+    "java.checkstyle.autocheck": true,
+
+    // 3. Save Actions 플러그인과 동일한 기능 (저장 시 자동 실행)
+    "editor.formatOnSave": true,
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true,
+    "files.trimFinalNewlines": true,
+
+    // IntelliJ Google Style 설정값들 (intellij-java-google-style.xml 기준)
+    "editor.insertSpaces": true,
+    "editor.tabSize": 2,
+    "editor.detectIndentation": false,
+    "editor.rulers": [100],
+    "editor.wordWrap": "wordWrapColumn",
+    "editor.wordWrapColumn": 100,
+
+    // Java 파일 전용 설정 (IntelliJ Actions on Save와 동일)
+    "[java]": {
+        "editor.defaultFormatter": "redhat.java",
+        "editor.tabSize": 2,
+        "editor.insertSpaces": true,
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit",
+            "source.fixAll": "explicit"
+        }
+    },
+
+    // Import 정리 설정 (IntelliJ Optimize imports와 동일)
+    "java.sources.organizeImports.starThreshold": 999,
+    "java.sources.organizeImports.staticStarThreshold": 999,
+
+    // Google Java Style Guide 추가 규칙들
+    "java.compile.nullAnalysis.mode": "automatic",
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.saveActions.organizeImports": true
 }

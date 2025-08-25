@@ -39,8 +39,26 @@ dependencies {
 //	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
+	implementation 'me.paulschwarz:spring-dotenv:4.0.0'
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
+
+// 프론트엔드 파일을 백엔드 static 폴더로 복사하는 Task
+// FRONTEND 폴더의 모든 파일(index.html, css/, js/, images/, pages/)을
+// src/main/resources/static/ 폴더로 복사하여 Spring Boot가 정적 파일로 서빙할 수 있게 함
+task copyFrontend(type: Copy) {
+    from '../../FRONTEND'                    
+    into 'src/main/resources/static'         
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+// 빌드 과정에서 리소스 처리 전에 프론트엔드 파일 복사 실행
+// 이 설정으로  ./gradlew build 시 JAR 파일에 프론트엔드 파일이 포함됨
+processResources.dependsOn copyFrontend
+// 개발 서버 실행 전에 프론트엔드 파일 복사 실행  
+// 이 설정으로  ./gradlew bootRun 시 최신 프론트엔드 파일이 자동 반영됨
+bootRun.dependsOn copyFrontend
+//서버 실행시  ./gradlew bootRun 으로 실행 필요

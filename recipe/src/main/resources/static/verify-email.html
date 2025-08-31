@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>이메일 인증</title>
+</head>
+<body>
+<h2>이메일 인증</h2>
+<p id="emailP"></p>
+<input id="code" placeholder="6자리 코드" maxlength="6">
+<button id="verifyBtn">인증 확인</button>
+<p id="msg"></p>
+
+<script>
+  // 쿼리에서 email 읽기
+  const params = new URLSearchParams(location.search);
+  const email = params.get("email") || "";
+  document.getElementById("emailP").innerText = `인증 메일을 보냈어요: ${email}`;
+
+  document.getElementById("verifyBtn").onclick = async () => {
+    const code = document.getElementById("code").value.trim();
+    const res = await fetch(`/api/auth/email/verify?email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`, { method: "POST" });
+    const text = await res.text();
+    document.getElementById("msg").innerText = text;
+
+    if (res.ok) {
+      alert("인증 성공! 이제 로그인할 수 있어요.");
+      location.href = "/login.html";
+    }
+  };
+</script>
+</body>
+</html>

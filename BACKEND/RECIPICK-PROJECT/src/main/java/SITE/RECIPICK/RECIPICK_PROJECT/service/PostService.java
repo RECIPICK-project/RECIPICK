@@ -1,13 +1,11 @@
 package SITE.RECIPICK.RECIPICK_PROJECT.service;
 
-import SITE.RECIPICK.RECIPICK_PROJECT.dto.PostResponseDto;
-import SITE.RECIPICK.RECIPICK_PROJECT.entity.Post;
+import SITE.RECIPICK.RECIPICK_PROJECT.dto.PostDto;
 import SITE.RECIPICK.RECIPICK_PROJECT.repository.PostRepository;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -16,21 +14,34 @@ public class PostService {
 
   private final PostRepository postRepository;
 
-  // GET 방식 연동
-  public Page<PostResponseDto> searchRecipes(String main, String sub, String sort, int page,
-      int size) {
-    Pageable pageable = PageRequest.of(page, size, getSort(sort));
-    Page<Post> posts = postRepository.search(main, sub, pageable);
-    return posts.map(PostResponseDto::fromEntity);
-  }
+  public List<PostDto> searchRecipes(List<String> mainIngredients, List<String> subIngredients,
+      String sort, Pageable pageable) {
+    int mainCount = mainIngredients.size();
+    int limit = pageable.getPageSize();
 
-  private Sort getSort(String sort) {
-    if ("views".equalsIgnoreCase(sort)) {
-      return Sort.by(Sort.Direction.DESC, "viewCount");
-    } else if ("likes".equalsIgnoreCase(sort)) {
-      return Sort.by(Sort.Direction.DESC, "likeCount");
-    } else { // latest
-      return Sort.by(Sort.Direction.DESC, "createdAt");
-    }
+    List<Object[]> results = postRepository.searchByIngredients(
+        mainIngredients, subIngredients, mainCount, sort, limit
+    );
+
+    return results.stream().map(row -> {
+      PostDto dto = new PostDto();
+      dto.setPostId(((Number) row[0]).longValue());
+      dto.setTitle((String) row[1]);
+      dto.setFoodName((String) row[2]);
+      dto.setRcpImgUrl((String) row[3]);
+      dto.setViewCount(((Number) row[4]).intValue());
+      dto.setLikeCount(((Number) row[5]).intValue());
+      dto.setCreatedAt(((java.sql.Timestamp) row[6]).toLocalDateTime());
+
+      // subScore 안전하게 변환
+      Object subScoreObj = row[7];
+      if (subScoreObj instanceof Number) {
+        dto.setSubScore(((Number) subScoreObj).intValue());
+      } else {
+        dto.setSubScore(0);
+      }
+
+      return dto;
+    }).collect(Collectors.toList());
   }
 }

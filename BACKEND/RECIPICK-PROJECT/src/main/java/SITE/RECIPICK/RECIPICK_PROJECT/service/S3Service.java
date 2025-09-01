@@ -1,4 +1,5 @@
 package SITE.RECIPICK.RECIPICK_PROJECT.service;
 
-public class User {
+public class S3Service {
+
 }

@@ -1,6 +1,5 @@
 package SITE.RECIPICK.RECIPICK_PROJECT.entity;
 
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -27,7 +26,6 @@ import org.hibernate.annotations.UpdateTimestamp;
 @Builder
 public class PostEntity {
 
-  // 기본 정보 필드
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "post_id")
@@ -36,17 +34,12 @@ public class PostEntity {
   @Column(name = "user_id", nullable = false)
   private Long userId;
 
-  @Column(name = "rcp_sno", length = 100)
-  @Builder.Default
-  private String rcpSno = generateRecipeSerialNumber();
-
   @Column(name = "title", nullable = false, length = 200)
   private String title;
 
   @Column(name = "food_name", nullable = false, length = 100)
   private String foodName;
 
-  // 통계 상태 필드
   @Column(name = "view_count")
   @Builder.Default
   private Integer viewCount = 0;
@@ -54,16 +47,6 @@ public class PostEntity {
   @Column(name = "like_count")
   @Builder.Default
   private Integer likeCount = 0;
-
-  // 정식 레시피 여부 (0: 임시, 1: 정식)
-  @Column(name = "rcp_is_official", columnDefinition = "TINYINT DEFAULT 0")
-  @Builder.Default
-  private Integer rcpIsOfficial = 0;
-
-  // 신고 횟수
-  @Column(name = "report_count")
-  @Builder.Default
-  private Integer reportCount = 0;
 
   // 조리방법 (드롭다운)
   @Enumerated(EnumType.STRING)
@@ -108,6 +91,15 @@ public class PostEntity {
   @Column(name = "rcp_steps_img", columnDefinition = "TEXT")
   private String rcpStepsImg;
 
+  // 정식 레시피 여부 (0: 임시, 1: 정식)
+  @Column(name = "rcp_is_official", columnDefinition = "TINYINT DEFAULT 0")
+  @Builder.Default
+  private Integer rcpIsOfficial = 0;
+
+  // 신고 횟수
+  @Column(name = "report_count")
+  @Builder.Default
+  private Integer reportCount = 0;
 
   @CreationTimestamp
   @Column(name = "created_at", nullable = false, updatable = false)
@@ -116,39 +108,7 @@ public class PostEntity {
   @UpdateTimestamp
   @Column(name = "updated_at")
   private LocalDateTime updatedAt;
-
-  // 레시피 시리얼 넘버 생성 (실제로는 DB에서 MAX값을 가져와서 생성해야 함)
-  private static String generateRecipeSerialNumber() {
-    return "RCP" + System.currentTimeMillis();
-  }
-
-  // 조회수 증가 메서드
-  public void increaseViewCount() {
-    this.viewCount++;
-  }
-
-  // 좋아요 증가 메서드
-  public void increaseLikeCount() {
-    this.likeCount++;
-  }
-
-  // 좋아요 감소 메서드
-  public void decreaseLikeCount() {
-    if (this.likeCount > 0) {
-      this.likeCount--;
-    }
-  }
-
-  // 신고 횟수 증가 메서드
-  public void increaseReportCount() {
-    this.reportCount++;
-  }
-
-  // 정식 레시피로 승격 (좋아요 수가 일정 수준 이상일 때)
-  public void promoteToOfficial() {
-    this.rcpIsOfficial = 1;
-  }
-
+  
   // 조리방법 enum
   @Getter
   public enum CookingMethod {

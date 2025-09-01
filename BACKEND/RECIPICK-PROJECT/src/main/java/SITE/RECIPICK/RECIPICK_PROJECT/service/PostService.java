@@ -16,8 +16,25 @@ public class PostService {
 
   public List<PostDto> searchRecipes(List<String> mainIngredients, List<String> subIngredients,
       String sort, Pageable pageable) {
+
+    // 빈 리스트 처리
+    if (mainIngredients == null || mainIngredients.isEmpty()) {
+      return List.of();
+    }
+
+    // null 체크 및 기본값 설정
+    if (subIngredients == null) {
+      subIngredients = List.of();
+    }
+
     int mainCount = mainIngredients.size();
     int limit = pageable.getPageSize();
+
+    // 정렬 조건 검증
+    if (sort == null || (!sort.equals("latest") && !sort.equals("views") && !sort.equals(
+        "likes"))) {
+      sort = "latest"; // 기본값
+    }
 
     List<Object[]> results = postRepository.searchByIngredients(
         mainIngredients, subIngredients, mainCount, sort, limit
@@ -43,5 +60,14 @@ public class PostService {
 
       return dto;
     }).collect(Collectors.toList());
+  }
+
+  // 재료 자동완성 메서드 추가
+  public List<String> searchIngredients(String keyword, int limit) {
+    if (keyword == null || keyword.trim().isEmpty()) {
+      return List.of();
+    }
+
+    return postRepository.findIngredientsByKeyword(keyword.trim(), limit);
   }
 }

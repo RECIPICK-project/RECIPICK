@@ -32,4 +32,13 @@ public class PostController {
     Pageable pageable = PageRequest.of(page, size);
     return postService.searchRecipes(main, sub, sort, pageable);
   }
+
+  // 재료 자동완성 기능 추가
+  @GetMapping("/ingredients/autocomplete")
+  public List<String> autocompleteIngredients(
+      @RequestParam String keyword,
+      @RequestParam(defaultValue = "10") int limit
+  ) {
+    return postService.searchIngredients(keyword, limit);
+  }
 }

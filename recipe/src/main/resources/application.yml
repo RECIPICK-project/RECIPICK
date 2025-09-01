@@ -12,21 +12,16 @@ spring:
             redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
             authorization-grant-type: authorization_code
             client-authentication-method: client_secret_basic
-            scope:
-              - openid
-              - profile
-              - email
+            scope: openid, profile, email
         provider:
           google:
             issuer-uri: https://accounts.google.com
-            jwk-set-uri: https://www.googleapis.com/oauth2/v3/certs
-
 
   mail:
     host: smtp.gmail.com
     port: 587
-    username: jms422700@gmail.com
-    password: omouuukgiqfxtklr   # 2단계 인증 후 앱 비밀번호
+    username: ${SPRING_MAIL_USERNAME}
+    password: ${SPRING_MAIL_PASSWORD}   # Gmail 앱 비밀번호 (16자)
     properties:
       mail:
         smtp:
@@ -34,8 +29,7 @@ spring:
           starttls:
             enable: true
             required: true
-      debug: true
-
-      logging:
-        level:
-          org.springframework.security: DEBUG
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+        debug: true

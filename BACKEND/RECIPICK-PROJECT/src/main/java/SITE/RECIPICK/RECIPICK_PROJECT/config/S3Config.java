@@ -1,4 +1,5 @@
 package SITE.RECIPICK.RECIPICK_PROJECT.config;
 
-public class User {
+public class S3Config {
+
 }

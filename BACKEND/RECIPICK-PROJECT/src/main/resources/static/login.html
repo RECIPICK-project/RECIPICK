@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>로그인</title>
+  <link rel="stylesheet" href="css/login.css">
+  <script defer src="js/theme.js"></script>
+
+</head>
+<body>
+
+<!-- 로그인 화면 시작 -->
+<main class="phone" role="main" aria-label="로그인 화면">
+  <!-- 뒤로가기 버튼 -->
+  <button class="back" aria-label="뒤로 가기" type="button">
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M15 6l-6 6 6 6" stroke="#111827" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+
+  <div class="wrap">
+    <!-- 로고 자리 -->
+    <div class="logo">LOGO</div>
+
+    <!-- 아이디 / 비밀번호 입력 영역 -->
+    <div class="field">
+      <input class="input" type="text" inputmode="email" placeholder="아이디 입력" aria-label="아이디 입력" />
+      <input class="input" type="password" placeholder="비밀번호 입력" aria-label="비밀번호 입력" />
+    </div>
+
+    <!-- 로그인 CTA 버튼 -->
+    <div class="cta">
+      <button class="btn" type="button">로그인</button>
+    </div>
+
+    <!-- 회원가입/아이디찾기/비밀번호찾기 보조 링크 -->
+    <div class="links" aria-label="보조 링크">
+      <a href="signup.html">회원가입</a>
+      <div class="bar"></div>
+      <a href="find_id.html">아이디 찾기</a>
+      <div class="bar"></div>
+      <a href="find_pw.html">비밀번호 찾기</a>
+    </div>
+
+    <!-- 소셜 로그인 구분선 -->
+    <div class="section-title"><div class="line"></div><span>소셜 로그인</span><div class="line"></div></div>
+
+    <!-- 소셜 로그인 아이콘 버튼 (Google / Naver / Kakao) -->
+    <div class="socials">
+      <!-- Google -->
+      <button class="sbtn google" aria-label="Google로 로그인" title="Google">
+        <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.4 32.9 29 36 24 36c-6.6 0-12-5.4-12-12S17.4 12 24 12c3 0 5.7 1.1 7.7 3l5.7-5.7C34 5.2 29.3 3.3 24 3.3 12.5 3.3 3.3 12.5 3.3 24S12.5 44.7 24 44.7 44.7 35.5 44.7 24c0-1.1-.1-2.2-.3-3.5z"/>
+          <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.9 16.6 19 14 24 14c3 0 5.7 1.1 7.7 3l5.7-5.7C34 7.2 29.3 5.3 24 5.3 15.9 5.3 8.8 9.9 6.3 14.7z"/>
+          <path fill="#4CAF50" d="M24 42.7c5 0 9.6-1.9 13-5.1l-6-4.9c-2 1.4-4.6 2.2-7 2.2-5 0-9.3-3.2-10.9-7.6l-6.5 5C8.1 38.6 15.5 42.7 24 42.7z"/>
+          <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-1.1 2.7-3.1 4.8-5.7 6.3l.1.1 6 4.9c-.4.3 8-4.7 8-15.3 0-1.1-.1-2.2-.3-3.5z"/>
+        </svg>
+      </button>
+      <!-- NAVER -->
+      <button class="sbtn naver" aria-label="네이버로 로그인" title="NAVER">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
+          <rect width="24" height="24" fill="#03C75A" rx="4"/>
+          <path d="M7 5h4.4l5.6 7.8V5H19v14h-4.4L9 11.2V19H7z" fill="#fff"/>
+        </svg>
+      </button>
+      <!-- Kakao -->
+      <button class="sbtn kakao" aria-label="카카오로 로그인" title="Kakao">
+        <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M16 6C9.4 6 4 10.1 4 15c0 3.1 2.1 5.9 5.3 7.4L8 27l5.3-3c.9.1 1.7.2 2.7.2 6.6 0 12-4.1 12-9.2S22.6 6 16 6z" fill="#191600"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</main>
+<!-- 로그인 화면 끝 -->
+
+</body>
+</html>

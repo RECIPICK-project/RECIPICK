@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin · 세팅</title>
+  <link rel="stylesheet" href="css/tokens.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/admin.css" />
+  <link rel="stylesheet" href="css/admin_settings.css" />
+  <script defer src="js/theme.js"></script>
+</head>
+<body class="admin">
+<div class="admin-layout">
+  <aside class="side">
+    <div class="logo">LOGO</div>
+    <nav class="sidemenu">
+      <a class="m" href="admin.html">대시보드</a>
+      <a class="m" href="admin_reports.html">신고 관리</a>
+      <a class="m" href="admin_recipes.html">레시피/댓글 관리</a>
+      <a class="m" href="admin_users.html">유저 관리</a>
+      <a class="m active" href="admin_settings.html">세팅</a>
+    </nav>
+  </aside>
+
+  <main class="board">
+    <div class="topbar">
+      <h1>세팅</h1>
+      <div class="actions">
+        <button class="btn-ghost" id="exportBtn">내보내기(JSON)</button>
+        <label class="btn-ghost" for="importFile" style="cursor:pointer">가져오기(JSON)</label>
+        <input id="importFile" type="file" accept="application/json" style="display:none" />
+      </div>
+    </div>
+
+    <!-- 승격 규칙 -->
+    <section class="card" aria-labelledby="pTitle">
+      <h2 class="card-title" id="pTitle">레시피 승격 규칙</h2>
+      <p class="desc">임시 레시피를 정식으로 승격하는 기준입니다. (레시피/댓글 관리 화면에 반영됨)</p>
+
+      <div class="grid-3">
+        <label class="row">
+          <span>모드</span>
+          <select class="input" id="mode">
+            <option value="auto">자동 승격</option>
+            <option value="manual">수동 승인</option>
+          </select>
+        </label>
+
+        <label class="row">
+          <span>평가 기간(일)</span>
+          <input class="input" id="windowDays" type="number" min="1" value="7" />
+        </label>
+
+        <label class="row">
+          <span>쿨다운(시간)</span>
+          <input class="input" id="cooldown" type="number" min="0" value="24" />
+        </label>
+
+        <label class="row">
+          <span>좋아요 ≥</span>
+          <input class="input" id="minLikes" type="number" min="0" value="50" />
+        </label>
+
+        <label class="row">
+          <span>저장 ≥</span>
+          <input class="input" id="minSaves" type="number" min="0" value="20" />
+        </label>
+
+        <label class="row">
+          <span>평점 ≥</span>
+          <input class="input" id="minRating" type="number" step="0.1" min="0" max="5" value="4.3" />
+        </label>
+
+        <label class="row">
+          <span>평점 참여수 ≥</span>
+          <input class="input" id="minReviews" type="number" min="0" value="10" />
+        </label>
+
+        <label class="row">
+          <span>조회수 ≥</span>
+          <input class="input" id="minViews" type="number" min="0" value="1000" />
+        </label>
+      </div>
+
+      <div class="actions space-top">
+        <button class="btn" id="savePromotion">저장</button>
+        <button class="btn-ghost" id="resetPromotion">초기화</button>
+        <span class="badge ok" id="savedP" style="display:none">저장됨</span>
+      </div>
+    </section>
+
+    <!-- 신고 기본 정책 -->
+    <section class="card" aria-labelledby="rTitle">
+      <h2 class="card-title" id="rTitle">신고 기본 정책</h2>
+      <p class="desc">검토창 기본값/템플릿을 정의합니다. (사유에 맞게 선택 후 수정 가능)</p>
+      <div class="grid-3">
+        <label class="row">
+          <span>기본 처리</span>
+          <select class="input" id="reportDefaultAction">
+            <option value="keep">유지(문제 없음)</option>
+            <option value="hide">콘텐츠 숨기기</option>
+            <option value="restrict">작성 제한</option>
+          </select>
+        </label>
+
+        <label class="row">
+          <span>경미 정지(일)</span>
+          <input class="input" id="banLight" type="number" min="0" value="0" />
+        </label>
+
+        <label class="row">
+          <span>중간 정지(일)</span>
+          <input class="input" id="banMid" type="number" min="0" value="3" />
+        </label>
+
+        <label class="row">
+          <span>중대 정지(일)</span>
+          <input class="input" id="banHard" type="number" min="0" value="7" />
+        </label>
+      </div>
+
+      <div class="actions space-top">
+        <button class="btn" id="saveReport">저장</button>
+        <button class="btn-ghost" id="resetReport">초기화</button>
+        <span class="badge ok" id="savedR" style="display:none">저장됨</span>
+      </div>
+    </section>
+
+    <!-- UI 옵션 -->
+    <section class="card" aria-labelledby="uTitle">
+      <h2 class="card-title" id="uTitle">UI 옵션</h2>
+      <div class="grid-3">
+        <label class="row">
+          <span>대시보드 차트</span>
+          <select class="input" id="optCharts">
+            <option value="on">표시</option>
+            <option value="off">숨김</option>
+          </select>
+        </label>
+
+        <label class="row">
+          <span>리스트 밀도</span>
+          <select class="input" id="optDensity">
+            <option value="normal">보통</option>
+            <option value="compact">촘촘</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="actions space-top">
+        <button class="btn" id="saveUi">저장</button>
+        <span class="badge ok" id="savedU" style="display:none">저장됨</span>
+      </div>
+    </section>
+
+    <div class="foot">© RECIPICK Admin</div>
+  </main>
+</div>
+
+<script defer src="js/admin_settings.js"></script>
+</body>
+</html>

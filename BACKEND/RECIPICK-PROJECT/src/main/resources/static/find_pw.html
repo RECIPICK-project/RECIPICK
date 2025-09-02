@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>비밀번호 찾기</title>
+  <link rel="stylesheet" href="css/find_pw.css" />
+  <script defer src="js/theme.js"></script>
+
+</head>
+<body>
+<!-- 비밀번호 찾기 화면 시작 -->
+<main class="phone" role="main" aria-label="비밀번호 찾기 화면">
+  <button class="back" aria-label="뒤로 가기" type="button">
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15 6l-6 6 6 6" stroke="#111827" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+
+  <div class="wrap">
+    <div class="title">비밀번호 찾기</div>
+
+    <!-- 이메일 입력 -->
+    <div class="group">
+      <label class="label" for="fpw-email">가입한 이메일</label>
+      <div class="row">
+        <input id="fpw-email" class="input" type="email" placeholder="example@mail.com" />
+        <button class="small-btn" type="button">코드 발송</button>
+      </div>
+    </div>
+
+    <!-- 인증코드 입력 -->
+    <div class="group">
+      <label class="label">인증코드</label>
+      <div class="code-box">
+        <input class="digit" maxlength="1" inputmode="numeric" />
+        <input class="digit" maxlength="1" inputmode="numeric" />
+        <input class="digit" maxlength="1" inputmode="numeric" />
+        <input class="digit" maxlength="1" inputmode="numeric" />
+        <input class="digit" maxlength="1" inputmode="numeric" />
+        <input class="digit" maxlength="1" inputmode="numeric" />
+      </div>
+    </div>
+
+    <!-- 새 비밀번호 설정 -->
+    <div class="group">
+      <label class="label" for="newpw">새 비밀번호</label>
+      <input id="newpw" class="input" type="password" placeholder="새 비밀번호" />
+      <input id="newpw2" class="input" type="password" placeholder="새 비밀번호 확인" />
+    </div>
+
+    <div class="cta"><button class="submit" type="button">비밀번호 재설정</button></div>
+  </div>
+</main>
+<!-- 비밀번호 찾기 화면 끝 -->
+</body>
+</html>

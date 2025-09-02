@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>댓글 · 활동</title>
+  <link rel="stylesheet" href="css/tokens.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/comment.css" />
+  <script defer src="js/theme.js"></script>
+
+</head>
+<body>
+<main class="phone" role="main" aria-label="댓글/활동 화면">
+  <button class="back" aria-label="뒤로 가기" type="button" onclick="history.back()">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6" stroke="#111827" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+
+  <h1 class="header">댓글 · 활동</h1>
+
+  <!-- 상단 탭 -->
+  <div class="tabs" role="tablist">
+    <button class="tab-btn is-active" data-tab="mine" role="tab" aria-selected="true">내 댓글</button>
+    <button class="tab-btn" data-tab="received" role="tab" aria-selected="false">받은 답글</button>
+    <button class="tab-btn" data-tab="activity" role="tab" aria-selected="false">내 활동</button>
+  </div>
+
+  <!-- 탭: 내 댓글 -->
+  <section id="tab-mine" class="panel is-active" role="tabpanel" aria-label="내 댓글">
+    <ul class="list" id="mineList">
+      <!-- 아이템 예시 -->
+      <li class="item">
+        <a class="thumb" href="recipe.html?id=101" aria-label="레시피로 이동"></a>
+        <div class="content">
+          <a class="title" href="recipe.html?id=101">두부달걀 부침 간단반찬</a>
+          <p class="text">간장 1:설탕 0.5 비율로 하니까 딱이네요!</p>
+          <div class="meta">오늘 · 좋아요 3</div>
+        </div>
+        <button class="more" aria-label="더보기" data-menu="101">⋯</button>
+      </li>
+
+      <li class="item">
+        <a class="thumb" href="recipe.html?id=102"></a>
+        <div class="content">
+          <a class="title" href="recipe.html?id=102">에어프라이어 감자구이</a>
+          <p class="text">200도 15분 → 뒤집고 10분 추가가 바삭함 포인트!</p>
+          <div class="meta">어제 · 좋아요 1</div>
+        </div>
+        <button class="more" aria-label="더보기" data-menu="102">⋯</button>
+      </li>
+    </ul>
+
+    <button class="btn-ghost full" id="mineMore">더 보기</button>
+  </section>
+
+  <!-- 탭: 받은 답글 -->
+  <section id="tab-received" class="panel" role="tabpanel" aria-label="받은 답글">
+    <ul class="list" id="recvList">
+      <li class="item">
+        <a class="thumb" href="recipe.html?id=103"></a>
+        <div class="content">
+          <a class="title" href="recipe.html?id=103">새송이 버터간장볶음</a>
+          <p class="text"><strong>@cook***</strong> 답글: 버터 1T 대신 올리브유도 괜찮았어요!</p>
+          <div class="meta">1시간 전</div>
+        </div>
+        <button class="more" aria-label="더보기" data-menu="r103">⋯</button>
+      </li>
+    </ul>
+    <button class="btn-ghost full" id="recvMore">더 보기</button>
+  </section>
+
+  <!-- 탭: 내 활동 -->
+  <section id="tab-activity" class="panel" role="tabpanel" aria-label="내 활동">
+    <ul class="list" id="actList">
+      <li class="item plain">
+        <div class="content">
+          <p class="text">레시피 <a class="link" href="recipe.html?id=110">초스피드 김치볶음밥</a> 을 저장했습니다.</p>
+          <div class="meta">2일 전</div>
+        </div>
+      </li>
+      <li class="item plain">
+        <div class="content">
+          <p class="text">레시피 <a class="link" href="recipe.html?id=111">닭가슴살 샐러드</a> 에 좋아요를 눌렀습니다.</p>
+          <div class="meta">3일 전</div>
+        </div>
+      </li>
+    </ul>
+    <button class="btn-ghost full" id="actMore">더 보기</button>
+  </section>
+
+  <!-- 비어있을 때 -->
+  <template id="emptyTpl">
+    <div class="empty">
+      <p class="emptitle">아직 내용이 없어요</p>
+      <p class="empsub">레시피에 댓글을 남겨보세요.</p>
+      <a class="btn-primary" href="search.html">레시피 찾기</a>
+    </div>
+  </template>
+
+  <!-- 스켈레톤 -->
+  <template id="skeletonTpl">
+    <li class="item skeleton">
+      <div class="thumb"></div>
+      <div class="content">
+        <div class="sk-line w60"></div>
+        <div class="sk-line w90"></div>
+        <div class="sk-line w40"></div>
+      </div>
+      <div class="more ghost">⋯</div>
+    </li>
+  </template>
+
+  <!-- 탭바(확정 아이콘 세트) -->
+  <nav class="tabbar" aria-label="탭바">
+    <div class="tab"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg></div>
+    <div class="tab"><svg viewBox="0 0 24 24" fill="#E53935"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></div>
+    <div class="tab">
+      <div class="ring"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></div>
+    </div>
+    <div class="tab"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></div>
+    <div class="tab is-active"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c2-4 14-4 16 0"/></svg></div>
+  </nav>
+</main>
+
+<script src="js/comment.js"></script>
+</body>
+</html>

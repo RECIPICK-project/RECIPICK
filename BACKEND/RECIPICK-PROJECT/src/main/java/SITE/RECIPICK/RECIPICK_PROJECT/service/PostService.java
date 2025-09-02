@@ -3,6 +3,7 @@ package SITE.RECIPICK.RECIPICK_PROJECT.service;
 import SITE.RECIPICK.RECIPICK_PROJECT.dto.PostDto;
 import SITE.RECIPICK.RECIPICK_PROJECT.entity.PostEntity;
 import SITE.RECIPICK.RECIPICK_PROJECT.repository.PostRepository;
+import java.util.Arrays;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import lombok.RequiredArgsConstructor;
@@ -104,8 +105,12 @@ public class PostService {
         .ckgLevel(savedEntity.getCkgLevel())
         .ckgTime(savedEntity.getCkgTime())
         .rcpImgUrl(savedEntity.getRcpImgUrl())
-        .rcpSteps(savedEntity.getRcpSteps())
-        .rcpStepsImg(savedEntity.getRcpStepsImg())
+        // ===== ✅ 수정된 부분: String -> List<String> 변환 =====
+        // 데이터베이스에 "1. 내용 | 2. 내용" 형태로 저장된 문자열을
+        // 다시 ["1. 내용", "2. 내용"] 형태의 리스트로 변환하여 DTO에 담아 반환합니다.
+        // split(" \\| ")는 " | " (공백, 파이프, 공백)를 기준으로 문자열을 자릅니다.
+        .rcpSteps(Arrays.asList(savedEntity.getRcpSteps().split(" \\| ")))
+        .rcpStepsImg(Arrays.asList(savedEntity.getRcpStepsImg().split(" \\| ")))
 //        .rcpIsOfficial(savedEntity.getRcpIsOfficial())
         .build();
 
@@ -117,3 +122,4 @@ public class PostService {
     // 이 모든 정보가 포함되어 Controller로 전달됨
   }
 }
+

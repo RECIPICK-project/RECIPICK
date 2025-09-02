@@ -42,6 +42,15 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
     implementation 'me.paulschwarz:spring-dotenv:4.0.0'
+
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
+    // Tesseract OCR
+    implementation 'net.sourceforge.tess4j:tess4j:5.8.0'
+    // 이미지 처리를 위한 의존성
+    implementation 'org.apache.commons:commons-imaging:1.0.0-alpha5'
+    // 파일 업로드 처리
+    implementation 'commons-fileupload:commons-fileupload:1.5'
+    implementation 'commons-io:commons-io:2.11.0'
 }
 // ============ Google Java Style Guide 설정 ============
 

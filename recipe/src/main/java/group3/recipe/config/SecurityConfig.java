@@ -2,12 +2,16 @@ package group3.recipe.config;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @RequiredArgsConstructor
@@ -18,23 +22,34 @@ public class SecurityConfig {
   @Bean
   SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     http
+            // ✅ 프론트(라이브 서버 5500)에서 API 호출 허용
+        .cors(cors -> cors.configurationSource(corsConfigurationSource()))
         .csrf(csrf -> csrf.disable())
         .authorizeHttpRequests(auth -> auth
             .requestMatchers("/", "/home.html", "/login.html", "/signup", "/signup.html",
-                "/verify-email.html",               //
+                "/email-verification.html",               //
                 "/css/**", "/js/**").permitAll()
             // ✅ 이메일 인증 API는 로그인 없이 접근 가능
             .requestMatchers("/api/auth/email/**").permitAll()
 
+            // ✅ 중복 확인 API (비로그인 허용)
+            .requestMatchers("/api/users/check-email", "/api/users/check-nickname").permitAll()
+
+            // ✅ 회원가입/로그인 API (비로그인 허용)
+            .requestMatchers("/api/users/signup", "/api/users/login").permitAll()
+
             // ✅ OAuth2 관련 엔드포인트 허용
             .requestMatchers("/oauth2/**", "/login/oauth2/**", "/oauth2/authorization/**").permitAll()
 
-            .requestMatchers("/user-home.html").hasAnyRole("USER","ADMIN")
+            // ✅페이지 접근 권한
+            .requestMatchers("/main.html").hasAnyRole("USER","ADMIN")
             .requestMatchers("/admin.html").hasRole("ADMIN")
 
-            .requestMatchers("/api/users/signup", "/api/users/login", "/api/users/check-nickname").permitAll()
+            // ✅관리용 API
             .requestMatchers("/api/users/all", "/api/users/set-active").hasRole("ADMIN")
             .requestMatchers("/api/admin/**").hasRole("ADMIN")
+
+            // ✅나머지 사용자 API
             .requestMatchers("/api/users/**").hasAnyRole("USER","ADMIN")
             .anyRequest().authenticated()
         )
@@ -43,7 +58,7 @@ public class SecurityConfig {
             .loginProcessingUrl("/login")
             .usernameParameter("email")          // ⬅️ 폼에서 name="email"이면 꼭 추가
             .passwordParameter("password")       // (옵션) 기본값과 동일
-            .successHandler((req, res, auth) -> res.sendRedirect("/user-home.html"))
+            .successHandler((req, res, auth) -> res.sendRedirect("/main.html"))
             .failureHandler((req, res, ex) -> {  // ⬅️ 실패 원인 확인용
               ex.printStackTrace();
               String msg = java.net.URLEncoder.encode(
@@ -77,6 +92,24 @@ public class SecurityConfig {
     ;
 
     return http.build();
+  }
+  // ✅ 프론트(라이브 서버) 오리진 허용: 주소/포트 필요에 맞게 추가
+  @Bean
+  public CorsConfigurationSource corsConfigurationSource() {
+    CorsConfiguration c = new CorsConfiguration();
+    c.setAllowedOriginPatterns(List.of(
+        "http://127.0.0.1:5500",
+        "http://localhost:5500"
+        // 필요하면 추가: "http://localhost:3000", "http://localhost:5173" 등
+    ));
+    c.setAllowedMethods(List.of("GET","POST","PUT","DELETE","PATCH","OPTIONS"));
+    c.setAllowedHeaders(List.of("*"));
+    // 쿠키/세션을 쓸 때만 true (JWT 헤더 방식이면 false여도 됨)
+    c.setAllowCredentials(true);
+
+    UrlBasedCorsConfigurationSource src = new UrlBasedCorsConfigurationSource();
+    src.registerCorsConfiguration("/**", c);
+    return src;
   }
 
   @Bean

@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -75,10 +76,40 @@ public class UserController {
     }
 
     @GetMapping("/check-nickname")
-    public Map<String, Boolean> checkNickname(@RequestParam String nickname) {
-        log.info("닉네임 체크 요청: {}", nickname);
-        boolean exists = userService.isNicknameExists(nickname);
-        log.info("닉네임 존재 여부: {}", exists);
-        return Map.of("exists", exists);
+    public ResponseEntity<Map<String, Object>> checkNickname(@RequestParam String nickname) {
+        final String nn = nickname == null ? "" : nickname.trim();
+
+        // 닉네임 형식 검증 (예: 한글만)
+        if (!nn.matches("^[가-힣]+$")) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "ok", false,
+                "message", "닉네임은 한글만 가능합니다."
+            ));
+        }
+
+        boolean exists = userService.isNicknameExists(nn);
+        return ResponseEntity.ok(Map.of(
+            "ok", true,
+            "exists", exists
+        ));
+    }
+
+    @GetMapping("/check-email")
+    public ResponseEntity<Map<String, Object>> checkEmail(@RequestParam String email) {
+        final String em = email == null ? "" : email.trim().toLowerCase();
+
+        // 아주 간단한 이메일 형식 체크 (정교한 @Email 사용도 가능)
+        if (!em.matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "ok", false,
+                "message", "올바른 이메일 형식이 아닙니다."
+            ));
+        }
+
+        boolean exists = userService.isEmailExists(em);
+        return ResponseEntity.ok(Map.of(
+            "ok", true,
+            "exists", exists
+        ));
     }
 }

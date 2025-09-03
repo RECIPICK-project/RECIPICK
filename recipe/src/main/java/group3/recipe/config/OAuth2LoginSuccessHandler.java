@@ -96,7 +96,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         user.setActive(true);
         userRepository.save(user);
       }
-      response.sendRedirect("/user-home.html");
+      response.sendRedirect("/main.html");
       return;
     }
 
@@ -110,7 +110,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
     }
 
     String q = URLEncoder.encode(email, StandardCharsets.UTF_8);
-    response.sendRedirect("/verify-email.html?email=" + q);
+    response.sendRedirect("/email-verification.html?email=" + q);
   }
 
   private static String asString(Object o) { return o == null ? null : String.valueOf(o); }

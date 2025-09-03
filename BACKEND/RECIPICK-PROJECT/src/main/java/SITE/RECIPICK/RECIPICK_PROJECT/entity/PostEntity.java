@@ -29,10 +29,10 @@ public class PostEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "post_id")
-  private Long postId;
+  private Integer postId;
 
   @Column(name = "user_id", nullable = false)
-  private Long userId;
+  private Integer userId;
 
   @Column(name = "title", nullable = false, length = 200)
   private String title;
@@ -47,6 +47,16 @@ public class PostEntity {
   @Column(name = "like_count")
   @Builder.Default
   private Integer likeCount = 0;
+
+  // 정식 레시피 여부 (0: 임시, 1: 정식)
+  @Column(name = "rcp_is_official", columnDefinition = "TINYINT DEFAULT 0")
+  @Builder.Default
+  private Integer rcpIsOfficial = 0;
+
+  // 신고 횟수
+  @Column(name = "report_count")
+  @Builder.Default
+  private Integer reportCount = 0;
 
   // 조리방법 (드롭다운)
   @Enumerated(EnumType.STRING)
@@ -91,15 +101,6 @@ public class PostEntity {
   @Column(name = "rcp_steps_img", columnDefinition = "TEXT")
   private String rcpStepsImg;
 
-  // 정식 레시피 여부 (0: 임시, 1: 정식)
-  @Column(name = "rcp_is_official", columnDefinition = "TINYINT DEFAULT 0")
-  @Builder.Default
-  private Integer rcpIsOfficial = 0;
-
-  // 신고 횟수
-  @Column(name = "report_count")
-  @Builder.Default
-  private Integer reportCount = 0;
 
   @CreationTimestamp
   @Column(name = "created_at", nullable = false, updatable = false)
@@ -108,7 +109,7 @@ public class PostEntity {
   @UpdateTimestamp
   @Column(name = "updated_at")
   private LocalDateTime updatedAt;
-  
+
   // 조리방법 enum
   @Getter
   public enum CookingMethod {

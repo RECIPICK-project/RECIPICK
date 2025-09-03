@@ -22,8 +22,10 @@ import lombok.NoArgsConstructor;
 public class PostDto {
 
   // 글 제목
+  @NotNull(message = "제목을 입력해주세요(예 : 오늘 저녁은 짜파게티다.) ")
   private String title;
   // 음식 제목
+  @NotNull(message = "음식이름을 입력해주세요(짜파게티) ")
   private String foodName;
   // ✅ 조리방법 - 필수
   @NotNull(message = "조리방법을 선택해주세요")

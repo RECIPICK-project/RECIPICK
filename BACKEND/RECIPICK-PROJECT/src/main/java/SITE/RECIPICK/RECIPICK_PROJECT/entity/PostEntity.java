@@ -34,9 +34,11 @@ public class PostEntity {
   @Column(name = "user_id", nullable = false)
   private Integer userId;
 
+  // ✅ 필수 필드로 변경
   @Column(name = "title", nullable = false, length = 200)
   private String title;
 
+  // ✅ 필수 필드로 변경
   @Column(name = "food_name", nullable = false, length = 100)
   private String foodName;
 
@@ -48,59 +50,58 @@ public class PostEntity {
   @Builder.Default
   private Integer likeCount = 0;
 
-  // 정식 레시피 여부 (0: 임시, 1: 정식)
   @Column(name = "rcp_is_official", columnDefinition = "TINYINT DEFAULT 0")
   @Builder.Default
   private Integer rcpIsOfficial = 0;
 
-  // 신고 횟수
   @Column(name = "report_count")
   @Builder.Default
   private Integer reportCount = 0;
 
-  // 조리방법 (드롭다운)
+  // ✅ 조리방법 - 필수 필드로 변경
   @Enumerated(EnumType.STRING)
-  @Column(name = "ckg_mth", length = 100)
+  @Column(name = "ckg_mth", nullable = false, length = 100)
   private CookingMethod ckgMth;
 
-  // 카테고리 (드롭다운)
+  // ✅ 카테고리 - 필수 필드로 변경
   @Enumerated(EnumType.STRING)
-  @Column(name = "ckg_category", length = 100)
+  @Column(name = "ckg_category", nullable = false, length = 100)
   private CookingCategory ckgCategory;
 
-  // 요리 종류 (드롭다운)
+  // ✅ 요리 종류 - 필수 필드로 변경
   @Enumerated(EnumType.STRING)
-  @Column(name = "ckg_knd", length = 100)
+  @Column(name = "ckg_knd", nullable = false, length = 100)
   private CookingKind ckgKnd;
 
-  // 재료내용 (각 div박스에서 입력받은 재료들을 | 구분자로 저장)
-  @Column(name = "ckg_mtrl_cn", columnDefinition = "TEXT")
+  // ✅ 재료내용 - 필수 필드로 변경
+  @Column(name = "ckg_mtrl_cn", nullable = false, columnDefinition = "TEXT")
   private String ckgMtrlCn;
 
-  // 몇 인분
-  @Column(name = "ckg_inbun")
-  private Integer ckgInbun;
+  // ✅ 몇 인분 - 필수 필드, 드롭다운 (1~10)
+  @Enumerated(EnumType.ORDINAL)
+  @Column(name = "ckg_inbun", nullable = false)
+  private CookingInbun ckgInbun;
 
-  // 조리 난이도 (1~5)
-  @Column(name = "ckg_level")
-  private Integer ckgLevel;
+  // ✅ 조리 난이도 - 필수 필드, 드롭다운 (1~5)
+  @Enumerated(EnumType.ORDINAL)
+  @Column(name = "ckg_level", nullable = false)
+  private CookingLevel ckgLevel;
 
-  // 조리시간 (분 단위)
-  @Column(name = "ckg_time")
-  private Integer ckgTime;
+  // ✅ 조리시간 - 필수 필드, 드롭다운 (10, 15, 20, 30, 90, 120)
+  @Enumerated(EnumType.ORDINAL)
+  @Column(name = "ckg_time", nullable = false)
+  private CookingTime ckgTime;
 
-  // 썸네일 이미지 URL
-  @Column(name = "rcp_img_url", length = 500)
+  // ✅ 썸네일 이미지 URL - 필수 필드로 변경
+  @Column(name = "rcp_img_url", nullable = false, length = 500)
   private String rcpImgUrl;
 
-  // 조리 단계별 설명 (| 구분자로 저장)
-  @Column(name = "rcp_steps", columnDefinition = "TEXT")
+  // ✅ 조리 단계별 설명 - 필수 필드로 변경
+  @Column(name = "rcp_steps", nullable = false, columnDefinition = "TEXT")
   private String rcpSteps;
 
-  // 단계별 이미지 URLs (| 구분자로 저장, 선택사항)
   @Column(name = "rcp_steps_img", columnDefinition = "TEXT")
   private String rcpStepsImg;
-
 
   @CreationTimestamp
   @Column(name = "created_at", nullable = false, updatable = false)
@@ -110,7 +111,67 @@ public class PostEntity {
   @Column(name = "updated_at")
   private LocalDateTime updatedAt;
 
-  // 조리방법 enum
+  // ✅ 몇 인분 enum (1~10)
+  @Getter
+  public enum CookingInbun {
+    ONE(1, "1인분"),
+    TWO(2, "2인분"),
+    THREE(3, "3인분"),
+    FOUR(4, "4인분"),
+    FIVE(5, "5인분"),
+    SIX(6, "6인분"),
+    SEVEN(7, "7인분"),
+    EIGHT(8, "8인분"),
+    NINE(9, "9인분"),
+    TEN(10, "10인분");
+
+    private final int value;
+    private final String description;
+
+    CookingInbun(int value, String description) {
+      this.value = value;
+      this.description = description;
+    }
+  }
+
+  // ✅ 조리 난이도 enum (1~5)
+  @Getter
+  public enum CookingLevel {
+    LEVEL_1(1, "매우 쉬움"),
+    LEVEL_2(2, "쉬움"),
+    LEVEL_3(3, "보통"),
+    LEVEL_4(4, "어려움"),
+    LEVEL_5(5, "매우 어려움");
+
+    private final int value;
+    private final String description;
+
+    CookingLevel(int value, String description) {
+      this.value = value;
+      this.description = description;
+    }
+  }
+
+  // ✅ 조리시간 enum (10, 15, 20, 30, 90, 120분)
+  @Getter
+  public enum CookingTime {
+    TIME_10(10, "10분"),
+    TIME_15(15, "15분"),
+    TIME_20(20, "20분"),
+    TIME_30(30, "30분"),
+    TIME_90(90, "1시간 30분"),
+    TIME_120(120, "2시간");
+
+    private final int minutes;
+    private final String description;
+
+    CookingTime(int minutes, String description) {
+      this.minutes = minutes;
+      this.description = description;
+    }
+  }
+
+  // 조리방법 enum (기존)
   @Getter
   public enum CookingMethod {
     BOILING("끓이기"),
@@ -133,7 +194,7 @@ public class PostEntity {
     }
   }
 
-  // 요리 카테고리 enum
+  // 요리 카테고리 enum (기존)
   @Getter
   public enum CookingCategory {
     KOREAN("한식"),
@@ -157,7 +218,7 @@ public class PostEntity {
     }
   }
 
-  // 요리 종류 enum
+  // 요리 종류 enum (기존)
   @Getter
   public enum CookingKind {
     RICE("밥류"),

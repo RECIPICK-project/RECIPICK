@@ -28,12 +28,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/post")
 @Tag(name = "레시피 관리", description = "레시피 생성, 수정, 삭제 등을 관리하는 API")
-public class PostController {
+public class PostRestController {
 
   private final PostService postService;
 
   /**
-   * 레시피 저장 API POST /post/save
+   * 레시피 저장 API POST/post/save
    */
   @Operation(
       summary = "레시피 저장",

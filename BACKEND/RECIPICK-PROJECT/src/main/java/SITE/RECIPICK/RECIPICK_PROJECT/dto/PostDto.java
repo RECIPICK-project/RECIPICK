@@ -9,6 +9,7 @@ import SITE.RECIPICK.RECIPICK_PROJECT.entity.PostEntity.CookingTime;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,9 +24,11 @@ public class PostDto {
 
   // 글 제목
   @NotNull(message = "제목을 입력해주세요(예 : 오늘 저녁은 짜파게티다.) ")
+  @Size(max = 100, message = "제목은 100자를 초과할 수 없습니다.")
   private String title;
   // 음식 제목
   @NotNull(message = "음식이름을 입력해주세요(짜파게티) ")
+  @Size(max = 50, message = "음식명은 50자를 초과할 수 없습니다.")
   private String foodName;
   // ✅ 조리방법 - 필수
   @NotNull(message = "조리방법을 선택해주세요")

@@ -33,7 +33,7 @@ public class PostRestController {
   private final PostService postService;
 
   /**
-   * 레시피 저장 API POST /post/save
+   * 레시피 저장 API POST/post/save
    */
   @Operation(
       summary = "레시피 저장",

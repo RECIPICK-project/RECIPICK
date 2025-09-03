@@ -1,60 +1,113 @@
 :root {
+    /* palette */
+    --green-700: #2e7d32;
+    --green-600: #388e3c;
+    --green-500: #4caf50;
+    --mint-200: #c8e6c9;
+    --bg: #f1f8e9;
+    --amber: #f4b942;
+    --text: #111827;
+    --muted: #6b7280;
+    --white: #fff;
+    --line: #e5e7eb;
     --soft: #f9fbe7;
     --tabbar-h: 60px; /* 레이아웃 여유치 계산용 */
 }
 
-/* 프레임(지금까지 쓰던 모바일 프레임 톤 그대로) */
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    margin: 0;
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR",
+        sans-serif;
+}
+
+/* 프레임(데스크톱 버전으로 조정) */
 body.detail {
     min-height: 100vh;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
     background: var(--bg);
     margin: 0;
-}
-.phone.upload {
-    width: 375px;
-    height: 812px;
-    max-height: 100vh;
-    background: var(--soft);
-    border: 1px solid #eef0ee;
-    border-radius: 22px;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    position: relative;
+    padding: 20px 0;
 }
 
-/* 헤더/공통 */
+/* 메인 컨테이너 - 800px로 변경 */
+.phone.upload,
+.desktop-container {
+    width: 800px;
+    max-width: 95vw;
+    background: var(--soft);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    min-height: 600px;
+}
+
+/* 헤더 */
 .head {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 12px 14px;
+    justify-content: space-between;
+    padding: 18px 20px;
+    background: #fff;
+    border-bottom: 1px solid var(--line);
 }
+
 .head h1 {
-    margin: 0 auto 0 0;
-    font-size: 18px;
+    margin: 0;
+    font-size: 22px;
     font-weight: 800;
+    color: var(--text);
+    text-align: center;
+    flex: 1;
+    padding: 0 16px;
 }
+
 .back {
     width: 40px;
     height: 40px;
-    border-radius: 9999px;
-    border: 1px solid #ececec;
+    border-radius: 50%;
+    border: 1px solid var(--line);
     background: #fff;
     display: grid;
     place-items: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
 }
+
+.back:hover {
+    background: #f8f9fa;
+    transform: scale(1.05);
+}
+
 .spacer {
     width: 40px;
     height: 40px;
+    flex-shrink: 0;
 }
 
+/* 메인 콘텐츠 */
 .wrap {
-    padding: 0 14px calc(var(--tabbar-h) + 24px);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    max-width: 760px; /* 800 - 40px padding */
+    margin: 0 auto;
 }
+
 .block {
-    margin-bottom: 12px;
+    margin-bottom: 0;
 }
 
 /* 카드 */
@@ -62,15 +115,21 @@ body.detail {
     background: #fff;
     border: 1px solid var(--line);
     border-radius: 14px;
-    padding: 12px;
-    display: block;
+    padding: 18px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    transition: all 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
 }
 
 /* 썸네일 업로드 박스 */
 .thumb {
     display: block;
     width: 100%;
-    height: 180px;
+    height: 240px;
     border-radius: 12px;
     border: 2px dashed #cfd8dc;
     background: #f8faf8;
@@ -79,12 +138,20 @@ body.detail {
     cursor: pointer;
     position: relative;
     overflow: hidden;
+    transition: all 0.3s ease;
 }
+
+.thumb:hover {
+    border-color: var(--amber);
+    background: #fefdf8;
+}
+
 .thumb.has-img {
     border-style: solid;
     border-color: var(--line);
     background: #000;
 }
+
 .thumb img {
     position: absolute;
     inset: 0;
@@ -92,116 +159,262 @@ body.detail {
     height: 100%;
     object-fit: cover;
 }
+
 .thumb-cta {
-    width: 44px;
-    height: 44px;
-    border-radius: 9999px;
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
     background: #fff;
     color: var(--green-700);
     display: grid;
     place-items: center;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
     z-index: 1;
+    font-size: 22px;
 }
 
-/* 드롭다운 3열 */
+/* 입력 필드 */
+.input,
+.textarea {
+    width: 100%;
+    background: var(--white);
+    border: 2px solid var(--green-500);
+    border-radius: 10px;
+    padding: 11px 14px;
+    font-size: 15px;
+    outline: none;
+    transition: all 0.2s ease;
+    margin-bottom: 10px;
+}
+
+.input:focus,
+.textarea:focus {
+    border-color: var(--green-700);
+    box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
+}
+
+.textarea {
+    min-height: 100px;
+    resize: vertical;
+    font-family: inherit;
+}
+
+/* 드롭다운 3열 - 기존과 새로운 드롭다운에 모두 적용 */
 .selects {
     display: grid;
-    gap: 10px;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-.select-col .label {
-    display: block;
-    font-size: 12px;
-    color: var(--muted);
-    margin: 0 0 4px;
+    gap: 14px;
+    grid-template-columns: repeat(3, 1fr);
 }
 
-/* 재료 */
+.select-col .label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    margin: 0 0 6px;
+}
+
+.select-col select {
+    width: 100%;
+    height: 44px;
+    padding: 0 12px;
+    border: 2px solid var(--green-500);
+    border-radius: 10px;
+    background: var(--white);
+    font-size: 15px;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: 0;
+}
+
+.select-col select:focus {
+    outline: none;
+    border-color: var(--green-700);
+    box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
+}
+
+/* 비활성화된 옵션 스타일링 */
+.select-col select option:disabled {
+    color: var(--muted);
+    font-style: italic;
+}
+
+/* 섹션 헤더 */
 .section-head {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 8px;
+    margin-bottom: 14px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid var(--soft);
 }
+
 .section-head h2 {
     margin: 0;
-    font-size: 14px;
+    font-size: 18px;
     font-weight: 800;
+    color: #374151;
 }
+
+.section-head button {
+    background: #fff;
+    border: 1px solid var(--line);
+    color: var(--text);
+    height: 32px;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 0 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.section-head button:hover {
+    background: var(--soft);
+    border-color: var(--green-500);
+}
+
+/* 버튼 */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 46px;
+    padding: 0 14px;
+    border: none;
+    border-radius: 10px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background: var(--amber);
+    color: #fff;
+}
+
+.btn-primary:hover {
+    background: #e0a832;
+    transform: translateY(-1px);
+}
+
+.btn-ghost {
+    background: #fff;
+    border: 1px solid var(--line);
+    color: var(--text);
+    height: 32px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.btn-ghost:hover {
+    background: var(--soft);
+    border-color: var(--green-500);
+}
+
+.btn-ghost.small {
+    height: 28px;
+    padding: 0 10px;
+    font-size: 12px;
+}
+
+/* 재료 */
 .ing-list {
-    display: grid;
-    gap: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
+
 .ing-row {
     display: grid;
-    grid-template-columns: 1fr 1fr 40px;
-    gap: 8px;
+    grid-template-columns: 2fr 1fr 38px;
+    gap: 10px;
     align-items: center;
 }
+
+.ing-row .input {
+    margin-bottom: 0;
+}
+
 .mini {
-    height: 36px;
-    padding: 0 10px;
+    height: 38px;
+    padding: 0 12px;
     border-radius: 8px;
     border: 1px solid var(--line);
     background: #fff;
     cursor: pointer;
+    font-size: 13px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
+
+.mini:hover {
+    background: #f8f9fa;
+}
+
 .mini.warn {
     border-color: #e53935;
     color: #e53935;
+    background: #fff5f5;
 }
 
-/* 단계 */
+/* 조리 단계 */
 .step-list {
-    display: grid;
-    gap: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
     margin: 0;
     padding: 0;
     list-style: none;
 }
+
 .step-item {
     border: 1px solid var(--line);
-    border-radius: 12px;
-    padding: 10px;
+    border-radius: 14px;
+    padding: 14px;
+    background: #fff;
 }
+
 .step-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
 }
+
 .step-head .no {
     font-weight: 800;
+    font-size: 15px;
+    color: var(--amber);
 }
+
 .step-body {
-    display: grid;
-    gap: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
+
+/* 단계 사진 영역 - 세로 배치 */
 .step-photo {
-    display: grid;
-    grid-template-columns: 1fr 44px;
-    gap: 8px;
-    align-items: center;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
-.photo-btn {
-    width: 44px;
-    height: 44px;
-    border-radius: 10px;
-    border: 1px solid var(--line);
-    background: #fff;
-    display: grid;
-    place-items: center;
-    cursor: pointer;
-}
+
 .photo-preview {
-    height: 140px;
+    height: 160px;
     border: 1px dashed #cfd8dc;
     border-radius: 10px;
     background: #f8faf8;
     overflow: hidden;
     position: relative;
+    order: 2; /* 사진이 버튼 아래 오도록 */
 }
+
 .photo-preview img {
     position: absolute;
     inset: 0;
@@ -210,41 +423,127 @@ body.detail {
     object-fit: cover;
 }
 
-/* 저장 */
-.savebar {
-    padding: 4px 0 16px;
-}
-.save {
+.photo-btn {
     width: 100%;
-    height: 46px;
-    font-weight: 800;
-    background: var(--accent);
-    color: #fff;
-    border: 0;
-    border-radius: 12px;
+    height: 38px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    order: 1; /* 버튼이 사진 위에 오도록 */
+    gap: 6px;
 }
 
-/* 반응(좁을 때 2열로) */
-@media (max-width: 360px) {
-    .selects {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+.photo-btn:hover {
+    background: var(--soft);
+    border-color: var(--amber);
+    color: var(--amber);
+}
+
+/* 저장 버튼 */
+.savebar {
+    display: flex;
+    justify-content: center;
+    padding: 18px 0;
+}
+
+.save {
+    width: 260px;
+    height: 50px;
+    background: var(--amber);
+    color: #fff;
+    border: none;
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(244, 185, 66, 0.3);
+}
+
+.save:hover {
+    transform: translateY(-2px);
+    background: #e0a832;
+    box-shadow: 0 6px 24px rgba(244, 185, 66, 0.4);
+}
+
+.save:active {
+    transform: translateY(0);
+}
+
+/* 반응형 - 드롭다운 그리드 조정 */
+@media (max-width: 850px) {
+    .phone.upload,
+    .desktop-container {
+        width: 95%;
     }
 }
 
-/* 저장 버튼 스타일 */
-.savebar {
-    width: 100%;
-    height: 48px;
-    margin-top: 20px;
-    border: none;
-    border-radius: 12px;
-    background: #f4b942; /* 강조 색상 */
-    color: #fff; /* 글자 흰색 */
-    font-weight: 700;
-    font-size: 15px;
-    cursor: pointer;
+@media (max-width: 768px) {
+    /* 드롭다운을 2열로 변경 */
+    .selects {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .ing-row {
+        grid-template-columns: 1fr 80px 36px;
+    }
+
+    .wrap {
+        padding: 14px;
+    }
+
+    .head h1 {
+        font-size: 20px;
+        padding: 0 12px;
+    }
+
+    .back {
+        width: 36px;
+        height: 36px;
+    }
+
+    .spacer {
+        width: 36px;
+        height: 36px;
+    }
 }
-.savebar {
-    transform: translateY(1px);
-    background: #e0a832; /* 눌렀을 때 살짝 어두워짐 */
+
+@media (max-width: 480px) {
+    /* 모바일에서는 드롭다운을 1열로 변경 */
+    .selects {
+        grid-template-columns: 1fr;
+    }
+
+    .phone.upload,
+    .desktop-container {
+        width: 100vw;
+        height: 100vh;
+        border-radius: 0;
+        margin: 0;
+        max-height: 100vh;
+    }
+
+    body.detail {
+        padding: 0;
+    }
+
+    .head {
+        padding: 16px 20px;
+    }
+
+    .wrap {
+        padding: 16px;
+    }
+}
+
+/* 숨김 처리 */
+[hidden] {
+    display: none !important;
 }

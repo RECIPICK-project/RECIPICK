@@ -1,13 +1,13 @@
-package SITE.RECIPICK.RECIPICK_PROJECT.repository;
+package SITE.RECIPICK.RECIPICK_PROJECT.repository.search;
 
-import SITE.RECIPICK.RECIPICK_PROJECT.entity.Post;
+import SITE.RECIPICK.RECIPICK_PROJECT.entity.search.SearchPost;
 import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface SearchRepositoryCustom {
 
-  Page<Post> searchRecipes(List<String> mainIngredients,
+  Page<SearchPost> searchRecipes(List<String> mainIngredients,
       List<String> subIngredients,
       String sortType,
       Pageable pageable);

@@ -1,8 +1,8 @@
 // 기존 IngredientRepository에 OCR 기능을 위한 메서드들만 추가하세요
 
-package SITE.RECIPICK.RECIPICK_PROJECT.repository;
+package SITE.RECIPICK.RECIPICK_PROJECT.repository.search;
 
-import SITE.RECIPICK.RECIPICK_PROJECT.entity.Ingredient;
+import SITE.RECIPICK.RECIPICK_PROJECT.entity.search.Ingredient;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

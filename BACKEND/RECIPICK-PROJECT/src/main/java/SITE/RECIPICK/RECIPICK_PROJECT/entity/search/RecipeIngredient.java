@@ -1,4 +1,4 @@
-package SITE.RECIPICK.RECIPICK_PROJECT.entity;
+package SITE.RECIPICK.RECIPICK_PROJECT.entity.search;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -31,7 +31,7 @@ public class RecipeIngredient {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "post_id", insertable = false, updatable = false)
-  private Post post;
+  private SearchPost searchPost;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "ing_id", insertable = false, updatable = false)

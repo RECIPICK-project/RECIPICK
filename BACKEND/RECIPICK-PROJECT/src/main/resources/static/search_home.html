@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1, maximum-scale=1" name="viewport"/>
+  <title>SEARCH · 홈</title>
+
+  <!-- 공용 -->
+  <link href="css/tokens.css" rel="stylesheet"/>
+  <link href="css/components.css" rel="stylesheet"/>
+
+  <!-- 전용 -->
+  <link href="css/search_home.css" rel="stylesheet"/>
+
+  <script defer src="js/theme.js"></script>
+  <script defer src="js/search_home.js"></script>
+</head>
+<body class="detail">
+<main aria-label="검색 홈" class="phone search-home" role="main">
+  <!-- 헤더 -->
+  <header class="head">
+    <button aria-label="뒤로 가기" class="back" onclick="history.back()">
+      <svg fill="none" height="20" stroke="#111827" stroke-width="2" viewBox="0 0 24 24" width="20">
+        <path d="M15 6l-6 6 6 6"/>
+      </svg>
+    </button>
+    <h1>검색</h1>
+    <span class="spacer"></span>
+  </header>
+
+  <!-- 검색 바: 레시피명 전용 -->
+  <section class="wrap">
+    <form aria-label="레시피 이름 검색" class="search-row" id="recipeSearchForm" role="search">
+      <svg class="icon" fill="none" height="18" stroke="#6b7280" stroke-width="2"
+           viewBox="0 0 24 24"
+           width="18">
+        <circle cx="11" cy="11" r="7"/>
+        <path d="M20 20l-3.5-3.5"/>
+      </svg>
+      <input autocomplete="off" class="search-input" id="recipeQuery" placeholder="레시피 이름으로 검색"
+             type="search"/>
+      <button class="btn-go" type="submit">검색</button>
+    </form>
+
+    <!-- 정렬 (라벨 제거) -->
+    <div class="toolbar">
+      <select class="input" id="sortSel">
+        <option value="popular">인기순</option>
+        <option value="latest">최신순</option>
+        <option value="rating">조회순</option>
+      </select>
+    </div>
+
+    <!-- 결과 수 -->
+    <div class="count" id="resultCount">총 0개 레시피</div>
+
+    <!-- 1열 큰 카드 리스트 -->
+    <div class="list" id="cardList">
+      <!-- JS 렌더 -->
+    </div>
+
+    <!-- 더보기 -->
+    <button class="loadmore" hidden id="loadMore" type="button">더 보기</button>
+  </section>
+
+  <!-- 탭바(항상 흰색 / 프레임 하단 고정) -->
+  <nav aria-label="하단 탭" class="tabbar">
+    <a aria-label="메뉴" class="tab" href="menu.html">
+      <svg fill="none" height="22" stroke="#6b7280" stroke-width="2" viewBox="0 0 24 24" width="22">
+        <path d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+    </a>
+
+    <a aria-label="좋아요" class="tab" href="likes.html">
+      <svg fill="#6b7280" height="22" viewBox="0 0 24 24" width="22">
+        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5
+                 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09
+                 C13.09 3.81 14.76 3 16.5 3
+                 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55
+                 11.54L12 21.35z"/>
+      </svg>
+    </a>
+
+    <a aria-label="검색" class="tab is-active" href="search_home.html">
+      <div class="ring">
+        <svg fill="none" height="22" stroke="#6b7280" stroke-width="2" viewBox="0 0 24 24"
+             width="22">
+          <circle cx="11" cy="11" r="7"/>
+          <path d="M20 20l-3.5-3.5"/>
+        </svg>
+      </div>
+    </a>
+
+    <a aria-label="업로드" class="tab" href="post_upload.html">
+      <svg fill="none" height="22" stroke="#6b7280" stroke-width="2" viewBox="0 0 24 24" width="22">
+        <path d="M12 5v14M5 12h14"/>
+      </svg>
+    </a>
+
+    <a aria-label="프로필" class="tab" href="profile.html">
+      <svg fill="none" height="22" stroke="#6b7280" stroke-width="2" viewBox="0 0 24 24" width="22">
+        <circle cx="12" cy="8" r="4"/>
+        <path d="M4 20c2-4 14-4 16 0"/>
+      </svg>
+    </a>
+  </nav>
+</main>
+</body>
+</html>

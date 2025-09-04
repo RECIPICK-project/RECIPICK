@@ -1,4 +1,4 @@
-package SITE.RECIPICK.RECIPICK_PROJECT.entity;
+package SITE.RECIPICK.RECIPICK_PROJECT.entity.search;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -18,7 +18,7 @@ import lombok.Setter;
 @Table(name = "POST")
 @Getter
 @Setter
-public class Post {
+public class SearchPost {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -39,6 +39,9 @@ public class Post {
 
   @Column(name = "like_count")
   private Integer likeCount = 0;
+
+  @Column(name = "rcp_img_url")
+  private String rcpImgUrl;
 
   @Column(name = "rcp_steps_img")
   private String rcpStepsImg;

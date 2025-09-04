@@ -1,4 +1,4 @@
-package SITE.RECIPICK.RECIPICK_PROJECT.entity;
+package SITE.RECIPICK.RECIPICK_PROJECT.entity.search;
 
 import java.io.Serializable;
 import lombok.EqualsAndHashCode;

@@ -28,7 +28,7 @@ import lombok.Getter;
 @Entity
 @Getter
 @Table(name = "COMMENT")
-public class Comment {
+public class CommentEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,11 +37,11 @@ public class Comment {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "post_id", nullable = false)
-  private Post post; // 댓글이 달린 게시글 (FK)
+  private PostEntity postEntity; // 댓글이 달린 게시글 (FK)
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "user_id", nullable = false)
-  private User author; // 댓글 작성자 (FK)
+  private UserEntity author; // 댓글 작성자 (FK)
 
   @Column(columnDefinition = "TEXT", nullable = false)
   private String content; // 댓글 본문

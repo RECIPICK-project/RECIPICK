@@ -33,9 +33,9 @@ public class PostDTO {
   private String ckgCategory;       // 조리 카테고리
   private String ckgKnd;            // 조리 종류
   private String ckgMtrlCn;         // 재료 내용 (텍스트)
-  private int ckgInbun;             // 인분 수
-  private int ckgLevel;             // 난이도
-  private int ckgTime;              // 조리 시간(분 등)
+  private Integer ckgInbun;             // 인분 수
+  private Integer ckgLevel;             // 난이도
+  private Integer ckgTime;              // 조리 시간(분 등)
   private String rcpImgUrl;         // 대표 이미지 URL
   private String rcpSteps;          // 조리 단계 (텍스트)
   private String rcpStepsImg;       // 단계별 이미지 URL (텍스트)

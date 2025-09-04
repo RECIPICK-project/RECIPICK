@@ -36,10 +36,8 @@ public class MyPostService {
   @Transactional(readOnly = true)
   public List<PostDTO> getMyOfficialPosts(Integer me, int offset, int limit) {
     var page = PageRequest.of(offset / Math.max(limit, 1), Math.max(limit, 1));
-    return postRepo.findByUserIdAndRcpIsOfficialTrueOrderByCreatedAtDesc(me, page)
-        .stream()
-        .map(PostMapper::toDto)
-        .toList();
+    return postRepo.findByUserEntity_IdAndRcpIsOfficialTrueOrderByCreatedAtDesc(me, page)
+        .stream().map(PostMapper::toDto).toList();
   }
 
   /**
@@ -55,7 +53,7 @@ public class MyPostService {
   @Transactional(readOnly = true)
   public List<PostDTO> getMyTempPosts(Integer me, int offset, int limit) {
     var page = PageRequest.of(offset / Math.max(limit, 1), Math.max(limit, 1));
-    return postRepo.findByUserIdAndRcpIsOfficialFalseOrderByCreatedAtDesc(me, page)
+    return postRepo.findByUserEntity_IdAndRcpIsOfficialFalseOrderByCreatedAtDesc(me, page)
         .stream()
         .map(PostMapper::toDto)
         .toList();

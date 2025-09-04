@@ -20,7 +20,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Table(name = "PROFILE")
-public class Profile {
+public class ProfileEntity {
 
   @Id
   @Column(name = "user_id")
@@ -29,7 +29,7 @@ public class Profile {
   @OneToOne
   @MapsId
   @JoinColumn(name = "user_id")
-  private User user;
+  private UserEntity userEntity;
 
   @Column(nullable = false, unique = true, length = 50)
   private String nickname;
@@ -37,18 +37,15 @@ public class Profile {
   @Column(name = "profile_img", length = 500)
   private String profileImg;
 
-  @Enumerated(EnumType.STRING)                 // DB에 "BRONZE" 등 문자로 저장
-  @Column(nullable = false, length = 20)
-  private UserGrade grade = UserGrade.BRONZE;  // 기본 등급
-
   @Column(name = "updated_at")
   private LocalDateTime updatedAt;
 
-  /**
-   * 등급 변경 (혜택 등급)
-   */
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false, length = 20)
+  private UserGrade grade = UserGrade.BRONZE;
+
   public void changeGrade(UserGrade grade) {
     this.grade = grade;
-    this.updatedAt = LocalDateTime.now();
   }
+
 }

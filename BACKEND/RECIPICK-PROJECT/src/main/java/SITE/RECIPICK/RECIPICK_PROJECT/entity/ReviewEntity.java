@@ -30,7 +30,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Table(name = "REVIEW")
-public class Review {
+public class ReviewEntity {
 
   // ====== PK ======
   @Id
@@ -41,11 +41,11 @@ public class Review {
   // ====== 연관관계 ======
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "post_id", nullable = false)  // REVIEW.post_id → POST.post_id
-  private Post post;                               // 대상 게시글
+  private PostEntity postEntity;                               // 대상 게시글
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "user_id", nullable = false)  // REVIEW.user_id → USER.user_id
-  private User author;                             // 작성자
+  private UserEntity author;                             // 작성자
 
   // ====== 컬럼 ======
   @Column(name = "review_rating", precision = 3, scale = 2, nullable = false)

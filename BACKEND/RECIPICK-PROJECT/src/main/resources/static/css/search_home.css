@@ -1,0 +1,117 @@
+/* ===================== search_home.css (교체본) ===================== */
+/* 화면 톤 & 탭바 규격 */
+:root{
+  --soft:#F9FBE7;   /* 검색 홈 배경 */
+  --tabbar-h:60px;  /* 탭바 슬림 높이(상시 고정) */
+}
+
+/* 데스크톱 미리보기: 프레임 중앙 배치 */
+body.detail{
+  min-height:100vh;
+  margin:0;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--bg);
+}
+
+/* 모바일 프레임 자체가 스크롤 컨테이너 */
+.phone.search-home{
+  width:375px;
+  height:min(812px, 100vh);
+  max-height:100vh;
+  background:var(--soft);
+  border:1px solid #eef0ee; border-radius:22px;
+  overflow-y:auto; -webkit-overflow-scrolling:touch;
+  position:relative; /* 탭바/플로팅 기준 */
+  padding:0;         /* 내부는 섹션에서 여백 관리 */
+}
+
+/* 상단 헤더 */
+.head{
+  display:flex; align-items:center; gap:10px;
+  padding:12px 14px;
+}
+.head h1{ margin:0 auto 0 0; font-size:18px; font-weight:800 }
+.back{
+  width:40px; height:40px; border-radius:9999px;
+  border:1px solid #ececec; background:#fff; display:grid; place-items:center;
+}
+.spacer{ width:40px; height:40px }
+
+/* 내부 여백: 탭바에 가리지 않게 하단 패딩 확보 */
+.wrap{
+  padding:0 14px calc(var(--tabbar-h) + 20px);
+}
+
+/* 검색바(레시피명 검색) */
+.search-row{
+  display:flex; align-items:center; gap:8px;
+  background:#fff; border:2px solid var(--green-500);
+  border-radius:12px; padding:10px 12px; margin-bottom:10px;
+}
+.search-row .icon{ flex:0 0 18px }
+.search-input{
+  flex:1; border:none; outline:none; font-size:14px; background:transparent;
+}
+.btn-go{
+  border:none; border-radius:10px; padding:8px 12px; font-weight:800;
+  background:var(--accent); color:#fff; cursor:pointer;
+}
+.btn-go:active{ transform:translateY(1px) }
+
+/* 정렬(드롭다운만) */
+.toolbar{ display:flex; justify-content:flex-end; margin:8px 0 10px }
+.input{
+  height:36px; border:1px solid var(--line); border-radius:10px; padding:0 10px; background:#fff;
+}
+
+/* 결과 수 표기 */
+.count{ font-size:12px; color:var(--muted); margin-bottom:8px }
+
+/* 1열 큰 카드 리스트 */
+.list{
+  display:grid; gap:12px; grid-template-columns:1fr;
+}
+.card{
+  display:block; background:#fff; border:1px solid var(--line); border-radius:14px; overflow:hidden;
+}
+.card .thumb{ height:180px; background:linear-gradient(135deg, #c8e6c9, #a5d6a7) }
+.card .meta{ padding:12px 14px }
+.card .title{
+  font-size:15px; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.card .sub{ font-size:12px; color:var(--muted); margin-top:4px }
+
+/* 더보기 버튼 */
+.loadmore{
+  width:100%; height:42px; margin-top:6px;
+  border:1px solid var(--line); background:#fff; border-radius:10px; cursor:pointer; font-weight:700;
+}
+
+/* ================= 탭바: sticky + 고정 높이 ================= */
+.tabbar{
+  position:sticky !important;  /* 스크롤 따라다님 */
+  bottom:0 !important;
+  height:var(--tabbar-h) !important;   /* 벽돌 방지: 높이 고정 */
+  background:#fff !important;
+  border-top-left-radius:20px; border-top-right-radius:20px;
+  box-shadow:0 -4px 12px rgba(0,0,0,.06);
+  display:flex !important; align-items:center !important; justify-content:space-around !important;
+  padding:0 14px !important;
+  box-sizing:border-box !important;
+  z-index:5;
+}
+
+/* 아이콘/터치타겟 규격도 강제 */
+.tab{ display:grid !important; place-items:center !important; min-width:44px; height:calc(var(--tabbar-h) - 10px) }
+.tab svg{ width:22px !important; height:22px !important; stroke:#6b7280; fill:none }
+.tab .ring{
+  width:44px; height:44px; border-radius:9999px;
+  background:var(--bg); border:2px solid var(--green-500);
+  display:grid; place-items:center;
+}
+
+/* 화면이 낮을 때 슬림화 */
+@media (max-height:700px){
+  :root{ --tabbar-h:56px; }
+  .wrap{ padding-bottom: calc(var(--tabbar-h) + 16px) }
+}

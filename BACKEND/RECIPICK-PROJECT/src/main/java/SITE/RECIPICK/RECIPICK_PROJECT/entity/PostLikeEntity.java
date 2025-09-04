@@ -27,7 +27,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Table(name = "LIKE_TABLE")
-public class PostLike {
+public class PostLikeEntity {
 
   // ===== PK =====
   @Id
@@ -38,11 +38,11 @@ public class PostLike {
   // ===== 연관관계 =====
   @ManyToOne(fetch = FetchType.LAZY)                  // 다:1 관계 (여러 Like → 한 User)
   @JoinColumn(name = "user_id", nullable = false)
-  private User user;                                   // 좋아요 누른 유저
+  private UserEntity userEntity;                                   // 좋아요 누른 유저
 
   @ManyToOne(fetch = FetchType.LAZY)                  // 다:1 관계 (여러 Like → 한 Post)
   @JoinColumn(name = "post_id", nullable = false)
-  private Post post;                                   // 좋아요가 눌린 게시글
+  private PostEntity postEntity;                                   // 좋아요가 눌린 게시글
 
   // ===== 필드 =====
   @Column(name = "created_at")

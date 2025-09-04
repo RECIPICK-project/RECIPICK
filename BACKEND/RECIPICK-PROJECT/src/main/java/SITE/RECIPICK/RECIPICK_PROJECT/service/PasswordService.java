@@ -1,7 +1,7 @@
 package SITE.RECIPICK.RECIPICK_PROJECT.service;
 
 import SITE.RECIPICK.RECIPICK_PROJECT.dto.PasswordChangeRequest;
-import SITE.RECIPICK.RECIPICK_PROJECT.entity.User;
+import SITE.RECIPICK.RECIPICK_PROJECT.entity.UserEntity;
 import SITE.RECIPICK.RECIPICK_PROJECT.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -53,7 +53,7 @@ public class PasswordService {
     }
 
     // 2. 사용자 조회
-    User u = userRepo.findById(me)
+    UserEntity u = userRepo.findById(me)
         .orElseThrow(() -> new IllegalArgumentException("USER_NOT_FOUND"));
 
     String stored = u.getPassword();

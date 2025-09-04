@@ -2,6 +2,8 @@ package SITE.RECIPICK.RECIPICK_PROJECT.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -29,7 +31,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Table(name = "POST")
-public class Post {
+public class PostEntity {
 
   // ===== 기본 키(PK) =====
   @Id
@@ -40,7 +42,7 @@ public class Post {
   // ===== 연관 관계 =====
   @ManyToOne(fetch = FetchType.LAZY)                   // 다:1 관계 (N Posts → 1 User)
   @JoinColumn(name = "user_id", nullable = false)      // FK (null 불가)
-  private User user;                                   // 작성자(User 엔티티 참조)
+  private UserEntity userEntity;                                   // 작성자(User 엔티티 참조)
 
   // ===== 도메인 필드 =====
   @Column(name = "rcp_sno", length = 100)
@@ -71,13 +73,13 @@ public class Post {
   private String ckgMtrlCn;                            // 재료 내용
 
   @Column(name = "ckg_inbun")
-  private int ckgInbun;                                // 인분
+  private Integer ckgInbun;                                // 인분
 
   @Column(name = "ckg_level")
-  private int ckgLevel;                                // 난이도
+  private Integer ckgLevel;                                // 난이도
 
   @Column(name = "ckg_time")
-  private int ckgTime;                                 // 조리 시간 (분 단위)
+  private Integer ckgTime;                              // 조리 시간 (분 단위)
 
   @Column(name = "rcp_img_url", length = 500)
   private String rcpImgUrl;                            // 대표 이미지 URL
@@ -100,6 +102,10 @@ public class Post {
   @Column(name = "report_count", nullable = false)
   private int reportCount = 0;                         // 신고 횟수
 
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false, length = 20)
+  private UserGrade grade = UserGrade.BRONZE; // 기본값
+
   // ===== 엔티티 라이프사이클 훅 =====
   @PrePersist
   void onCreate() {
@@ -112,12 +118,12 @@ public class Post {
     }
   }
 
+  // ===== 비즈니스 메서드 =====
+
   @PreUpdate
   void onUpdate() {
     updatedAt = LocalDateTime.now();
   }
-
-  // ===== 비즈니스 메서드 =====
 
   /**
    * 조회수 +1
@@ -155,4 +161,5 @@ public class Post {
   public void increaseReport() {
     this.reportCount++;
   }
+
 }

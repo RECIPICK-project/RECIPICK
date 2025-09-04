@@ -1,0 +1,109 @@
+:root{
+  --soft:#F9FBE7;
+  --tabbar-h:60px; /* 레이아웃 여유치 계산용 */
+}
+
+/* 프레임(지금까지 쓰던 모바일 프레임 톤 그대로) */
+body.detail{
+  min-height:100vh; display:flex; align-items:center; justify-content:center;
+  background:var(--bg); margin:0;
+}
+.phone.upload{
+  width:375px; height:812px; max-height:100vh;
+  background:var(--soft);
+  border:1px solid #eef0ee; border-radius:22px;
+  overflow-y:auto; -webkit-overflow-scrolling:touch;
+  position:relative;
+}
+
+/* 헤더/공통 */
+.head{display:flex; align-items:center; gap:10px; padding:12px 14px}
+.head h1{margin:0 auto 0 0; font-size:18px; font-weight:800}
+.back{width:40px; height:40px; border-radius:9999px; border:1px solid #ececec; background:#fff; display:grid; place-items:center}
+.spacer{width:40px; height:40px}
+
+.wrap{padding:0 14px calc(var(--tabbar-h) + 24px)}
+.block{margin-bottom:12px}
+
+/* 카드 */
+.card{
+  background:#fff; border:1px solid var(--line);
+  border-radius:14px; padding:12px; display:block;
+}
+
+/* 썸네일 업로드 박스 */
+.thumb{
+  display:block; width:100%; height:180px; border-radius:12px;
+  border:2px dashed #cfd8dc; background:#f8faf8;
+  display:grid; place-items:center; cursor:pointer; position:relative; overflow:hidden;
+}
+.thumb.has-img{ border-style:solid; border-color:var(--line); background:#000; }
+.thumb img{
+  position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+}
+.thumb-cta{
+  width:44px; height:44px; border-radius:9999px;
+  background:#fff; color:var(--green-700); display:grid; place-items:center;
+  box-shadow:0 2px 8px rgba(0,0,0,.08); z-index:1;
+}
+
+/* 드롭다운 3열 */
+.selects{display:grid; gap:10px; grid-template-columns:repeat(3, minmax(0,1fr))}
+.select-col .label{display:block; font-size:12px; color:var(--muted); margin:0 0 4px}
+
+/* 재료 */
+.section-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:8px}
+.section-head h2{margin:0; font-size:14px; font-weight:800}
+.ing-list{display:grid; gap:8px}
+.ing-row{display:grid; grid-template-columns:1fr 1fr 40px; gap:8px; align-items:center}
+.mini{height:36px; padding:0 10px; border-radius:8px; border:1px solid var(--line); background:#fff; cursor:pointer}
+.mini.warn{border-color:#E53935; color:#E53935}
+
+/* 단계 */
+.step-list{display:grid; gap:12px; margin:0; padding:0; list-style:none}
+.step-item{border:1px solid var(--line); border-radius:12px; padding:10px}
+.step-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:8px}
+.step-head .no{font-weight:800}
+.step-body{display:grid; gap:8px}
+.step-photo{
+  display:grid; grid-template-columns:1fr 44px; gap:8px; align-items:center;
+}
+.photo-btn{
+  width:44px; height:44px; border-radius:10px; border:1px solid var(--line);
+  background:#fff; display:grid; place-items:center; cursor:pointer;
+}
+.photo-preview{
+  height:140px; border:1px dashed #cfd8dc; border-radius:10px; background:#f8faf8;
+  overflow:hidden; position:relative;
+}
+.photo-preview img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover }
+
+/* 저장 */
+.savebar{padding:4px 0 16px}
+.save{
+  width:100%; height:46px; font-weight:800;
+  background:var(--accent); color:#fff; border:0; border-radius:12px;
+}
+
+/* 반응(좁을 때 2열로) */
+@media (max-width: 360px){
+  .selects{grid-template-columns:repeat(2, minmax(0,1fr))}
+}
+
+/* 저장 버튼 스타일 */
+.savebar {
+  width: 100%;
+  height: 48px;
+  margin-top: 20px;
+  border: none;
+  border-radius: 12px;
+  background: #F4B942;   /* 강조 색상 */
+  color: #fff;           /* 글자 흰색 */
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+}
+.savebar {
+  transform: translateY(1px);
+  background: #e0a832;   /* 눌렀을 때 살짝 어두워짐 */
+}

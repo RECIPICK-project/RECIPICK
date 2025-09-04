@@ -1,0 +1,171 @@
+:root{
+  --soft:#F9FBE7;
+  --tabbar-h:60px;
+}
+
+html,body{height:100%}
+body{display:flex; align-items:center; justify-content:center; background:var(--bg); margin:0}
+
+/* 프레임 */
+.phone.search-page{
+  width:375px; height:812px; max-height:100vh;
+  background:var(--soft);
+  border:1px solid #eef0ee; border-radius:22px;
+  overflow-y:auto; -webkit-overflow-scrolling:touch;
+  position:relative;
+}
+
+/* 상단 */
+.head{display:flex; align-items:center; gap:10px; padding:14px}
+.head h1{margin:0 auto 0 0; font-size:16px; font-weight:800}
+.back{width:40px; height:40px; border-radius:9999px; border:1px solid #ececec; background:#fff; display:grid; place-items:center}
+.spacer{width:40px; height:40px}
+
+/* 내부 여백 (탭바/CTA 고려) */
+.wrap{padding:0 14px 140px}
+
+/* 메인 슬롯 (가시성↑) */
+.slot{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 16px; border:2px solid var(--green-500); border-radius:12px;
+  background:#F1F8E9; margin-bottom:10px;
+}
+.slot .left{display:flex; align-items:center; gap:10px}
+
+/* ✅ 체크/마이너스: 초기(심플) 스타일 복원 */
+.slot .dot,
+.check{
+  width:20px; height:20px; border-radius:9999px;
+  border:2px solid var(--green-500); background:#fff; display:grid; place-items:center;
+}
+.slot.has-main .dot,
+.item.is-main .check{ background:var(--green-500); border-color:var(--green-500) }
+.slot.has-main .dot::after,
+.item.is-main .check::after{
+  content:""; width:6px; height:10px; border-right:2px solid #fff; border-bottom:2px solid #fff; transform:rotate(45deg);
+}
+.slot .label{font-weight:800}
+
+.slot .minus,
+.minus{
+  width:24px; height:24px; border-radius:8px; border:1px solid var(--line); background:#fff; color:#111; cursor:pointer;
+}
+.slot .minus:disabled{opacity:.4; cursor:default}
+
+/* 재료 추가 버튼 */
+.btn-add{
+  width:100%; height:44px; border-radius:12px;
+  border:1.5px solid var(--green-500); color:var(--green-700);
+  background:#fff; font-weight:700; display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:10px; cursor:pointer;
+}
+.btn-add:active{transform:translateY(1px)}
+
+/* 선택된 재료 리스트 */
+.list{display:grid; gap:8px}
+.item{
+  display:flex; align-items:center; justify-content:space-between;
+  background:#fff; border:1px solid var(--line); border-radius:12px; padding:12px 14px;
+}
+.name{flex:1; margin:0 12px; font-weight:600}
+
+/* 카메라 FAB : 검색 버튼 오른쪽 살짝 위 */
+.fab.cam{
+  position:absolute;
+  right:24px;                         /* 오른쪽 살짝 안쪽 */
+  bottom:calc(var(--tabbar-h) + 64px);/* 검색버튼(48px) 위로 여유 */
+  width:40px; height:40px;
+  border-radius:9999px;
+  background:var(--green-600);
+  border:none;
+  display:grid; place-items:center;
+  color:#fff;
+  box-shadow:0 6px 18px rgba(0,0,0,.15);
+  z-index:11;
+  pointer-events:auto;
+}
+.fab.cam:hover{ background: var(--green-700); }
+
+
+/* 탭바 고정 (크기 고정) */
+.tabbar{
+  position:absolute; left:0; right:0; bottom:0;
+  height:var(--tabbar-h);
+  background:#fff;
+  border-top-left-radius:16px; border-top-right-radius:16px;
+  box-shadow:0 -4px 12px rgba(0,0,0,.06);
+  display:flex; align-items:center; justify-content:space-around; padding:0 14px; z-index:5;
+}
+.tab svg{stroke:#6b7280; fill:none}
+.tab .ring{width:40px; height:40px; border-radius:9999px; background:var(--bg); display:grid; place-items:center; border:2px solid var(--green-500)}
+
+/* ✅ CTA 검색 버튼: 색 확실(+ 클릭 보장) */
+.cta-search{
+  position:absolute; left:14px; right:14px; bottom:calc(var(--tabbar-h) + 14px);
+  height:48px; border:none; border-radius:12px; font-weight:800; font-size:16px;
+  background:var(--accent) !important; color:#fff !important;
+  box-shadow:0 6px 18px rgba(0,0,0,.10);
+  z-index:9; cursor:pointer; pointer-events:auto;
+}
+.cta-search:disabled{opacity:.55; cursor:not-allowed}
+.cta-search:not(:disabled):active{transform:translateY(1px)}
+
+/* 가운데 큰 모달 */
+.modal{position:fixed; inset:0; display:none; z-index:1000}
+.modal[aria-hidden="false"]{display:block}
+.overlay{position:absolute; inset:0; background:rgba(0,0,0,.35)}
+.dialog{
+  position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+  width:min(680px, 92vw); max-width:375px;
+  background:#fff; border-radius:16px; border:1px solid var(--line); box-shadow:0 12px 36px rgba(0,0,0,.2);
+  display:flex; flex-direction:column; max-height:80vh;
+}
+.dialog-head{display:flex; align-items:center; justify-content:space-between; padding:14px 16px; border-bottom:1px solid var(--line)}
+.dialog-head .x{width:34px; height:34px; border:1px solid var(--line); background:#fff; border-radius:10px; cursor:pointer}
+.dialog-body{padding:12px 16px; overflow:auto}
+.picker-search{padding-bottom:10px}
+.picker-search input{
+  width:100%; height:40px; border:1px solid var(--line); border-radius:10px; padding:0 12px; outline:none;
+}
+.picker-chips{display:flex; flex-wrap:wrap; gap:8px; padding-bottom:6px; max-height:54vh; overflow:auto}
+.picker-chips .chip{
+  border:1px solid var(--line); border-radius:999px; padding:8px 12px; background:#fff; cursor:pointer; font-size:13px;
+}
+.picker-chips .chip:hover{background:#f7f7f7}
+
+/* === SEARCH CTA 강제 색상 오버라이드 (맨 아래에 추가) === */
+.phone.search-page .cta-search{
+  background: var(--accent, #F4B942) !important; /* 주황 노랑 포인트 */
+  color: #fff !important;
+  border: none !important;
+  box-shadow: 0 6px 18px rgba(0,0,0,.10);
+  transition: transform .05s ease, filter .05s ease;
+  z-index: 9;               /* 위계 보장 */
+  pointer-events: auto;     /* 클릭 보장 */
+}
+
+.phone.search-page .cta-search:hover:not(:disabled){
+  filter: brightness(0.98);
+}
+.phone.search-page .cta-search:active:not(:disabled){
+  transform: translateY(1px);
+}
+
+.phone.search-page .cta-search:disabled{
+  background: #E5E7EB !important;
+  color: #9CA3AF !important;
+  box-shadow: none !important;
+}
+
+/* 혹시 상위 .btn 규칙이 색을 덮어쓰면 이걸로 차단 */
+.phone.search-page .cta-search.btn,
+.phone.search-page .cta-search.button{
+  all: unset;
+  display: block;
+  position: absolute;
+  left: 14px; right: 14px; bottom: calc(var(--tabbar-h) + 14px);
+  height: 48px; border-radius: 12px;
+  text-align: center; line-height: 48px; font-weight: 800; font-size: 16px;
+  background: var(--accent, #F4B942) !important; color:#fff !important;
+  box-shadow: 0 6px 18px rgba(0,0,0,.10);
+  cursor: pointer;
+}

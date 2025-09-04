@@ -1,5 +1,7 @@
 package SITE.RECIPICK.RECIPICK_PROJECT.entity;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+
 /**
  * 혜택용 회원 등급
  */
@@ -8,8 +10,23 @@ public enum UserGrade {
   SILVER,
   GOLD,
   PLATINUM,
-  DIAMOND
+  DIAMOND;
+
+  @JsonCreator
+  public static UserGrade from(Object raw) {
+    if (raw == null) {
+      throw new IllegalArgumentException("GRADE_REQUIRED");
+    }
+    String v = raw.toString().trim().toUpperCase();
+    return switch (v) {
+      case "BRONZE" -> BRONZE;
+      case "SILVER" -> SILVER;
+      case "GOLD" -> GOLD;
+      default -> throw new IllegalArgumentException("INVALID_GRADE");
+    };
+  }
 }
+
 /*public void reevaluateGrade(Profile pr, int point) {
   UserGrade newGrade =
       (point >= 5000) ? UserGrade.DIAMOND :

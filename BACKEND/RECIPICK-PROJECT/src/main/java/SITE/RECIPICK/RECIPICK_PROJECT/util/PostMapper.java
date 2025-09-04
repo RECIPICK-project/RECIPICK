@@ -1,7 +1,7 @@
 package SITE.RECIPICK.RECIPICK_PROJECT.util;
 
 import SITE.RECIPICK.RECIPICK_PROJECT.dto.PostDTO;
-import SITE.RECIPICK.RECIPICK_PROJECT.entity.Post;
+import SITE.RECIPICK.RECIPICK_PROJECT.entity.PostEntity;
 
 /**
  * PostMapper
@@ -23,7 +23,7 @@ public final class PostMapper {
   /**
    * 엔티티(Post) → DTO(PostDTO) - 조회 응답에 필요한 대부분의 필드를 매핑
    */
-  public static PostDTO toDto(Post p) {
+  public static PostDTO toDto(PostEntity p) {
     if (p == null) {
       return null;
     }
@@ -59,12 +59,12 @@ public final class PostMapper {
    * ⚠️ 주의 - PK(postId)는 DB가 생성하므로 세팅하지 않음. - createdAt/updatedAt은 보통 엔티티 훅(@PrePersist/@PreUpdate)로
    * 관리. - 필요 시, 서비스 계층에서만 엄격히 통제하여 세팅하세요.
    */
-  public static Post toEntity(PostDTO dto) {
+  public static PostEntity toEntity(PostDTO dto) {
     if (dto == null) {
       return null;
     }
 
-    Post p = new Post();
+    PostEntity p = new PostEntity();
 
     // === 입력용(클라이언트가 바꿀 수 있는 내용)만 매핑 ===
     p.setTitle(dto.getTitle());

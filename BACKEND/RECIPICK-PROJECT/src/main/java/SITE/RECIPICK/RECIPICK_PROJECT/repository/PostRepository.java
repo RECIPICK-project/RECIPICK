@@ -1,47 +1,63 @@
 package SITE.RECIPICK.RECIPICK_PROJECT.repository;
 
-import SITE.RECIPICK.RECIPICK_PROJECT.entity.Post;
+import SITE.RECIPICK.RECIPICK_PROJECT.entity.PostEntity;
+import java.util.Collection;
 import java.util.List;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-/**
- * POST 테이블 레포지토리 - 기본 CRUD 외에 마이페이지 집계용 커스텀 쿼리 제공
- * <p>
- * 주의: - 엔티티 필드명이 user / rcpIsOfficial / likeCount 이므로 JPQL도 동일하게 사용 - user_id는 USER의 PK 타입에 맞춰
- * Integer로 받음
- */
-public interface PostRepository extends JpaRepository<Post, Long> {
+public interface PostRepository extends JpaRepository<PostEntity, Long> {
 
-  /**
-   * 특정 유저가 작성한 "정식 레시피" 개수 rcp_is_official = true 인 게시글만 카운트 - MyPageService.myRecipeCount 용
-   */
-  @Query("select count(p) from Post p where p.user.id = :uid and p.rcpIsOfficial = true")
-  long countPublishedByAuthor(@Param("uid") Integer userId);
+  // ========== 마이페이지: 내가 좋아요한 레시피 ==========
+  // PostLikeEntity에 필드명이 postEntity/userEntity 라는 전제
+  @Query("""
+      select pl.postEntity
+        from PostLikeEntity pl
+       where pl.userEntity.id = :userId
+       order by pl.createdAt desc
+      """)
+  List<PostEntity> findLikedPosts(@Param("userId") Integer userId, Pageable pageable);
 
-  /**
-   * 특정 유저의 "정식 레시피"들이 받은 좋아요 총합 - null 방지를 위해 coalesce 처리 - MyPageService.totalLikesOnMyPosts 용
-   */
-  @Query("select coalesce(sum(p.likeCount), 0) from Post p where p.user.id = :uid and p.rcpIsOfficial = true")
-  long sumLikesOnUsersPublished(@Param("uid") Integer userId);
+  // ========== 마이페이지: 내 레시피 목록 (정식/임시) ==========
+  // PostEntity에 필드명이 userEntity 라는 전제 (유도 메서드는 필드 경로를 그대로 써야 함)
+  List<PostEntity> findByUserEntity_IdAndRcpIsOfficialTrueOrderByCreatedAtDesc(
+      Integer userId, Pageable pageable
+  );
+
+  // [관리자] 전체 임시글 (userId 없음)
+  List<PostEntity> findByRcpIsOfficialFalseOrderByCreatedAtDesc(Pageable pageable);
+
+  List<PostEntity> findByUserEntity_IdAndRcpIsOfficialFalseOrderByCreatedAtDesc(
+      Integer userId, Pageable pageable
+  );
+
+  // ========== 마이페이지: 집계 ==========
+  @Query("""
+      select count(p)
+        from PostEntity p
+       where p.userEntity.id = :userId
+         and p.rcpIsOfficial = true
+      """)
+  long countPublishedByAuthor(@Param("userId") Integer userId);
 
   @Query("""
-      select p
-        from PostLike l
-        join l.post p
-       where l.user.id = :uid
-       order by l.createdAt desc
+      select coalesce(sum(p.likeCount), 0)
+        from PostEntity p
+       where p.userEntity.id = :userId
+         and p.rcpIsOfficial = true
       """)
-  List<Post> findLikedPosts(@Param("uid") Integer userId, Pageable pageable);
+  long sumLikesOnUsersPublished(@Param("userId") Integer userId);
 
-  // 정식 레시피(official=true)만, 내 것만, 최신순 페이징
-  List<Post> findByUserIdAndRcpIsOfficialTrueOrderByCreatedAtDesc(Integer userId,
-      Pageable pageable);
+  // ========== 관리자 대시보드용 집계 ==========
+  long countByRcpIsOfficialTrue();
 
-  // 임시 레시피(official=false)만, 내 것만, 최신순 페이징
-  List<Post> findByUserIdAndRcpIsOfficialFalseOrderByCreatedAtDesc(Integer userId,
-      Pageable pageable);
+  long countByReportCountGreaterThan(int min);
 
+  // ========== 관리자: 신고 많은 레시피 목록 ==========
+  List<PostEntity> findByReportCountGreaterThanOrderByReportCountDesc(int min, Pageable pageable);
+
+  // ========== 필요 시: id 집합으로 조회 ==========
+  List<PostEntity> findByPostIdIn(Collection<Long> ids);
 }

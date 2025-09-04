@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>레시피 업로드</title>
+
+  <!-- 공용 -->
+  <link rel="stylesheet" href="css/tokens.css" />
+  <link rel="stylesheet" href="css/components.css" />
+
+  <!-- 전용 -->
+  <link rel="stylesheet" href="css/post_upload.css" />
+
+  <script defer src="js/theme.js"></script>
+  <script defer src="js/post_upload.js"></script>
+</head>
+
+<body class="detail">
+<main class="phone upload" role="main" aria-label="레시피 업로드">
+  <!-- 헤더 -->
+  <header class="head">
+    <button class="back" aria-label="뒤로 가기" onclick="history.back()">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#111827" stroke-width="2">
+        <path d="M15 6l-6 6 6 6"/>
+      </svg>
+    </button>
+    <h1>레시피 업로드</h1>
+    <span class="spacer"></span>
+  </header>
+
+  <form id="uploadForm" class="wrap">
+    <!-- 대표 썸네일 -->
+    <section class="card block">
+      <label for="thumbInput" class="thumb" id="thumbBox" aria-label="대표 이미지 업로드">
+        <input id="thumbInput" type="file" accept="image/*" hidden />
+        <div class="thumb-cta">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+        </div>
+      </label>
+    </section>
+
+    <!-- 제목 / 음식 이름 -->
+    <section class="card block">
+      <input class="input" id="recipeTitle" type="text" placeholder="요리 제목 (작성자 자유 입력)" required />
+      <input class="input" id="foodName"    type="text" placeholder="음식 이름 (예: 계란말이)" />
+    </section>
+
+    <!-- 드롭다운 3종 -->
+    <section class="card block selects">
+      <label class="select-col">
+        <span class="label">조리방법</span>
+        <select id="cookMethod" class="input">
+          <option value="" selected disabled>선택</option>
+          <option>볶음</option><option>구이</option><option>튀김</option>
+          <option>찜</option><option>끓이기</option><option>무침</option>
+        </select>
+      </label>
+      <label class="select-col">
+        <span class="label">카테고리</span>
+        <select id="category" class="input">
+          <option value="" selected disabled>선택</option>
+          <option>한식</option><option>중식</option><option>일식</option>
+          <option>양식</option><option>분식</option><option>기타</option>
+        </select>
+      </label>
+      <label class="select-col">
+        <span class="label">종류</span>
+        <select id="kind" class="input">
+          <option value="" selected disabled>선택</option>
+          <option>메인</option><option>사이드</option><option>디저트</option>
+          <option>간식</option><option>음료</option>
+        </select>
+      </label>
+    </section>
+
+    <!-- 재료 -->
+    <section class="card block">
+      <div class="section-head">
+        <h2>재료</h2>
+        <button class="btn-ghost small" id="addIng" type="button">+ 재료 추가</button>
+      </div>
+      <div id="ingList" class="ing-list">
+        <!-- 한 줄 템플릿 (JS가 복제) -->
+        <div class="ing-row" data-row>
+          <input class="input" type="text" placeholder="재료명" data-name />
+          <input class="input" type="text" placeholder="수량 (예: 200g / 1개)" data-qty />
+          <button class="mini warn" type="button" data-remove>-</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 조리 순서 -->
+    <section class="card block">
+      <div class="section-head">
+        <h2>조리 순서</h2>
+        <button class="btn-ghost small" id="addStep" type="button">+ 조리 순서 추가</button>
+      </div>
+
+      <ol id="stepList" class="step-list" aria-label="조리 단계 목록">
+        <!-- 단계 아이템 템플릿 (JS가 초기 2개 생성 + 추가) -->
+      </ol>
+    </section>
+
+    <!-- 저장 -->
+    <div class="savebar">
+      <button class="btn save" type="submit" id="saveBtn">저장</button>
+    </div>
+  </form>
+</main>
+</body>
+</html>

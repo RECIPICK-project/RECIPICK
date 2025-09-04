@@ -24,7 +24,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Table(name = "USER")
-public class User {
+public class UserEntity {
 
   // === 계정 상태 ===
 

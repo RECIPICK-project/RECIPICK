@@ -4,7 +4,7 @@ import static SITE.RECIPICK.RECIPICK_PROJECT.util.PostMapper.toDto;
 
 import SITE.RECIPICK.RECIPICK_PROJECT.dto.PostDTO;
 import SITE.RECIPICK.RECIPICK_PROJECT.dto.PostUpdateRequest;
-import SITE.RECIPICK.RECIPICK_PROJECT.entity.Post;
+import SITE.RECIPICK.RECIPICK_PROJECT.entity.PostEntity;
 import SITE.RECIPICK.RECIPICK_PROJECT.repository.PostRepository;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
@@ -38,11 +38,11 @@ public class MyPostCommandService {
   @Transactional
   public PostDTO updateMyTempPost(Integer me, Long postId, PostUpdateRequest req) {
     // 1) 대상 로드 (없으면 실패)
-    Post p = postRepo.findById(postId)
+    PostEntity p = postRepo.findById(postId)
         .orElseThrow(() -> new IllegalArgumentException("POST_NOT_FOUND"));
 
     // 2) 소유자 체크 (나의 글이 아니면 금지)
-    if (!p.getUser().getId().equals(me)) {
+    if (!p.getUserEntity().getId().equals(me)) {
       throw new IllegalStateException("FORBIDDEN");
     }
 
@@ -106,10 +106,10 @@ public class MyPostCommandService {
    */
   @Transactional
   public void deleteMyTempPost(Integer me, Long postId) {
-    Post p = postRepo.findById(postId)
+    PostEntity p = postRepo.findById(postId)
         .orElseThrow(() -> new IllegalArgumentException("POST_NOT_FOUND"));
 
-    if (!p.getUser().getId().equals(me)) {
+    if (!p.getUserEntity().getId().equals(me)) {
       throw new IllegalStateException("FORBIDDEN");
     }
     if (p.isRcpIsOfficial()) {

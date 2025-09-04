@@ -2,9 +2,11 @@ package SITE.RECIPICK.RECIPICK_PROJECT.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
@@ -56,6 +58,13 @@ public class UserEntity {
 
   @Column(name = "latest_at")
   private LocalDateTime latestAt;
+
+  @OneToOne(mappedBy = "userEntity", fetch = FetchType.LAZY)
+  private ProfileEntity profileEntity;
+
+  public ProfileEntity getProfileEntity() {
+    return profileEntity;
+  }
 
   // === 라이프사이클 콜백 ===
   @PrePersist

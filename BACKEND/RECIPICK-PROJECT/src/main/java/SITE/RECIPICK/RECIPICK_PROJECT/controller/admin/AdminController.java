@@ -43,17 +43,6 @@ public class AdminController {
   private final AdminService svc;      // 주요 관리자 기능 (게시글/신고/유저 관리)
   private final AdminGradeService gradeSvc; // 유저 등급 변경 전담 서비스
 
-  // ================= Dashboard =================
-
-  /**
-   * 관리자 대시보드 통계 조회 - 회원 수, 게시글 수, 신고 현황 등을 집계
-   */
-  @GetMapping("/dashboard")
-  @Operation(summary = "대시보드 통계 조회")
-  public AdminDashboardResponse dashboard() {
-    return svc.getDashboard();
-  }
-
   // ================= Users =================
 
   /**
@@ -193,4 +182,20 @@ public class AdminController {
   public void moderate(@PathVariable Long id, @RequestBody ReportModerateRequest req) {
     svc.moderate(id, req);
   }
+
+  // ================= Dashboard =================
+
+  /**
+   * 관리자 대시보드 통계 조회 - 회원 수, 게시글 수, 신고 현황 등을 집계
+   */
+  @GetMapping("/dashboard")
+  @Operation(summary = "대시보드 통계 조회")
+  public AdminDashboardResponse dashboard(
+      @RequestParam(defaultValue = "7") int days,
+      @RequestParam(defaultValue = "3") int minReports,
+      @RequestParam(defaultValue = "5") int top
+  ) {
+    return svc.getDashboard(days, minReports, top);
+  }
+
 }

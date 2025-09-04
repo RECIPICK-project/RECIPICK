@@ -1,6 +1,7 @@
 package SITE.RECIPICK.RECIPICK_PROJECT.repository;
 
 import SITE.RECIPICK.RECIPICK_PROJECT.entity.PostEntity;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import org.springframework.data.domain.Pageable;
@@ -51,13 +52,30 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
   long sumLikesOnUsersPublished(@Param("userId") Integer userId);
 
   // ========== 관리자 대시보드용 집계 ==========
-  long countByRcpIsOfficialTrue();
 
-  long countByReportCountGreaterThan(int min);
+  long countByReportCountGreaterThanEqual(int min);
+
+  // 카테고리별 업로드 집계 (기간 내)
+  @Query("""
+      select p.ckgCategory as category, count(p) as cnt
+      from PostEntity p
+      where p.createdAt between :from and :to
+      group by p.ckgCategory
+      order by count(p) desc
+      """)
+  List<CategoryAgg> countByCategoryBetween(@Param("from") LocalDateTime from,
+      @Param("to") LocalDateTime to);
 
   // ========== 관리자: 신고 많은 레시피 목록 ==========
   List<PostEntity> findByReportCountGreaterThanOrderByReportCountDesc(int min, Pageable pageable);
 
   // ========== 필요 시: id 집합으로 조회 ==========
   List<PostEntity> findByPostIdIn(Collection<Long> ids);
+
+  interface CategoryAgg {
+
+    String getCategory();
+
+    long getCnt();
+  }
 }

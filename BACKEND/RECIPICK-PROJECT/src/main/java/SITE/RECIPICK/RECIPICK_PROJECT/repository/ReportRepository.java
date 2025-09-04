@@ -6,6 +6,7 @@ import SITE.RECIPICK.RECIPICK_PROJECT.entity.ReportTargetType;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -35,6 +36,18 @@ public interface ReportRepository extends JpaRepository<ReportEntity, Long> {
   Page<ReportEntity> findByStatusAndTargetType(ReportStatus status,
       ReportTargetType type,
       Pageable pageable);
+
+  // 최근 신고 N개
+  @Query("""
+      select r
+      from ReportEntity r
+      order by r.createdAt desc
+      """)
+  List<ReportEntity> findTopNByOrderByCreatedAtDesc(Pageable pageable);
+
+  default List<ReportEntity> findTopNByOrderByCreatedAtDesc(int top) {
+    return findTopNByOrderByCreatedAtDesc(PageRequest.of(0, Math.max(1, top)));
+  }
 
   interface TopAgg {
 

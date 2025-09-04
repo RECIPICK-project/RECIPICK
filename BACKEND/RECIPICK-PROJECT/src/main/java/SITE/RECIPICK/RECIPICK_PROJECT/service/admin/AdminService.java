@@ -8,12 +8,14 @@ import SITE.RECIPICK.RECIPICK_PROJECT.dto.admin.UserSummaryDTO;
 import SITE.RECIPICK.RECIPICK_PROJECT.entity.ReportEntity;
 import SITE.RECIPICK.RECIPICK_PROJECT.entity.ReportStatus;
 import SITE.RECIPICK.RECIPICK_PROJECT.entity.ReportTargetType;
+import SITE.RECIPICK.RECIPICK_PROJECT.entity.UserEntity;
 import SITE.RECIPICK.RECIPICK_PROJECT.repository.CommentRepository;
 import SITE.RECIPICK.RECIPICK_PROJECT.repository.PostRepository;
 import SITE.RECIPICK.RECIPICK_PROJECT.repository.ReportRepository;
 import SITE.RECIPICK.RECIPICK_PROJECT.repository.ReviewRepository;
 import SITE.RECIPICK.RECIPICK_PROJECT.repository.UserRepository;
 import SITE.RECIPICK.RECIPICK_PROJECT.util.PostMapper;
+import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -32,24 +34,66 @@ public class AdminService {
   private final ReportRepository reportRepo;
 
   @Transactional(readOnly = true)
-  public AdminDashboardResponse getDashboard() {
-    long totalUsers = userRepo.count();
-    long activeUsers = userRepo.countByActiveTrue();
-    long totalPosts = postRepo.count();
-    long officialPosts = postRepo.countByRcpIsOfficialTrue();
-    long reportedPosts = postRepo.countByReportCountGreaterThan(0);
-    long reportedReviews = reviewRepo.countByReportCountGreaterThan(0);
-    long reportedComments = commentRepo.countByReportCountGreaterThan(0);
+  public AdminDashboardResponse getDashboard(int days, int minReports, int top) {
+    var now = LocalDate.now();
+    var fromDate = now.minusDays(days - 1).atStartOfDay();
+    var toDate = now.plusDays(1).atStartOfDay(); // between [from, to)
 
-    return AdminDashboardResponse.builder()
-        .totalUsers(totalUsers)
-        .activeUsers(activeUsers)
-        .totalPosts(totalPosts)
-        .officialPosts(officialPosts)
-        .reportedPosts(reportedPosts)
-        .reportedReviews(reportedReviews)
-        .reportedComments(reportedComments)
-        .build();
+    long totalUsers = userRepo.count();
+    long totalRecipes = postRepo.count();
+
+    // 임계치 이상 신고 누적 레시피 수 (레시피 테이블의 reportCount 사용)
+    long reportedRecipesOverThreshold = postRepo.countByReportCountGreaterThanEqual(minReports);
+
+    // 방문자 추이 (데이터 소스 없으면 빈 시리즈)
+    var visitorSeries = new AdminDashboardResponse.Series(
+        java.util.stream.IntStream.range(0, days)
+            .mapToObj(i -> now.minusDays(days - 1 - i))
+            .toList(),
+        java.util.stream.IntStream.range(0, days)
+            .mapToObj(i -> 0L) // 추후 연동 시 실제 값
+            .toList()
+    );
+
+    // 카테고리별 업로드 (기간 내)
+    var catAgg = postRepo.countByCategoryBetween(fromDate, toDate); // 아래 레포 쿼리 참조
+    var categoryUploads = catAgg.stream()
+        .map(a -> new AdminDashboardResponse.CategoryCount(a.getCategory(), a.getCnt()))
+        .toList();
+
+    // 최근 신고 top개
+    var recentReports = reportRepo.findTopNByOrderByCreatedAtDesc(top).stream()
+        .map(r -> new AdminDashboardResponse.RecentReportItem(
+            r.getId(),
+            r.getTargetType().name(),
+            r.getTargetId(),
+            r.getReason(),
+            r.getStatus().name(),
+            r.getCreatedAt().toLocalDate()
+        )).toList();
+
+    // 최근 가입 top개
+    var recentSignups = userRepo.findTopNByOrderByCreatedAtDesc(top).stream()
+        .map(u -> new AdminDashboardResponse.RecentSignupItem(
+            u.getId(),
+            safeNickOrEmail(u), // 닉네임 없으면 이메일
+            u.getCreatedAt().toLocalDate()
+        )).toList();
+
+    return new AdminDashboardResponse(
+        totalUsers,
+        totalRecipes,
+        reportedRecipesOverThreshold,
+        visitorSeries,
+        categoryUploads,
+        recentReports,
+        recentSignups
+    );
+  }
+
+  private String safeNickOrEmail(UserEntity u) {
+    var pr = u.getProfileEntity(); // 없으면 null 허용
+    return (pr != null && pr.getNickname() != null) ? pr.getNickname() : u.getEmail();
   }
 
   // === User 관리 ===

@@ -1,7 +1,7 @@
-package SITE.RECIPICK.RECIPICK_PROJECT.service.search;
+package SITE.RECIPICK.RECIPICK_PROJECT.service;
 
-import SITE.RECIPICK.RECIPICK_PROJECT.dto.search.SearchPostDto;
-import SITE.RECIPICK.RECIPICK_PROJECT.repository.search.SearchRepository;
+import SITE.RECIPICK.RECIPICK_PROJECT.dto.SearchPostDto;
+import SITE.RECIPICK.RECIPICK_PROJECT.repository.SearchRepository;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;

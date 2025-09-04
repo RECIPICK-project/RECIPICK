@@ -1,7 +1,7 @@
-package SITE.RECIPICK.RECIPICK_PROJECT.service.search;
+package SITE.RECIPICK.RECIPICK_PROJECT.service;
 
-import SITE.RECIPICK.RECIPICK_PROJECT.entity.search.Ingredient;
-import SITE.RECIPICK.RECIPICK_PROJECT.repository.search.IngredientRepository;
+import SITE.RECIPICK.RECIPICK_PROJECT.entity.Ingredient;
+import SITE.RECIPICK.RECIPICK_PROJECT.repository.IngredientRepository;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;

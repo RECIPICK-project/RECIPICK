@@ -1,8 +1,8 @@
-package SITE.RECIPICK.RECIPICK_PROJECT.controller.search;
+package SITE.RECIPICK.RECIPICK_PROJECT.controller;
 
-import SITE.RECIPICK.RECIPICK_PROJECT.dto.search.SearchPostDto;
-import SITE.RECIPICK.RECIPICK_PROJECT.service.search.OCRService;
-import SITE.RECIPICK.RECIPICK_PROJECT.service.search.SearchService;
+import SITE.RECIPICK.RECIPICK_PROJECT.dto.SearchPostDto;
+import SITE.RECIPICK.RECIPICK_PROJECT.service.OCRService;
+import SITE.RECIPICK.RECIPICK_PROJECT.service.SearchService;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;

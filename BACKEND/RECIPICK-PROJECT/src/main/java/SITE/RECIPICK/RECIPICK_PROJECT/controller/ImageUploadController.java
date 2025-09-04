@@ -1,7 +1,7 @@
-package SITE.RECIPICK.RECIPICK_PROJECT.controller.search;
+package SITE.RECIPICK.RECIPICK_PROJECT.controller;
 
-import SITE.RECIPICK.RECIPICK_PROJECT.dto.search.OCRResultDto;
-import SITE.RECIPICK.RECIPICK_PROJECT.service.search.OCRService;
+import SITE.RECIPICK.RECIPICK_PROJECT.dto.OCRResultDto;
+import SITE.RECIPICK.RECIPICK_PROJECT.service.OCRService;
 import java.io.IOException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;

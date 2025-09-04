@@ -1,6 +1,6 @@
-package SITE.RECIPICK.RECIPICK_PROJECT.repository.search;
+package SITE.RECIPICK.RECIPICK_PROJECT.repository;
 
-import SITE.RECIPICK.RECIPICK_PROJECT.entity.search.SearchPost;
+import SITE.RECIPICK.RECIPICK_PROJECT.entity.SearchPost;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

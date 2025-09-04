@@ -1,8 +1,8 @@
-package SITE.RECIPICK.RECIPICK_PROJECT.repository.search;
+package SITE.RECIPICK.RECIPICK_PROJECT.repository;
 
-import SITE.RECIPICK.RECIPICK_PROJECT.entity.search.Ingredient;
-import SITE.RECIPICK.RECIPICK_PROJECT.entity.search.RecipeIngredient;
-import SITE.RECIPICK.RECIPICK_PROJECT.entity.search.SearchPost;
+import SITE.RECIPICK.RECIPICK_PROJECT.entity.Ingredient;
+import SITE.RECIPICK.RECIPICK_PROJECT.entity.RecipeIngredient;
+import SITE.RECIPICK.RECIPICK_PROJECT.entity.SearchPost;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;

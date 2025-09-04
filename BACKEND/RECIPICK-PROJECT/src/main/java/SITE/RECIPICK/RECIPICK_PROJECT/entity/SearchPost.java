@@ -1,4 +1,4 @@
-package SITE.RECIPICK.RECIPICK_PROJECT.entity.search;
+package SITE.RECIPICK.RECIPICK_PROJECT.entity;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -52,6 +52,6 @@ public class SearchPost {
   @Column(name = "updated_at")
   private LocalDateTime updatedAt = LocalDateTime.now();
 
-  @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+  @OneToMany(mappedBy = "searchPost", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<RecipeIngredient> recipeIngredients = new ArrayList<>();
 }

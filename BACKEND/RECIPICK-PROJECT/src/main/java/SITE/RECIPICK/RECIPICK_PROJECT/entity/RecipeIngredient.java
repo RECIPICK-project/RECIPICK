@@ -1,4 +1,4 @@
-package SITE.RECIPICK.RECIPICK_PROJECT.entity.search;
+package SITE.RECIPICK.RECIPICK_PROJECT.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

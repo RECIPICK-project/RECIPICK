@@ -1,4 +1,4 @@
-package SITE.RECIPICK.RECIPICK_PROJECT.dto.search;
+package SITE.RECIPICK.RECIPICK_PROJECT.dto;
 
 import java.util.List;
 import lombok.Getter;

@@ -17,7 +17,7 @@ public interface SearchRepository extends JpaRepository<SearchPost, Long> {
       SELECT p.post_id AS postId,
              p.title AS title,
              p.food_name AS foodName,
-             p.rcp_steps_img AS rcpImgUrl,
+             p.rcp_img_url AS rcpImgUrl,
              p.view_count AS viewCount,
              p.like_count AS likeCount,
              p.created_at AS createdAt,

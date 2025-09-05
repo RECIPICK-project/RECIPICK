@@ -6,15 +6,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <title>레시피 업로드</title>
 
-  <!-- 공용 -->
-  <!-- <link rel="stylesheet" href="../css/tokens.css" />
-  <link rel="stylesheet" href="../css/components.css" /> -->
-
   <!-- 전용 -->
   <link rel="stylesheet" href="../css/post_upload.css" />
 
-  <!-- <script defer src="../js/theme.js"></script> -->
   <script defer src="../js/post_upload.js"></script>
+
 </head>
 
 <body class="detail">
@@ -52,35 +48,65 @@
             <span class="label">조리방법</span>
             <select class="input">
               <option value="" selected disabled>선택</option>
-              <option>볶음</option>
-              <option>구이</option>
-              <option>튀김</option>
-              <option>찜</option>
+              <option>굽기</option>
+              <option>기타</option>
               <option>끓이기</option>
+              <option>데치기</option>
               <option>무침</option>
+              <option>볶음</option>
+              <option>부침</option>
+              <option>비빔</option>
+              <option>삶기</option>
+              <option>절임</option>
+              <option>조림</option>
+              <option>찜</option>
+              <option>튀김</option>
+              <option>회</option>
             </select>
           </div>
           <div class="select-col">
             <span class="label">카테고리</span>
             <select class="input">
               <option value="" selected disabled>선택</option>
-              <option>한식</option>
-              <option>중식</option>
-              <option>일식</option>
-              <option>양식</option>
-              <option>분식</option>
+              <option>가공식품류</option>
+              <option>건어물류</option>
+              <option>곡류</option>
+              <option>과일류</option>
               <option>기타</option>
+              <option>달걀/유제품</option>
+              <option>닭고기</option>
+              <option>돼지고기</option>
+              <option>밀가루</option>
+              <option>버섯류</option>
+              <option>소고기</option>
+              <option>쌀</option>
+              <option>육류</option>
+              <option>채소류</option>
+              <option>콩/견과류</option>
+              <option>해물류</option>
             </select>
           </div>
           <div class="select-col">
             <span class="label">종류</span>
             <select class="input">
               <option value="" selected disabled>선택</option>
-              <option>메인</option>
-              <option>사이드</option>
+              <option>과자</option>
+              <option>국/탕</option>
+              <option>기타</option>
+              <option>김치/젓갈/장류</option>
               <option>디저트</option>
-              <option>간식</option>
-              <option>음료</option>
+              <option>메인반찬</option>
+              <option>면/만두</option>
+              <option>밑반찬</option>
+              <option>밥/죽/떡</option>
+              <option>빵</option>
+              <option>샐러드</option>
+              <option>스프</option>
+              <option>양념/소스/잼</option>
+              <option>양식</option>
+              <option>찌개</option>
+              <option>차/음료/술</option>
+              <option>퓨전</option>
             </select>
           </div>
         </div>
@@ -137,8 +163,9 @@
         </div>
         <div class="ing-list" id="ingList">
           <div class="ing-row" data-row>
-            <input class="input" type="text" placeholder="재료명" data-name />
-            <input class="input" type="text" placeholder="수량 (예: 200g / 1개)" data-qty />
+            <input class="input" type="text" placeholder="재료명 (예: 식빵)" data-name />
+            <input class="input" type="text" placeholder="수량 (예: 2)" data-quantity />
+            <input class="input" type="text" placeholder="단위 (예: 장, g, 큰술)" data-unit />
             <button class="mini warn" type="button" data-remove>×</button>
           </div>
         </div>
@@ -162,7 +189,7 @@
     </form>
   </div>
 
-  <script src="post-upload.js"></script>
+
 </body>
 
 </html>

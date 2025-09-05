@@ -25,8 +25,10 @@ function bindIngRow(row) {
         if (ingList.querySelectorAll("[data-row]").length > 1) {
             row.remove();
         } else {
+            // 3개 필드 모두 초기화
             row.querySelector("[data-name]").value = "";
-            row.querySelector("[data-qty]").value = "";
+            row.querySelector("[data-quantity]").value = "";
+            row.querySelector("[data-unit]").value = "";
         }
     });
 }
@@ -37,8 +39,10 @@ bindIngRow(ingList.querySelector("[data-row]"));
 addIng.addEventListener("click", () => {
     const base = ingList.querySelector("[data-row]");
     const clone = base.cloneNode(true);
+    // 3개 필드 모두 초기화
     clone.querySelector("[data-name]").value = "";
-    clone.querySelector("[data-qty]").value = "";
+    clone.querySelector("[data-quantity]").value = "";
+    clone.querySelector("[data-unit]").value = "";
     bindIngRow(clone);
     ingList.appendChild(clone);
 });
@@ -113,8 +117,27 @@ addStep.addEventListener("click", () => {
     stepList.appendChild(makeStepItem(idx));
 });
 
-// 폼 제출
+// 폼 제출 - 재료 데이터 처리 추가
 document.getElementById("uploadForm").addEventListener("submit", (e) => {
     e.preventDefault();
+
+    // 재료 데이터 수집
+    const ingredients = [];
+    const rows = document.querySelectorAll("[data-row]");
+
+    rows.forEach((row) => {
+        const name = row.querySelector("[data-name]").value.trim();
+        const quantity = row.querySelector("[data-quantity]").value.trim();
+        const unit = row.querySelector("[data-unit]").value.trim();
+
+        if (name && quantity && unit) {
+            ingredients.push(`${name} ${quantity}${unit}`);
+        }
+    });
+
+    const ingredientsString = ingredients.join("|");
+    console.log("저장할 재료 데이터:", ingredientsString);
+    // 예시: "식빵 2장|튀김가루 100g|물 120ml"
+
     alert("레시피 저장 완료! (개발 중)");
 });

@@ -1,10 +1,5 @@
 package SITE.RECIPICK.RECIPICK_PROJECT.entity;
 
-import java.time.LocalDateTime;
-
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -13,11 +8,14 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
 @Table(name = "POST")
@@ -82,20 +80,17 @@ public class PostEntity {
   @Column(name = "ckg_mtrl_cn", nullable = false, columnDefinition = "TEXT")
   private String ckgMtrlCn;
 
-  // ✅ 몇 인분 - 필수 필드, 드롭다운 (1~10)
-  @Enumerated(EnumType.ORDINAL)
+  // ✅ 몇 인분 - 필수 필드, 드롭다운 (1~6)
   @Column(name = "ckg_inbun", nullable = false)
-  private CookingInbun ckgInbun;
+  private Integer ckgInbun;
 
   // ✅ 조리 난이도 - 필수 필드, 드롭다운 (1~5)
-  @Enumerated(EnumType.ORDINAL)
   @Column(name = "ckg_level", nullable = false)
-  private CookingLevel ckgLevel;
+  private Integer ckgLevel;
 
-  // ✅ 조리시간 - 필수 필드, 드롭다운 (10, 15, 20, 30, 90, 120)
-  @Enumerated(EnumType.ORDINAL)
+  // ✅ 조리시간 - 필수 필드, 드롭다운 (5~121분)
   @Column(name = "ckg_time", nullable = false)
-  private CookingTime ckgTime;
+  private Integer ckgTime;
 
   // ✅ 썸네일 이미지 URL - 필수 필드로 변경
   @Column(name = "rcp_img_url", nullable = false, length = 500)
@@ -124,11 +119,8 @@ public class PostEntity {
     THREE(3, "3인분"),
     FOUR(4, "4인분"),
     FIVE(5, "5인분"),
-    SIX(6, "6인분"),
-    SEVEN(7, "7인분"),
-    EIGHT(8, "8인분"),
-    NINE(9, "9인분"),
-    TEN(10, "10인분");
+    SIX(6, "6인분 이상");
+
 
     private final int value;
     private final String description;
@@ -157,16 +149,18 @@ public class PostEntity {
     }
   }
 
-  // ✅ 조리시간 enum (10, 15, 20, 30, 90, 120분)
+  // ✅ 조리시간 enum (프론트엔드에 맞게 수정)
   @Getter
   public enum CookingTime {
-    TIME_10(10, "10분"),
-    TIME_15(15, "15분"),
-    TIME_20(20, "20분"),
-    TIME_30(30, "30분"),
-    TIME_90(90, "1시간 30분"),
-    TIME_120(120, "2시간");
-
+    TIME_5(5, "5분이내"),
+    TIME_10(10, "10분이내"),
+    TIME_15(15, "15분이내"),
+    TIME_30(30, "30분이내"),
+    TIME_60(60, "60분이내"),
+    TIME_90(90, "90분이내"),
+    TIME_120(120, "2시간이내"),
+    TIME_121(121, "2시간이상");
+    
     private final int minutes;
     private final String description;
 
@@ -176,21 +170,23 @@ public class PostEntity {
     }
   }
 
-  // 조리방법 enum (기존)
+  // 조리방법 enum (프론트엔드에 맞게 수정)
   @Getter
   public enum CookingMethod {
-    BOILING("끓이기"),
     GRILLING("굽기"),
-    FRYING("튀기기"),
-    STIR_FRYING("볶기"),
-    STEAMING("찌기"),
-    BRAISING("조리기"),
-    ROASTING("구이"),
-    SIMMERING("졸이기"),
+    OTHER("기타"),
+    BOILING("끓이기"),
     BLANCHING("데치기"),
     SEASONING("무침"),
-    RAW("생식"),
-    OTHER("기타");
+    STIR_FRYING("볶음"),
+    PAN_FRYING("부침"),
+    MIXING("비빔"),
+    SIMMERING("삶기"),
+    PICKLING("절임"),
+    BRAISING("조림"),
+    STEAMING("찜"),
+    FRYING("튀김"),
+    RAW("회");
 
     private final String description;
 
@@ -199,22 +195,25 @@ public class PostEntity {
     }
   }
 
-  // 요리 카테고리 enum (기존)
+  // 요리 카테고리 enum (프론트엔드에 맞게 수정)
   @Getter
   public enum CookingCategory {
-    KOREAN("한식"),
-    CHINESE("중식"),
-    JAPANESE("일식"),
-    WESTERN("양식"),
-    ASIAN("아시안"),
-    DESSERT("디저트"),
-    BEVERAGE("음료"),
-    SALAD("샐러드"),
-    SOUP("국물요리"),
-    SIDE_DISH("반찬"),
-    MAIN_DISH("메인요리"),
-    SNACK("간식"),
-    OTHER("기타");
+    PROCESSED_FOOD("가공식품류"),
+    DRIED_SEAFOOD("건어물류"),
+    GRAINS("곡류"),
+    FRUITS("과일류"),
+    OTHER("기타"),
+    EGG_DAIRY("달걀/유제품"),
+    CHICKEN("닭고기"),
+    PORK("돼지고기"),
+    FLOUR("밀가루"),
+    MUSHROOM("버섯류"),
+    BEEF("소고기"),
+    RICE("쌀"),
+    MEAT("육류"),
+    VEGETABLES("채소류"),
+    BEANS_NUTS("콩/견과류"),
+    SEAFOOD("해물류");
 
     private final String description;
 
@@ -223,24 +222,26 @@ public class PostEntity {
     }
   }
 
-  // 요리 종류 enum (기존)
+  // 요리 종류 enum (프론트엔드에 맞게 수정)
   @Getter
   public enum CookingKind {
-    RICE("밥류"),
-    NOODLE("면류"),
+    SNACK("과자"),
     SOUP("국/탕"),
+    OTHER("기타"),
+    KIMCHI_JEOTGAL("김치/젓갈/장류"),
+    DESSERT("디저트"),
+    MAIN_SIDE_DISH("메인반찬"),
+    NOODLE_DUMPLING("면/만두"),
+    SIDE_DISH("밑반찬"),
+    RICE_PORRIDGE("밥/죽/떡"),
+    BREAD("빵"),
+    SALAD("샐러드"),
+    SOUP_WESTERN("스프"),
+    SAUCE_JAM("양념/소스/잼"),
+    WESTERN("양식"),
     STEW("찌개"),
-    SIDE_DISH("반찬"),
-    KIMCHI("김치"),
-    MEAT("육류요리"),
-    SEAFOOD("해산물요리"),
-    VEGETABLE("채소요리"),
-    BREAD("빵/베이커리"),
-    DESSERT("후식/디저트"),
-    BEVERAGE("음료"),
-    SAUCE("소스/양념"),
-    PICKLE("절임/장아찌"),
-    OTHER("기타");
+    BEVERAGE("차/음료/술"),
+    FUSION("퓨전");
 
     private final String description;
 

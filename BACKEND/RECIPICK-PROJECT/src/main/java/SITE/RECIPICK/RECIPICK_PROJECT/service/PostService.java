@@ -84,8 +84,14 @@ public class PostService {
             ? String.join(" | ", postDto.getRcpStepsImg())
             : "";
 
-    // 재료 리스트를 문자열로 변환
-    String formattedIngredients = String.join(" | ", postDto.getCkgMtrlCn());
+    // 재료 리스트를 문자열로 변환 (앞에 [재료] 추가)
+    String formattedIngredients = "[재료] " + String.join(" | ", postDto.getCkgMtrlCn());
+
+    // 썸네일 이미지 필수 검증
+    if (postDto.getRcpImgUrl() == null || postDto.getRcpImgUrl().trim().isEmpty()) {
+      throw new IllegalArgumentException("썸네일 이미지는 필수입니다");
+    }
+    String imageUrl = postDto.getRcpImgUrl();
 
     // DTO → Entity 변환
     PostEntity postEntity = PostEntity.builder()
@@ -99,7 +105,7 @@ public class PostService {
         .ckgInbun(postDto.getCkgInbun())
         .ckgLevel(postDto.getCkgLevel())
         .ckgTime(postDto.getCkgTime())
-        .rcpImgUrl(postDto.getRcpImgUrl())
+        .rcpImgUrl(imageUrl)
         .rcpSteps(formattedSteps)
         .rcpStepsImg(formattedStepImgs)
         .build();

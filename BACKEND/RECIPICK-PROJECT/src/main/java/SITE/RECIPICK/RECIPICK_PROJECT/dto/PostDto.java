@@ -1,11 +1,8 @@
 package SITE.RECIPICK.RECIPICK_PROJECT.dto;
 
 import SITE.RECIPICK.RECIPICK_PROJECT.entity.PostEntity.CookingCategory;
-import SITE.RECIPICK.RECIPICK_PROJECT.entity.PostEntity.CookingInbun;
 import SITE.RECIPICK.RECIPICK_PROJECT.entity.PostEntity.CookingKind;
-import SITE.RECIPICK.RECIPICK_PROJECT.entity.PostEntity.CookingLevel;
 import SITE.RECIPICK.RECIPICK_PROJECT.entity.PostEntity.CookingMethod;
-import SITE.RECIPICK.RECIPICK_PROJECT.entity.PostEntity.CookingTime;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -48,18 +45,17 @@ public class PostDto {
 
   // ✅ 몇 인분 - 필수
   @NotNull(message = "몇 인분인지 선택해주세요")
-  private CookingInbun ckgInbun;
+  private Integer ckgInbun;
 
   // ✅ 조리 난이도 - 필수
   @NotNull(message = "조리 난이도를 선택해주세요")
-  private CookingLevel ckgLevel;
+  private Integer ckgLevel;
 
   // ✅ 조리시간 - 필수
   @NotNull(message = "조리 시간을 선택해주세요")
-  private CookingTime ckgTime;
+  private Integer ckgTime;
 
-  // ✅ 썸네일 이미지 URL - 필수
-  @NotBlank(message = "썸네일 이미지는 필수입니다")
+  // ✅ 썸네일 이미지 URL - 선택적 (빈 문자열 허용)
   private String rcpImgUrl;
 
   // ✅ 조리 단계별 설명 - 필수, 빈 배열 불가

@@ -1,6 +1,6 @@
 package SITE.RECIPICK.RECIPICK_PROJECT.repository;
 
-import SITE.RECIPICK.RECIPICK_PROJECT.entity.SearchPost;
+import SITE.RECIPICK.RECIPICK_PROJECT.entity.PostEntity;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -8,46 +8,55 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface SearchRepository extends JpaRepository<SearchPost, Long> {
+public interface SearchRepository extends JpaRepository<PostEntity, Long> {
 
   /**
-   * 재료로 레시피 검색 (페이지네이션 수정)
+   * 재료로 레시피 검색 (메인 재료 필수, 서브 재료 우선순위)
    */
   @Query(value = """
-      SELECT p.post_id AS postId,
-             p.title AS title,
-             p.food_name AS foodName,
-             p.rcp_img_url AS rcpImgUrl,
-             p.view_count AS viewCount,
-             p.like_count AS likeCount,
-             p.created_at AS createdAt,
-             COALESCE(main_matches.mainScore, 0) AS mainScore,
-             COALESCE(sub_matches.subScore, 0) AS subScore
-      FROM post p
-      LEFT JOIN (
-          SELECT ri.post_id,
-                 SUM(CASE WHEN i.name IN :mainIngredients THEN 1 ELSE 0 END) AS mainScore
-          FROM recipe_ingredient ri
-          JOIN ingredient i ON ri.ing_id = i.ing_id
-          WHERE i.name IN :mainIngredients
-          GROUP BY ri.post_id
-      ) AS main_matches ON p.post_id = main_matches.post_id
-      LEFT JOIN (
-          SELECT ri2.post_id,
-                 SUM(CASE WHEN i2.name IN :subIngredients THEN 1 ELSE 0 END) AS subScore
-          FROM recipe_ingredient ri2
-          JOIN ingredient i2 ON ri2.ing_id = i2.ing_id
-          WHERE i2.name IN :subIngredients
-          GROUP BY ri2.post_id
-      ) AS sub_matches ON p.post_id = sub_matches.post_id
-      WHERE main_matches.mainScore > 0 OR sub_matches.subScore > 0
+      WITH recipe_scores AS (
+          SELECT 
+              p.post_id,
+              p.title,
+              p.food_name,
+              p.rcp_img_url,
+              p.view_count,
+              p.like_count,
+              p.created_at,
+              -- 메인 재료 직접 매칭 점수
+              COALESCE(SUM(CASE WHEN i.name IN :mainIngredients THEN 1 ELSE 0 END), 0) AS main_direct_score,
+              -- 메인 재료 카테고리 매칭 점수
+              COALESCE(SUM(CASE WHEN i.sort IN :mainIngredients THEN 0.5 ELSE 0 END), 0) AS main_category_score,
+              -- 서브 재료 매칭 점수
+              COALESCE(SUM(CASE WHEN i.name IN :subIngredients THEN 1 ELSE 0 END), 0) AS sub_score
+          FROM post p
+          LEFT JOIN recipe_ingredient ri ON p.post_id = ri.post_id
+          LEFT JOIN ingredient i ON ri.ing_id = i.ing_id
+          GROUP BY p.post_id, p.title, p.food_name, p.rcp_img_url, p.view_count, p.like_count, p.created_at
+      )
+      SELECT 
+          post_id AS postId,
+          title,
+          food_name AS foodName,
+          rcp_img_url AS rcpImgUrl,
+          view_count AS viewCount,
+          like_count AS likeCount,
+          created_at AS createdAt
+      FROM recipe_scores
+      WHERE 
+          -- 메인 재료가 직접 매칭되거나 카테고리로 매칭되어야 함 (필수 조건)
+          (main_direct_score > 0 OR main_category_score > 0)
       ORDER BY
-          main_matches.mainScore DESC,   -- 1순위: 메인 재료 매칭 점수
-          sub_matches.subScore DESC,     -- 2순위: 서브 재료 매칭 점수
-          CASE WHEN :sort = 'views' THEN p.view_count END DESC,
-          CASE WHEN :sort = 'likes' THEN p.like_count END DESC,
-          CASE WHEN :sort = 'latest' THEN p.created_at END DESC,
-          p.created_at DESC
+          -- defaultsort일 때만 메인/서브 우선순위 적용
+          CASE WHEN :sort = 'defaultsort' THEN main_direct_score END DESC,
+          CASE WHEN :sort = 'defaultsort' THEN sub_score END DESC,
+          CASE WHEN :sort = 'defaultsort' THEN main_category_score END DESC,
+          -- 사용자 선택 정렬 (우선순위 무시하고 순수 정렬)
+          CASE WHEN :sort = 'views' THEN view_count END DESC,
+          CASE WHEN :sort = 'likes' THEN like_count END DESC,
+          CASE WHEN :sort = 'latest' THEN created_at END DESC,
+          -- 최종 기본 정렬
+          created_at DESC
       LIMIT :limit OFFSET :offset
       """, nativeQuery = true)
   List<Object[]> searchByIngredients(
@@ -59,27 +68,21 @@ public interface SearchRepository extends JpaRepository<SearchPost, Long> {
   );
 
   /**
-   * 재료로 레시피 개수 조회
+   * 재료로 레시피 개수 조회 (메인 재료 기준)
    */
   @Query(value = """
-      SELECT count(DISTINCT p.post_id) FROM post p
-      JOIN recipe_ingredient ri ON p.post_id = ri.post_id
-      JOIN ingredient i ON ri.ing_id = i.ing_id
-      WHERE (
-          i.name IN :mainIngredients
-          OR i.sort IN :mainIngredients
-          OR i.sort IN (
-              SELECT DISTINCT i_main.sort
-              FROM ingredient i_main
-              WHERE i_main.name IN :mainIngredients
-              AND i_main.sort IS NOT NULL
-          )
-      )
+      SELECT COUNT(DISTINCT p.post_id) 
+      FROM post p
+      LEFT JOIN recipe_ingredient ri ON p.post_id = ri.post_id
+      LEFT JOIN ingredient i ON ri.ing_id = i.ing_id
+      WHERE 
+          -- 메인 재료가 직접 매칭되거나 카테고리로 매칭되어야 함
+          (i.name IN :mainIngredients OR i.sort IN :mainIngredients)
       """, nativeQuery = true)
   int countSearchByIngredients(@Param("mainIngredients") List<String> mainIngredients);
 
   /**
-   * 제목으로 레시피 검색 (페이지네이션)
+   * 제목으로 레시피 검색
    */
   @Query(value = """
           SELECT p.post_id AS postId,
@@ -106,7 +109,17 @@ public interface SearchRepository extends JpaRepository<SearchPost, Long> {
   );
 
   /**
-   * 인기/전체 레시피 조회 (페이지네이션 수정)
+   * 제목으로 레시피 개수 조회
+   */
+  @Query(value = """
+          SELECT COUNT(p.post_id)
+          FROM post p
+          WHERE p.title LIKE CONCAT('%', :title, '%')
+      """, nativeQuery = true)
+  int countSearchByTitle(@Param("title") String title);
+
+  /**
+   * 인기/전체 레시피 조회
    */
   @Query(value = """
           SELECT p.post_id AS postId,
@@ -130,7 +143,15 @@ public interface SearchRepository extends JpaRepository<SearchPost, Long> {
       @Param("offset") int offset
   );
 
-  // 재료 자동완성을 위한 메서드
+  /**
+   * 전체 레시피 개수 조회
+   */
+  @Query(value = "SELECT COUNT(p.post_id) FROM post p", nativeQuery = true)
+  int countAllRecipes();
+
+  /**
+   * 재료 자동완성
+   */
   @Query(value = """
           SELECT DISTINCT i.name
           FROM ingredient i

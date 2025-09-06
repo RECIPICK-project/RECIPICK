@@ -18,6 +18,7 @@ let currentIngredients = {main: [], sub: []};
 let isLoading = false;
 let nextPage = 0;
 let hasMoreData = true;
+let totalRecipeCount = 0;
 const PAGE_SIZE = 10;
 
 // 로딩 상태 제어 함수
@@ -30,6 +31,45 @@ function showLoading() {
 
 function hideLoading() {
   isLoading = false;
+  // 로딩 메시지 제거
+  const loadingEl = listEl.querySelector('.loading');
+  if (loadingEl) {
+    loadingEl.remove();
+  }
+}
+
+// 검색된 재료 표시 함수
+function showSearchedIngredients() {
+  // 기존 재료 표시 제거
+  const existingInfo = document.querySelector('.search-ingredients-info');
+  if (existingInfo) {
+    existingInfo.remove();
+  }
+
+  if (currentSearchType === 'ingredients' && (currentIngredients.main.length > 0
+      || currentIngredients.sub.length > 0)) {
+    const ingredientsInfo = document.createElement('div');
+    ingredientsInfo.className = 'search-ingredients-info';
+
+    // 메인 재료 칩 생성
+    currentIngredients.main.forEach(ingredient => {
+      const chip = document.createElement('span');
+      chip.className = 'ingredient-chip main';
+      chip.textContent = ingredient;
+      ingredientsInfo.appendChild(chip);
+    });
+
+    // 서브 재료 칩 생성
+    currentIngredients.sub.forEach(ingredient => {
+      const chip = document.createElement('span');
+      chip.className = 'ingredient-chip';
+      chip.textContent = ingredient;
+      ingredientsInfo.appendChild(chip);
+    });
+
+    // countEl 다음에 삽입 (레시피 목록 위에)
+    countEl.insertAdjacentElement('afterend', ingredientsInfo);
+  }
 }
 
 // API 호출 함수들
@@ -86,25 +126,20 @@ async function getPopularRecipes(sort = 'latest', page = 0, size = PAGE_SIZE) {
 
 // 이미지 URL 유효성 검사 및 처리
 function processImageUrl(imageUrl) {
-  // null, undefined, 빈 문자열 체크
   if (!imageUrl || imageUrl.trim() === '') {
     return DEFAULT_IMAGE_URL;
   }
 
-  // HTTP/HTTPS 프로토콜 체크
   if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
     return imageUrl;
   }
 
-  // 상대 경로인 경우 기본 이미지 반환
   return DEFAULT_IMAGE_URL;
 }
 
 // 레시피 카드 생성
 function makeCard(recipe) {
-  // 디버깅: 레시피 데이터 확인
   console.log('Recipe data:', recipe);
-  console.log('rcpImgUrl:', recipe.rcpImgUrl);
 
   const li = document.createElement('li');
   li.className = 'card';
@@ -114,17 +149,12 @@ function makeCard(recipe) {
   imgWrapper.className = 'card-img';
   const img = document.createElement('img');
 
-  // 이미지 URL 처리 - 썸네일용 rcpImgUrl 우선 사용
   const imageUrl = recipe.rcpImgUrl;
   const processedUrl = processImageUrl(imageUrl);
-
-  console.log('Original URL:', imageUrl);
-  console.log('Processed URL:', processedUrl);
 
   img.src = processedUrl;
   img.alt = recipe.foodName;
 
-  // 이미지 로드 성공/실패 이벤트
   img.onload = function () {
     console.log('Image loaded successfully:', this.src);
   };
@@ -173,10 +203,12 @@ function resetState() {
   hasMoreData = true;
   listEl.innerHTML = '';
   loadMoreBtn.hidden = true;
+  totalRecipeCount = 0;
 }
 
 // 결과 수 표시
 function updateCount(count) {
+  totalRecipeCount = count;
   countEl.textContent = `총 ${count}개 레시피`;
 }
 
@@ -196,7 +228,9 @@ function addRecipesToList(recipes) {
     const card = makeCard(recipe);
     listEl.appendChild(card);
   });
-  loadMoreBtn.hidden = false;
+
+  hasMoreData = recipes.length === PAGE_SIZE;
+  loadMoreBtn.hidden = !hasMoreData;
 }
 
 // 빈 결과 표시
@@ -204,12 +238,37 @@ function showNoResults(message) {
   listEl.innerHTML = `<div class="no-results">${message}</div>`;
   countEl.textContent = '총 0개 레시피';
   loadMoreBtn.hidden = true;
+  totalRecipeCount = 0;
 }
 
 // 에러 메시지 표시
 function showError(error) {
   console.error(error);
   listEl.innerHTML = `<div class="error-msg">오류가 발생했습니다.<br>다시 시도해주세요.</div>`;
+}
+
+// 정렬 옵션 동적 업데이트
+function updateSortOptions(searchType) {
+  const sortSel = document.getElementById('sortSel');
+
+  sortSel.innerHTML = '';
+
+  if (searchType === 'ingredients') {
+    // 재료 검색시: defaultsort 포함
+    sortSel.innerHTML = `
+      <option value="defaultsort">관련도순</option>
+      <option value="popular">인기순</option>
+      <option value="latest">최신순</option>
+      <option value="rating">조회순</option>
+    `;
+  } else {
+    // 제목 검색, 인기 레시피: defaultsort 제외
+    sortSel.innerHTML = `
+      <option value="latest">최신순</option>
+      <option value="popular">인기순</option>
+      <option value="rating">조회순</option>
+    `;
+  }
 }
 
 // 정렬 변경 이벤트 핸들러
@@ -238,10 +297,11 @@ async function applySort() {
       showNoResults('검색 결과가 없습니다.');
     } else {
       addRecipesToList(response.recipes);
+      // 전체 개수 업데이트
       if (currentSearchType === 'ingredients') {
-        updateCount(response.recipeCount);
+        updateCount(response.recipeCount || response.totalCount || 0);
       } else {
-        updateCount(response.recipes.length);
+        updateCount(response.totalCount || 0);
       }
     }
     nextPage = 1;
@@ -250,6 +310,7 @@ async function applySort() {
     showError(error);
   } finally {
     hideLoading();
+    showSearchedIngredients(); // 검색 재료 표시
   }
 }
 
@@ -277,19 +338,11 @@ async function handleLoadMore() {
       );
       recipes = response.recipes;
     } else if (currentSearchType === 'title') {
-      response = await searchRecipesByTitle(
-          currentQuery,
-          sort,
-          nextPage,
-          PAGE_SIZE
-      );
+      response = await searchRecipesByTitle(currentQuery, sort, nextPage,
+          PAGE_SIZE);
       recipes = response.recipes;
     } else {
-      response = await getPopularRecipes(
-          sort,
-          nextPage,
-          PAGE_SIZE
-      );
+      response = await getPopularRecipes(sort, nextPage, PAGE_SIZE);
       recipes = response.recipes;
     }
 
@@ -317,6 +370,9 @@ async function init() {
   const searchType = urlParams.get('searchType');
   const query = urlParams.get('q');
   const sort = sortSel.value;
+
+  // 정렬 옵션 동적 설정
+  updateSortOptions(searchType);
 
   try {
     resetState();
@@ -348,10 +404,11 @@ async function init() {
     if (response.recipes && response.recipes.length > 0) {
       addRecipesToList(response.recipes);
       nextPage = 1;
+      // 전체 개수 업데이트
       if (currentSearchType === 'ingredients') {
-        updateCount(response.recipeCount);
+        updateCount(response.recipeCount || response.totalCount || 0);
       } else {
-        updateCount(response.recipes.length);
+        updateCount(response.totalCount || 0);
       }
     } else {
       showNoResults('검색 결과가 없습니다.');
@@ -361,6 +418,7 @@ async function init() {
     showError(error);
   } finally {
     hideLoading();
+    showSearchedIngredients(); // 검색 재료 표시
   }
 }
 
@@ -381,6 +439,9 @@ form.addEventListener('submit', async (e) => {
   currentSearchType = 'title';
   currentQuery = query;
 
+  // 정렬 옵션 업데이트 (제목 검색이므로 defaultsort 제거)
+  updateSortOptions('title');
+
   try {
     const sort = sortSel.value;
     const response = await searchRecipesByTitle(query, sort, 0, PAGE_SIZE);
@@ -388,12 +449,13 @@ form.addEventListener('submit', async (e) => {
     if (response.recipes.length === 0) {
       showNoResults('검색 결과가 없습니다.');
     }
-    updateCount(response.recipes.length);
+    updateCount(response.totalCount || 0);
     nextPage = 1;
   } catch (error) {
     showError(error);
   } finally {
     hideLoading();
+    showSearchedIngredients(); // 검색 재료 표시
   }
 });
 

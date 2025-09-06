@@ -50,6 +50,7 @@ body {
 
 /* 상단 */
 .head {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -64,7 +65,7 @@ body {
 }
 
 .head h1 {
-  margin: 0 auto 0 0;
+  margin: 0;
   font-size: 16px;
   font-weight: 800;
 }
@@ -73,6 +74,15 @@ body {
   .head h1 {
     font-size: 20px;
   }
+}
+
+.search-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 16px;
+  font-weight: 800;
+  margin: 0;
 }
 
 .back {
@@ -475,7 +485,7 @@ body {
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  width: min(680px, 92vw);
+  width: min(680px, 85vw);
   max-width: 375px;
   background: #fff;
   border-radius: 16px;

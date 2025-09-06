@@ -50,6 +50,7 @@ public class SearchController {
       Map<String, Object> searchResult = searchService.searchRecipes(mainIngredients,
           subIngredients, sort, pageable);
 
+      @SuppressWarnings("unchecked")
       List<SearchPostDto> recipes = (List<SearchPostDto>) searchResult.get("recipes");
       Integer totalCount = (Integer) searchResult.get("totalCount");
 
@@ -81,18 +82,25 @@ public class SearchController {
   ) {
     try {
       Pageable pageable = PageRequest.of(page, size);
-      List<SearchPostDto> recipes = searchService.searchRecipesByTitle(title, sort, pageable);
+      Map<String, Object> searchResult = searchService.searchRecipesByTitle(title, sort, pageable);
+
+      @SuppressWarnings("unchecked")
+      List<SearchPostDto> recipes = (List<SearchPostDto>) searchResult.get("recipes");
+      Integer totalCount = (Integer) searchResult.get("totalCount");
+
       return ResponseEntity.ok(Map.of(
           "success", true,
           "message", "제목으로 검색 완료",
-          "recipes", recipes
+          "recipes", recipes,
+          "totalCount", totalCount
       ));
     } catch (Exception e) {
       log.error("제목으로 검색 중 오류 발생", e);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
           "success", false,
           "message", "제목 검색 중 오류가 발생했습니다.",
-          "recipes", List.of()
+          "recipes", List.of(),
+          "totalCount", 0
       ));
     }
   }
@@ -105,18 +113,25 @@ public class SearchController {
   ) {
     try {
       Pageable pageable = PageRequest.of(page, size);
-      List<SearchPostDto> recipes = searchService.getPopularRecipes(sort, pageable);
+      Map<String, Object> searchResult = searchService.getPopularRecipes(sort, pageable);
+
+      @SuppressWarnings("unchecked")
+      List<SearchPostDto> recipes = (List<SearchPostDto>) searchResult.get("recipes");
+      Integer totalCount = (Integer) searchResult.get("totalCount");
+
       return ResponseEntity.ok(Map.of(
           "success", true,
           "message", "인기 레시피 조회 완료",
-          "recipes", recipes
+          "recipes", recipes,
+          "totalCount", totalCount
       ));
     } catch (Exception e) {
       log.error("인기 레시피 조회 중 오류 발생", e);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
           "success", false,
           "message", "인기 레시피 조회 중 오류가 발생했습니다.",
-          "recipes", List.of()
+          "recipes", List.of(),
+          "totalCount", 0
       ));
     }
   }
@@ -174,7 +189,7 @@ public class SearchController {
           subIngredients,
           sort, pageable);
 
-      // 경고를 해결하기 위해 명시적으로 캐스팅
+      @SuppressWarnings("unchecked")
       List<SearchPostDto> recipes = (List<SearchPostDto>) searchResult.get("recipes");
       Integer totalCount = (Integer) searchResult.get("totalCount");
 

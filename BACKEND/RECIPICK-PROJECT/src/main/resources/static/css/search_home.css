@@ -405,11 +405,15 @@ body.detail {
   }
 }
 
-/* ================= 탭바: sticky + 고정 높이 ================= */
+/* ================= 탭바: 고정 + 높이 고정 ================= */
 .tabbar {
-  position: sticky !important; /* 스크롤 따라다님 */
+  position: fixed !important; /* 스크롤과 무관하게 하단 고정 */
   bottom: 0 !important;
-  height: var(--tabbar-h) !important; /* 벽돌 방지: 높이 고정 */
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  width: min(375px, 100vw); /* 모바일 너비 고정 */
+
+  height: var(--tabbar-h) !important;
   background: #fff !important;
   border-top-left-radius: 20px;
   border-top-right-radius: 20px;
@@ -424,6 +428,7 @@ body.detail {
 
 @media (min-width: 768px) {
   .tabbar {
+    width: min(800px, 100vw) !important; /* 웹에서는 더 넓게 */
     border-top-left-radius: 24px !important;
     border-top-right-radius: 24px !important;
     padding: 0 20px !important;
@@ -497,4 +502,29 @@ body.detail {
   :root {
     --tabbar-h: 65px;
   }
+}
+
+/* 재료 검색 칩 디자인 */
+.search-ingredients-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.ingredient-chip {
+  background: #e0f2f1;
+  color: #00796b;
+  border: 1px solid #b2dfdb;
+  border-radius: 9999px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.ingredient-chip.main {
+  background: #c8e6c9;
+  color: #2e7d32;
+  border-color: #a5d6a7;
 }

@@ -237,10 +237,14 @@ document.getElementById("uploadForm").addEventListener("submit", async (e) => {
         formData.append('title', document.querySelector('[name="title"]')?.value || '제목 없음');
         formData.append('foodName', document.querySelector('[name="foodName"]')?.value || '음식명 없음');
         
-        // 필수 enum 필드들 (기본값 설정)
-        formData.append('ckgMth', 'OTHER');        // 조리방법
-        formData.append('ckgCategory', 'OTHER');   // 카테고리  
-        formData.append('ckgKnd', 'OTHER');        // 요리 종류
+        // 드롭다운에서 선택된 값 읽기
+        const methodSelect = document.querySelector('select[name="ckgMth"]');
+        const categorySelect = document.querySelector('select[name="ckgCategory"]');
+        const kindSelect = document.querySelector('select[name="ckgKnd"]');
+        
+        formData.append('ckgMth', methodSelect?.value || 'OTHER');        // 조리방법
+        formData.append('ckgCategory', categorySelect?.value || 'OTHER');   // 카테고리  
+        formData.append('ckgKnd', kindSelect?.value || 'OTHER');        // 요리 종류
         
         // Integer 필드들 - 드롭다운에서 선택된 값 또는 기본값
         const inbunSelect = document.querySelector('select[name="CKG_INBUN"]');

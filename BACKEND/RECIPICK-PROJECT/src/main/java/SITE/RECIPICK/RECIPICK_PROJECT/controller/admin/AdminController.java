@@ -8,6 +8,7 @@ import SITE.RECIPICK.RECIPICK_PROJECT.dto.admin.AdminDashboardResponse;
 import SITE.RECIPICK.RECIPICK_PROJECT.dto.admin.UpdateUserActiveRequest;
 import SITE.RECIPICK.RECIPICK_PROJECT.dto.admin.UserSummaryDTO;
 import SITE.RECIPICK.RECIPICK_PROJECT.entity.ReportEntity;
+import SITE.RECIPICK.RECIPICK_PROJECT.repository.UserRepository;
 import SITE.RECIPICK.RECIPICK_PROJECT.service.admin.AdminGradeService;
 import SITE.RECIPICK.RECIPICK_PROJECT.service.admin.AdminService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -18,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -31,7 +33,11 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * AdminController
  * <p>
- * ✅ 관리자 전용 API 모음 - /admin 경로 하위에서만 동작 - Swagger @Tag 로 그룹화 - AdminService, AdminGradeService 와 연결
+ * ✅ 관리자 전용 API 엔드포인트 집합 - 모든 경로는 "/admin" 하위 - 서비스 계층(AdminService, AdminGradeService)로 위임하여 비즈니스
+ * 로직 수행 - 현재 로그인한 관리자 식별은 Spring Security Authentication + UserRepository로 처리
+ * <p>
+ * ⚠️ 주의 - "임시 하드코딩된 사용자 ID"는 사용하지 않음. - 신고 등록 등 "신고자 ID"가 필요한 곳에서는 Authentication의 이름(email)로 DB 조회
+ * → userId 추출.
  */
 @RestController
 @RequestMapping("/admin")
@@ -39,14 +45,14 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "admin", description = "관리자 전용 API")
 public class AdminController {
 
-  private static final Integer ME = 1; // TODO: Security 붙이면 인증 사용자 ID로 교체 예정
-  private final AdminService svc;      // 주요 관리자 기능 (게시글/신고/유저 관리)
-  private final AdminGradeService gradeSvc; // 유저 등급 변경 전담 서비스
+  private final AdminService svc;           // 게시글/신고/유저 등 관리자 핵심 기능
+  private final AdminGradeService gradeSvc; // 유저 등급 변경 전담
+  private final UserRepository userRepo;    // 현재 인증된 사용자(email) → userId 조회용
 
-  // ================= Users =================
+  // ===================== Users =====================
 
   /**
-   * 유저 목록 조회 - 최신 가입 순서 - offset/limit 기반 페이지네이션
+   * 유저 목록(최신순) - offset/limit 페이지네이션
    */
   @GetMapping("/users")
   @Operation(summary = "유저 목록", description = "최신순, offset/limit 페이지네이션")
@@ -58,38 +64,35 @@ public class AdminController {
   }
 
   /**
-   * 유저 등급 변경 (BRONZE | SILVER | GOLD)
+   * 유저 등급 변경 (BRONZE | SILVER | GOLD) - 요청 바디의 grade 값은 대소문자 무시, 서비스에서 Enum으로 검증/치환 - 성공 시 204 No
+   * Content
    */
-  @PatchMapping(
-      value = "/users/{userId}/grade",
-      consumes = MediaType.APPLICATION_JSON_VALUE
-  )
-  @Operation(
-      summary = "유저 등급 변경",
-      description = "등급을 BRONZE | SILVER | GOLD 중 하나로 변경합니다."
-  )
+  @PatchMapping(value = "/users/{userId}/grade", consumes = MediaType.APPLICATION_JSON_VALUE)
+  @Operation(summary = "유저 등급 변경", description = "등급을 BRONZE | SILVER | GOLD 중 하나로 변경합니다.")
   public ResponseEntity<Void> updateUserGrade(
       @PathVariable Integer userId,
       @Valid @RequestBody GradeUpdateRequest req
   ) {
     gradeSvc.updateUserGrade(userId, req);
-    return ResponseEntity.noContent().build(); // 204 No Content
+    return ResponseEntity.noContent().build();
   }
 
   /**
-   * 유저 활성/정지 상태 변경 - active=true : 활성 - active=false : 정지
+   * 유저 활성/정지 상태 변경 - active=true  → 활성 - active=false → 정지
    */
   @PatchMapping("/users/{userId}/active")
   @Operation(summary = "유저 활성/정지", description = "active=true/false")
-  public void updateUserActive(@PathVariable Integer userId,
-      @RequestBody UpdateUserActiveRequest req) {
+  public void updateUserActive(
+      @PathVariable Integer userId,
+      @RequestBody UpdateUserActiveRequest req
+  ) {
     svc.updateUserActive(userId, req.isActive());
   }
 
-  // ================= Posts =================
+  // ===================== Posts =====================
 
   /**
-   * 미승인(임시 저장) 레시피 목록 조회
+   * 미승인(임시 저장) 레시피 목록
    */
   @GetMapping("/posts/pending")
   @Operation(summary = "미승인(임시) 레시피 목록")
@@ -118,10 +121,10 @@ public class AdminController {
     svc.deletePost(postId);
   }
 
-  // ================= Reports =================
+  // ===================== Reports =====================
 
   /**
-   * 신고 누적 상위 레시피 조회 - reportCount > min 조건
+   * 신고 누적 상위 레시피 - reportCount > min
    */
   @GetMapping("/reports/posts")
   @Operation(summary = "신고 많은 레시피", description = "reportCount > min")
@@ -134,7 +137,7 @@ public class AdminController {
   }
 
   /**
-   * 특정 리뷰 삭제 (관리자 권한)
+   * 리뷰 삭제 (관리자)
    */
   @DeleteMapping("/reports/reviews/{reviewId}")
   @Operation(summary = "리뷰 삭제")
@@ -143,7 +146,7 @@ public class AdminController {
   }
 
   /**
-   * 특정 댓글 삭제 (관리자 권한)
+   * 댓글 삭제 (관리자)
    */
   @DeleteMapping("/reports/comments/{commentId}")
   @Operation(summary = "댓글 삭제")
@@ -152,19 +155,26 @@ public class AdminController {
   }
 
   /**
-   * 사용자 신고 등록 - 일반 사용자가 사용하는 신고 등록 API - 현재는 /admin/reports 로 둠 (추후 /reports 로 이동 가능)
+   * 신고 등록 (일반 사용자도 사용하는 엔드포인트) - Authentication에서 email을 가져와 DB로 사용자 조회 → 신고자 ID로 사용 - 운영 단계에서는
+   * /reports 로 경로 이동 가능(현재는 관리 탭에서 테스트 용이하게 /admin 하위에 둠)
    */
   @PostMapping("/reports")
   @Operation(summary = "신고 등록")
-  public void createReport(@Valid @RequestBody ReportCreateRequest req) {
-    svc.createReport(ME, req);
+  public void createReport(
+      Authentication authentication,        // SecurityContext의 인증 정보
+      @Valid @RequestBody ReportCreateRequest req
+  ) {
+    Integer reporterId = currentUserId(authentication);
+    svc.createReport(reporterId, req);
   }
 
   /**
    * 신고 목록 조회 - status : PENDING | ACCEPTED | REJECTED - type   : POST | REVIEW | COMMENT | USER
+   * (nullable → 전체)
    */
   @GetMapping("/reports")
-  @Operation(summary = "신고 목록 조회", description = "status=PENDING|ACCEPTED|REJECTED, type=POST|REVIEW|COMMENT|USER")
+  @Operation(summary = "신고 목록 조회",
+      description = "status=PENDING|ACCEPTED|REJECTED, type=POST|REVIEW|COMMENT|USER")
   public Page<ReportEntity> listReports(
       @RequestParam(defaultValue = "PENDING") String status,
       @RequestParam(required = false) String type,
@@ -175,7 +185,7 @@ public class AdminController {
   }
 
   /**
-   * 신고 처리 (관리자 전용) - action=ACCEPT → ACCEPTED - action=REJECT → REJECTED
+   * 신고 처리 (관리자) - action=ACCEPT → ACCEPTED - action=REJECT → REJECTED
    */
   @PatchMapping("/reports/{id}")
   @Operation(summary = "신고 처리", description = "action=ACCEPT|REJECT")
@@ -183,10 +193,11 @@ public class AdminController {
     svc.moderate(id, req);
   }
 
-  // ================= Dashboard =================
+  // ===================== Dashboard =====================
 
   /**
-   * 관리자 대시보드 통계 조회 - 회원 수, 게시글 수, 신고 현황 등을 집계
+   * 관리자 대시보드 통계 - days       : 최근 N일 기준(기본 7) - minReports : 신고 누적 최소 기준(기본 3) - top        : 상위
+   * N개(기본 5)
    */
   @GetMapping("/dashboard")
   @Operation(summary = "대시보드 통계 조회")
@@ -198,4 +209,19 @@ public class AdminController {
     return svc.getDashboard(days, minReports, top);
   }
 
+  // ===================== Helpers =====================
+
+  /**
+   * 현재 인증 사용자 ID 조회 - authentication.getName() → 일반적으로 username(email) - email로 DB 조회하여
+   * UserEntity.id 반환 - 인증 또는 사용자 조회 실패 시 IllegalStateException
+   */
+  private Integer currentUserId(Authentication authentication) {
+    if (authentication == null || authentication.getName() == null) {
+      throw new IllegalStateException("UNAUTHENTICATED");
+    }
+    var email = authentication.getName();
+    var user = userRepo.findByEmail(email)
+        .orElseThrow(() -> new IllegalStateException("AUTH_USER_NOT_FOUND"));
+    return user.getId();
+  }
 }

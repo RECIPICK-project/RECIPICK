@@ -62,10 +62,6 @@ public class UserEntity {
   @OneToOne(mappedBy = "userEntity", fetch = FetchType.LAZY)
   private ProfileEntity profileEntity;
 
-  public ProfileEntity getProfileEntity() {
-    return profileEntity;
-  }
-
   // === 라이프사이클 콜백 ===
   @PrePersist
   void prePersist() {

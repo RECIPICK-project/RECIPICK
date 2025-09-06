@@ -1,5 +1,7 @@
 package SITE.RECIPICK.RECIPICK_PROJECT.controller;
 
+import static SITE.RECIPICK.RECIPICK_PROJECT.util.CurrentUser.currentUserId;
+
 import SITE.RECIPICK.RECIPICK_PROJECT.dto.PostDTO;
 import SITE.RECIPICK.RECIPICK_PROJECT.dto.PostUpdateRequest;
 import SITE.RECIPICK.RECIPICK_PROJECT.service.MyPostCommandService;
@@ -18,16 +20,16 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * 내 레시피 관리 - 수정/삭제 전용 컨트롤러
  * <p>
- * 특징: - 본인 작성 "임시 레시피"만 수정/삭제 가능 - 정식 레시피(rcp_is_official=1)는 수정/삭제 불가 (서비스 계층에서 검증) - 실제 DB 업데이트는
- * JPA Dirty Checking으로 처리됨
+ * 특징 - 본인 작성 "임시 레시피"만 수정/삭제 가능 - 정식 레시피(rcp_is_official=1)는 수정/삭제 불가 (서비스 계층에서 검증) - 실제 DB 업데이트는
+ * JPA Dirty Checking으로 처리
+ * <p>
+ * 인증/권한 - userId는 SecurityContext에서 꺼냄 → util.CurrentUser.currentUserId() - SecurityConfig에서 /me/**
+ * 는 인증 필요하게 설정되어 있어야 함
  */
 @RestController
 @RequestMapping("/me/posts")
 @Tag(name = "My Posts (Commands)", description = "내 레시피 관리: 임시 레시피 수정·삭제")
 public class MyPostCommandController {
-
-  // 로그인 미연동 상태라 테스트용으로 userId = 1 고정
-  private static final Integer ME = 1;
 
   private final MyPostCommandService svc;
 
@@ -39,7 +41,7 @@ public class MyPostCommandController {
    * 임시 레시피 수정
    *
    * @param postId 수정할 게시글 ID
-   * @param req    수정할 필드들 (title, foodName, 재료 등)
+   * @param req    수정할 필드들(title, foodName, 재료 등 — 부분 수정 허용)
    * @return 수정 완료된 PostDTO
    */
   @PatchMapping("/{postId}")
@@ -64,7 +66,7 @@ public class MyPostCommandController {
       @Parameter(description = "게시글 ID", required = true) @PathVariable Long postId,
       @RequestBody PostUpdateRequest req
   ) {
-    return svc.updateMyTempPost(ME, postId, req);
+    return svc.updateMyTempPost(currentUserId(), postId, req);
   }
 
   /**
@@ -91,6 +93,6 @@ public class MyPostCommandController {
   public void deleteTemp(
       @Parameter(description = "게시글 ID", required = true) @PathVariable Long postId
   ) {
-    svc.deleteMyTempPost(ME, postId);
+    svc.deleteMyTempPost(currentUserId(), postId);
   }
 }

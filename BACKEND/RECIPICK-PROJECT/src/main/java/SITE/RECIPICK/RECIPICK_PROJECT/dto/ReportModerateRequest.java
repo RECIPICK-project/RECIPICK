@@ -12,16 +12,14 @@ import lombok.Setter;
 public class ReportModerateRequest {
 
   private String action; // ACCEPT or REJECT
-  private String status; // enum 변환용 필드
 
-  // 서비스 단에서 enum 변환에 사용할 상태 문자열 제공
-  public String getStatus() {
+  public ReportStatus toEnum() {
     if ("ACCEPT".equalsIgnoreCase(action)) {
-      return ReportStatus.ACCEPTED.name();
+      return ReportStatus.ACCEPTED;
     } else if ("REJECT".equalsIgnoreCase(action)) {
-      return ReportStatus.REJECTED.name();
+      return ReportStatus.REJECTED;
     } else {
-      throw new IllegalArgumentException("Invalid action: " + action);
+      throw new IllegalArgumentException("INVALID_ACTION");
     }
   }
 }

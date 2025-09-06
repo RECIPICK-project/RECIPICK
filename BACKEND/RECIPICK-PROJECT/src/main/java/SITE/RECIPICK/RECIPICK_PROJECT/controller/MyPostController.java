@@ -2,12 +2,14 @@ package SITE.RECIPICK.RECIPICK_PROJECT.controller;
 
 import SITE.RECIPICK.RECIPICK_PROJECT.dto.PostDTO;
 import SITE.RECIPICK.RECIPICK_PROJECT.service.MyPostService;
+import SITE.RECIPICK.RECIPICK_PROJECT.util.CurrentUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -16,36 +18,32 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * 내 레시피 조회 컨트롤러
  * <p>
- * 특징: - 본인 작성 레시피를 조회 - type 파라미터로 "임시(temp)" / "정식(official)" 구분 - 기본값은 "official" - offset/limit
- * 페이징 지원
+ * 특징 - 로그인된 사용자가 작성한 레시피를 조회 - type 파라미터로 "임시(temp)" / "정식(official)" 구분 (기본값: official) -
+ * offset/limit 페이지네이션 지원
+ * <p>
+ * 인증 - 사용자 ID는 SecurityContext에서 CurrentUser 유틸을 통해 조회
  */
 @RestController
 @RequestMapping("/me/posts")
+@RequiredArgsConstructor
 @Tag(name = "My Posts (Queries)", description = "내 레시피 조회: 정식/임시 구분")
 public class MyPostController {
 
-  // 로그인 연동 전: userId = 1로 임시 고정
-  private static final Integer ME = 1;
-
   private final MyPostService myPostService;
-
-  public MyPostController(MyPostService myPostService) {
-    this.myPostService = myPostService;
-  }
 
   /**
    * 내 레시피 조회 (정식/임시)
    *
    * @param type   조회할 레시피 종류 ("official" 또는 "temp")
-   * @param offset 페이지 시작 위치
-   * @param limit  페이지 크기
+   * @param offset 페이지 시작 위치(0부터)
+   * @param limit  페이지 크기(기본 20)
    * @return PostDTO 리스트
    */
   @GetMapping
   @Operation(
       summary = "내 레시피 조회",
       description = """
-          본인 작성 레시피 목록을 조회합니다.
+          로그인 사용자가 작성한 레시피 목록을 조회합니다.
           - type=official → 내가 올린 정식 레시피
           - type=temp → 내가 올린 임시 레시피
           - 기본값은 official
@@ -54,7 +52,7 @@ public class MyPostController {
   )
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "조회 성공"),
-      @ApiResponse(responseCode = "400", description = "잘못된 요청 파라미터"),
+      @ApiResponse(responseCode = "401", description = "인증 필요"),
       @ApiResponse(responseCode = "500", description = "서버 오류")
   })
   public List<PostDTO> myPosts(
@@ -65,11 +63,13 @@ public class MyPostController {
       @Parameter(description = "페이지 크기", example = "20")
       @RequestParam(defaultValue = "20") int limit
   ) {
-    // type이 temp일 경우 임시 레시피 조회
+    // ✅ 인증된 사용자 ID 획득 (하드코딩 제거)
+    Integer userId = CurrentUser.currentUserId();
+
+    // type이 temp면 임시 레시피, 아니면 정식 레시피 반환
     if ("temp".equalsIgnoreCase(type)) {
-      return myPostService.getMyTempPosts(ME, offset, limit);
+      return myPostService.getMyTempPosts(userId, offset, limit);
     }
-    // 나머지는 정식 레시피 조회
-    return myPostService.getMyOfficialPosts(ME, offset, limit);
+    return myPostService.getMyOfficialPosts(userId, offset, limit);
   }
 }

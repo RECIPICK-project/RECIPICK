@@ -37,7 +37,7 @@ public class AdminService {
   public AdminDashboardResponse getDashboard(int days, int minReports, int top) {
     var now = LocalDate.now();
     var fromDate = now.minusDays(days - 1).atStartOfDay();
-    var toDate = now.plusDays(1).atStartOfDay(); // between [from, to)
+    var toDate = now.plusDays(1).atStartOfDay();
 
     long totalUsers = userRepo.count();
     long totalRecipes = postRepo.count();
@@ -218,21 +218,21 @@ public class AdminService {
     }
   }
 
+  // ===== 신고 처리 =====
   @Transactional
   public void moderate(Long id, ReportModerateRequest req) {
     var r = reportRepo.findById(id)
         .orElseThrow(() -> new IllegalArgumentException("REPORT_NOT_FOUND"));
 
-    // DTO가 action/status 중 무엇을 보내든 우선순위 정해서 하나만 고름
-    String raw = (req.getStatus() != null && !req.getStatus().isBlank())
-        ? req.getStatus()
-        : req.getAction(); // action만 온 케이스 허용
+    if (req == null) {
+      throw new IllegalArgumentException("REQUEST_REQUIRED");
+    }
 
-    String enumName = normalizeReportStatusName(raw);
-    ReportStatus newStatus = ReportStatus.valueOf(enumName);
+    // DTO에서 enum 변환(ACCEPT -> ACCEPTED, REJECT -> REJECTED)
+    var newStatus = req.toEnum(); // 여기서 INVALID_ACTION 등 IllegalArgumentException 던질 수 있음
 
     r.setStatus(newStatus);
-    // 필요하면 시간/처리자 기록 등 추가
+    // 필요시 r.setModeratedAt(LocalDateTime.now()); 등 추가
   }
 
 

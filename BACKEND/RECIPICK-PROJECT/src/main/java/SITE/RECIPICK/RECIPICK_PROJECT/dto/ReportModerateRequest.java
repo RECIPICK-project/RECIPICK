@@ -1,6 +1,7 @@
 package SITE.RECIPICK.RECIPICK_PROJECT.dto;
 
 import SITE.RECIPICK.RECIPICK_PROJECT.entity.ReportStatus;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -13,6 +14,7 @@ public class ReportModerateRequest {
 
   private String action; // ACCEPT or REJECT
 
+  @Schema(hidden = true)
   public ReportStatus toEnum() {
     if ("ACCEPT".equalsIgnoreCase(action)) {
       return ReportStatus.ACCEPTED;

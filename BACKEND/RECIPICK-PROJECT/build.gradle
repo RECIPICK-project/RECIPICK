@@ -41,8 +41,10 @@ dependencies {
 //	testImplementation 'org.springframework.security:spring-security-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 //    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
-//    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.4'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
+//    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.4'
+    
+    //비밀번호 수정 검증해본다고 넣었던 거
     implementation 'org.springframework.security:spring-security-crypto:6.4.2'
 
 

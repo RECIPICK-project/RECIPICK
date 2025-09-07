@@ -19,7 +19,7 @@ const pickerChips = document.getElementById('pickerChips');
 // Debounce 타이머
 let debounceTimer;
 
-// --- UI 렌더링 함수들 (기존과 동일) ---
+// --- UI 렌더링 함수들 ---
 
 function renderMain() {
   const hasMain = selected.find(x => x.main);
@@ -45,7 +45,7 @@ function renderList() {
     row.innerHTML = `
       <div class="check" role="button" tabindex="0" aria-pressed="${it.main
         ? 'true' : 'false'}" title="${it.main ? '메인' : '서브'}"></div>
-      <div class="name">${it.name}</div>
+      <div class="name">${it.name}${it.fromOCR ? ' 📄' : ''}</div>
       <button class="minus" aria-label="${it.name} 삭제">−</button>
     `;
     const chk = row.querySelector('.check');
@@ -58,8 +58,8 @@ function renderList() {
     chk.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
+        setMain();
       }
-      setMain();
     });
     row.querySelector('.minus').addEventListener('click', () => {
       selected.splice(idx, 1);
@@ -75,13 +75,8 @@ function render() {
   searchBtn.disabled = selected.length === 0;
 }
 
-// --- 재료 선택 모달 (최종 수정) ---
+// --- 재료 선택 모달 ---
 
-/**
- * 고정된 섹션 내부에 결과를 렌더링하는 함수
- * @param {string[]} apiResults - API로부터 받은 재료 추천 목록
- * @param {string[]} allCategories - 항상 표시될 전체 카테고리 목록
- */
 function renderPickerChips(apiResults, allCategories) {
   const recommendationEl = document.getElementById('recommendation-chips');
   const categoryEl = document.getElementById('category-chips');
@@ -96,7 +91,7 @@ function renderPickerChips(apiResults, allCategories) {
     if (exist) {
       exist.main = true;
     } else {
-      selected.push({name, main: true});
+      selected.push({name, main: true, fromOCR: false});
     }
     picker.setAttribute('aria-hidden', 'true');
     render();
@@ -124,10 +119,6 @@ function renderPickerChips(apiResults, allCategories) {
   allCategories.forEach(name => categoryEl.appendChild(createChip(name)));
 }
 
-/**
- * 사용자의 입력을 기반으로 추천 재료만 업데이트하는 함수
- * @param {string} keyword - 사용자가 입력한 검색어
- */
 async function updatePicker(keyword) {
   let apiSuggestions = [];
 
@@ -149,9 +140,6 @@ async function updatePicker(keyword) {
   renderPickerChips(apiSuggestions, RAW_TAGS);
 }
 
-/**
- * 모달을 열 때 넉넉한 크기의 고정 UI 구조를 생성하는 함수
- */
 function setupPickerLayout() {
   pickerChips.innerHTML = `
     <div class="picker-section">
@@ -166,12 +154,11 @@ function setupPickerLayout() {
     <style>
       .picker-section { }
       .picker-title { margin: 0 0 10px; font-size: 14px; color: #333; }
-      /* 핵심: 높이 제한과 스크롤을 제거하고 최소 높이만 설정 */
       .chip-container {
         display: flex;
         flex-wrap: wrap;
         gap: 8px;
-        min-height: 38px; /* 결과가 없을 때 최소 높이 유지 */
+        min-height: 38px;
         padding: 4px;
       }
       .placeholder { color:#aaa; font-size: 14px; text-align:center; width:100%; }
@@ -179,6 +166,182 @@ function setupPickerLayout() {
     </style>
   `;
 }
+
+// --- 영수증 업로드 관련 함수들 ---
+
+function showLoadingState(message = '처리 중...') {
+  const loadingDiv = document.createElement('div');
+  loadingDiv.id = 'loading-overlay';
+  loadingDiv.innerHTML = `
+    <div class="loading-content">
+      <div class="spinner"></div>
+      <p>${message}</p>
+    </div>
+    <style>
+      #loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+      }
+      .loading-content {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        text-align: center;
+      }
+      .spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #4caf50;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 10px;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    </style>
+  `;
+  document.body.appendChild(loadingDiv);
+}
+
+function hideLoadingState() {
+  const loadingDiv = document.getElementById('loading-overlay');
+  if (loadingDiv) {
+    loadingDiv.remove();
+  }
+}
+
+function showNotification(message, type = 'info') {
+  const notification = document.createElement('div');
+  notification.className = `notification ${type}`;
+  notification.innerHTML = `
+    ${message}
+    <style>
+      .notification {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 12px 20px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 600;
+        z-index: 10000;
+        animation: slideDown 0.3s ease;
+        max-width: 90%;
+        text-align: center;
+      }
+      .notification.success {
+        background: #4caf50;
+      }
+      .notification.error {
+        background: #f44336;
+      }
+      .notification.info {
+        background: #2196f3;
+      }
+      @keyframes slideDown {
+        from {
+          opacity: 0;
+          transform: translateX(-50%) translateY(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(-50%) translateY(0);
+        }
+      }
+    </style>
+  `;
+  document.body.appendChild(notification);
+
+  setTimeout(() => {
+    notification.remove();
+  }, 3000);
+}
+
+async function handleReceiptUpload(file) {
+  if (!file) {
+    return;
+  }
+
+  // 파일 타입 검증
+  if (!file.type.startsWith('image/')) {
+    showNotification('이미지 파일만 업로드 가능합니다.', 'error');
+    return;
+  }
+
+  // 파일 크기 검증 (10MB)
+  if (file.size > 10 * 1024 * 1024) {
+    showNotification('파일 크기는 10MB 이하여야 합니다.', 'error');
+    return;
+  }
+
+  try {
+    showLoadingState('영수증을 분석하고 있습니다...');
+
+    const formData = new FormData();
+    formData.append('image', file);
+
+    // OCR 전용 API 엔드포인트 사용
+    const response = await fetch('/api/ocr/extract', {
+      method: 'POST',
+      body: formData
+    });
+
+    const result = await response.json();
+    hideLoadingState();
+
+    if (result.success) {
+      const extractedIngredients = result.extractedIngredients || [];
+
+      if (extractedIngredients.length > 0) {
+        // 추출된 재료들을 선택된 재료 목록에 추가
+        extractedIngredients.forEach(ingredientName => {
+          const exist = selected.find(x => x.name === ingredientName);
+          if (!exist) {
+            selected.push({
+              name: ingredientName,
+              main: false,
+              fromOCR: true
+            });
+          }
+        });
+
+        // 첫 번째 재료를 메인으로 설정
+        if (selected.length > 0 && !selected.find(x => x.main)) {
+          const firstOCRItem = selected.find(x => x.fromOCR);
+          if (firstOCRItem) {
+            firstOCRItem.main = true;
+          }
+        }
+
+        render();
+        showNotification(`영수증에서 ${extractedIngredients.length}개 재료를 찾았습니다!`,
+            'success');
+      } else {
+        showNotification('영수증에서 재료를 찾을 수 없습니다. 다른 이미지를 시도해보세요.', 'info');
+      }
+    } else {
+      showNotification(`OCR 처리 실패: ${result.message}`, 'error');
+    }
+  } catch (error) {
+    hideLoadingState();
+    console.error('OCR 처리 중 오류:', error);
+    showNotification('영수증 처리 중 오류가 발생했습니다.', 'error');
+  }
+}
+
+// --- 이벤트 리스너들 ---
 
 // 재료 검색 모달 열기
 document.getElementById('openPicker').addEventListener('click', () => {
@@ -194,8 +357,7 @@ document.getElementById('closePicker').addEventListener('click',
     () => picker.setAttribute('aria-hidden', 'true'));
 picker.addEventListener('click', (e) => {
   if (e.target.hasAttribute('data-close')) {
-    picker.setAttribute('aria-hidden',
-        'true');
+    picker.setAttribute('aria-hidden', 'true');
   }
 });
 
@@ -208,24 +370,62 @@ pickerInput.addEventListener('input', () => {
   }, 300);
 });
 
-/* ============================
-   CTA 및 FAB 버튼 (기존과 동일)
-============================ */
+// 검색 버튼 클릭
 searchBtn.addEventListener('click', () => {
   if (searchBtn.disabled) {
     return;
   }
+
   const mainIngredients = selected.filter(x => x.main).map(x => x.name);
   const subIngredients = selected.filter(x => !x.main).map(x => x.name);
   const params = new URLSearchParams();
+
   mainIngredients.forEach(ing => params.append('main', ing));
   subIngredients.forEach(ing => params.append('sub', ing));
   params.append('searchType', 'ingredients');
+
   window.location.href = `search_home.html?${params.toString()}`;
 });
 
-document.getElementById('cameraBtn').addEventListener('click',
-    () => alert('영수증 업로드 화면으로 이동 (더미)'));
+// 카메라 버튼 (영수증 업로드)
+document.getElementById('cameraBtn').addEventListener('click', () => {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*';
+  input.capture = 'camera'; // 모바일에서 카메라 우선 실행
+
+  input.onchange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      handleReceiptUpload(file);
+    }
+  };
+
+  input.click();
+});
+
+// 드래그 앤 드롭 지원 (데스크톱)
+const dropZone = document.querySelector('.phone.search-page');
+
+dropZone.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  dropZone.style.backgroundColor = '#f0f8f0';
+});
+
+dropZone.addEventListener('dragleave', (e) => {
+  e.preventDefault();
+  dropZone.style.backgroundColor = '';
+});
+
+dropZone.addEventListener('drop', (e) => {
+  e.preventDefault();
+  dropZone.style.backgroundColor = '';
+
+  const files = e.dataTransfer.files;
+  if (files.length > 0) {
+    handleReceiptUpload(files[0]);
+  }
+});
 
 // 초기 렌더링
 render();

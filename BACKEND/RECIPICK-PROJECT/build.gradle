@@ -44,13 +44,25 @@ dependencies {
     implementation 'me.paulschwarz:spring-dotenv:4.0.0'
 
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
-    // Tesseract OCR
-    implementation 'net.sourceforge.tess4j:tess4j:5.8.0'
-    // 이미지 처리를 위한 의존성
-    implementation 'org.apache.commons:commons-imaging:1.0.0-alpha5'
-    // 파일 업로드 처리
+
+
+    // ===== OCR 관련 의존성 =====
+    // REST API 호출용
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+    // JSON 처리용
+    implementation 'com.fasterxml.jackson.core:jackson-core'
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+
+    // 파일 업로드 및 처리
     implementation 'commons-fileupload:commons-fileupload:1.5'
     implementation 'commons-io:commons-io:2.11.0'
+
+    // Base64 인코딩 및 기타 유틸리티
+    implementation 'commons-codec:commons-codec:1.15'
+
+    // 이미지 처리
+    implementation 'org.apache.commons:commons-imaging:1.0.0-alpha5'
 }
 // ============ Google Java Style Guide 설정 ============
 

@@ -465,13 +465,13 @@ body.detail {
 }
 
 .tab .ring {
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   border-radius: 9999px;
   background: var(--bg);
-  border: 2px solid var(--green-500);
   display: grid;
   place-items: center;
+  border: 2px solid var(--green-500);
 }
 
 @media (min-width: 768px) {

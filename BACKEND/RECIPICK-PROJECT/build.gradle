@@ -42,13 +42,28 @@ dependencies {
 //	testImplementation 'org.springframework.security:spring-security-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     implementation 'me.paulschwarz:spring-dotenv:4.0.0'
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
+//    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
     // AWS SDK for S3
     implementation 'software.amazon.awssdk:s3:2.25.16'
     implementation 'software.amazon.awssdk:auth:2.25.16'
     // Bean Validation
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.hibernate.validator:hibernate-validator:8.0.1.Final'
+
+    // ===== OCR 관련 의존성 =====
+    // REST API 호출용
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    // JSON 처리용
+    implementation 'com.fasterxml.jackson.core:jackson-core'
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    // 파일 업로드 및 처리
+    implementation 'commons-fileupload:commons-fileupload:1.5'
+    implementation 'commons-io:commons-io:2.11.0'
+    // Base64 인코딩 및 기타 유틸리티
+    implementation 'commons-codec:commons-codec:1.15'
+    // 이미지 처리
+    implementation 'org.apache.commons:commons-imaging:1.0.0-alpha5'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.4'
 }
 
 // Checkstyle 설정 < Google Java Style>

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>OCR 테스트 페이지</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: auto;
+    }
+
+    input[type="file"] {
+      margin-bottom: 10px;
+    }
+
+    button {
+      padding: 6px 12px;
+      cursor: pointer;
+    }
+
+    pre {
+      background: #f0f0f0;
+      padding: 10px;
+      white-space: pre-wrap;
+    }
+
+    .error {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h2>영수증 이미지 OCR 테스트</h2>
+  <input accept="image/*" id="imageInput" type="file"/>
+  <br/>
+  <button id="uploadBtn">추출하기</button>
+  <h3>응답 결과:</h3>
+  <pre id="result"></pre>
+</div>
+
+<script>
+  const uploadBtn = document.getElementById("uploadBtn");
+  const imageInput = document.getElementById("imageInput");
+  const resultEl = document.getElementById("result");
+
+  uploadBtn.addEventListener("click", () => {
+    const file = imageInput.files[0];
+    if (!file) {
+      alert("이미지 파일을 선택해주세요.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("image", file);
+
+    resultEl.textContent = "업로드 중...";
+
+    fetch("/api/ocr/extract-ingredients", {
+      method: "POST",
+      body: formData
+    })
+    .then(async response => {
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text || "서버 오류");
+      }
+      return response.json();
+    })
+    .then(data => {
+      resultEl.textContent = JSON.stringify(data, null, 2);
+    })
+    .catch(err => {
+      resultEl.textContent = "에러 발생: " + err.message;
+      resultEl.classList.add("error");
+    });
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1, maximum-scale=1" name="viewport"/>
+  <title>재료로 검색</title>
+
+  <!-- 공용 -->
+  <link href="css/tokens.css" rel="stylesheet"/>
+  <link href="css/components.css" rel="stylesheet"/>
+  <!-- 페이지 전용 -->
+  <link href="css/search.css" rel="stylesheet"/>
+</head>
+<body class="detail"><!-- 가운데 프레임 정렬 -->
+<main aria-label="재료 검색 화면" class="phone search-page" role="main">
+  <!-- 상단 -->
+  <header class="head">
+    <button aria-label="뒤로 가기" class="back" onclick="history.back()">
+      <svg fill="none" height="20" stroke="#111827" stroke-width="2" viewBox="0 0 24 24" width="20">
+        <path d="M15 6l-6 6 6 6"/>
+      </svg>
+    </button>
+    <h1 class="search-title">재료로 검색</h1>
+    <span class="spacer"></span>
+  </header>
+
+  <!-- 본문 -->
+  <section class="wrap">
+    <!-- 메인 재료 슬롯 -->
+    <div aria-live="polite" class="slot main-slot" id="mainSlot">
+      <div class="left">
+        <span aria-hidden="true" class="dot"></span>
+        <strong class="label">메인 자리</strong>
+      </div>
+      <button aria-label="메인 재료 해제" class="minus" disabled>−</button>
+    </div>
+
+    <!-- 재료 추가 버튼 (가운데 모달 오픈) -->
+    <button class="btn-add" id="openPicker">
+      <svg aria-hidden="true" fill="none" height="18" stroke="currentColor" stroke-width="2"
+           viewBox="0 0 24 24" width="18">
+        <path d="M12 5v14M5 12h14"/>
+      </svg>
+      재료 추가
+    </button>
+
+    <!-- 선택된 재료 리스트 -->
+    <div class="list" id="chipList"><!-- JS가 채움 --></div>
+
+    <!-- 하단 여백(탭바/CTA 공간 확보) -->
+    <div style="height:120px"></div>
+  </section>
+
+  <!-- 카메라(영수증 업로드) FAB: 탭바 우측 위 -->
+  <button aria-label="영수증 사진 업로드" class="fab cam" id="cameraBtn">
+    <svg aria-hidden="true" fill="none" height="18" stroke="#fff" stroke-width="2"
+         viewBox="0 0 24 24"
+         width="18">
+      <path d="M4 7h3l2-2h6l2 2h3v12H4z"/>
+      <circle cx="12" cy="13" r="4" stroke="#fff"/>
+    </svg>
+  </button>
+
+  <!-- 고정 탭바(항상 흰색, 기존 아이콘 유지) -->
+  <nav aria-label="하단 탭" class="tabbar">
+    <a aria-label="메뉴" class="tab" href="menu.html">
+      <svg fill="none" height="20" stroke="#6b7280" stroke-width="2" viewBox="0 0 24 24" width="20">
+        <path d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+    </a>
+    <a aria-label="좋아요" class="tab is-active" href="likes.html">
+      <svg fill="#6b7280" height="20" viewBox="0 0 24 24" width="20">
+        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5
+                 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09
+                 C13.09 3.81 14.76 3 16.5 3
+                 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55
+                 11.54L12 21.35z"/>
+      </svg>
+    </a>
+    <a aria-label="검색" class="tab" href="search.html">
+      <div class="ring">
+        <svg fill="none" height="20" stroke="#6b7280" stroke-width="2" viewBox="0 0 24 24"
+             width="20">
+          <circle cx="11" cy="11" r="7"/>
+          <path d="M20 20l-3.5-3.5"/>
+        </svg>
+      </div>
+    </a>
+    <a aria-label="업로드" class="tab" href="post_upload.html">
+      <svg fill="none" height="20" stroke="#6b7280" stroke-width="2" viewBox="0 0 24 24" width="20">
+        <path d="M12 5v14M5 12h14"/>
+      </svg>
+    </a>
+    <a aria-label="프로필" class="tab" href="profile.html">
+      <svg fill="none" height="20" stroke="#6b7280" stroke-width="2" viewBox="0 0 24 24" width="20">
+        <circle cx="12" cy="8" r="4"/>
+        <path d="M4 20c2-4 14-4 16 0"/>
+      </svg>
+    </a>
+  </nav>
+
+  <!-- 큰 검색 버튼(CTA) : 탭바 위, 대비 확실 -->
+  <button class="cta-search" disabled id="searchBtn">검색</button>
+
+  <!-- 재료 선택 모달(가운데 크게) -->
+  <div aria-hidden="true" aria-label="재료 선택" class="modal" id="picker">
+    <div class="overlay" data-close></div>
+    <div aria-labelledby="pickerTitle" aria-modal="true" class="dialog" role="dialog">
+      <div class="dialog-head">
+        <strong id="pickerTitle">재료 선택</strong>
+        <button aria-label="닫기" class="x" id="closePicker">×</button>
+      </div>
+      <div class="dialog-body">
+        <div class="picker-search">
+          <input id="pickerInput" placeholder="재료/카테고리 검색" type="search"/>
+        </div>
+        <div class="picker-chips" id="pickerChips"><!-- js가 채움 --></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script defer src="js/search.js"></script>
+</body>
+</html>

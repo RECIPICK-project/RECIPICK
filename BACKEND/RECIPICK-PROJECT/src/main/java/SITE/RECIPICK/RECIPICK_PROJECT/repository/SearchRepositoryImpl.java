@@ -1,7 +1,7 @@
 package SITE.RECIPICK.RECIPICK_PROJECT.repository;
 
 import SITE.RECIPICK.RECIPICK_PROJECT.entity.Ingredient;
-import SITE.RECIPICK.RECIPICK_PROJECT.entity.SearchPostEntity;
+import SITE.RECIPICK.RECIPICK_PROJECT.entity.PostEntity;
 import SITE.RECIPICK.RECIPICK_PROJECT.entity.RecipeIngredient;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
@@ -27,15 +27,15 @@ public class SearchRepositoryImpl implements SearchRepositoryCustom {
   private final EntityManager em;
 
   @Override
-  public Page<SearchPostEntity> searchRecipes(List<String> mainIngredients,
+  public Page<PostEntity> searchRecipes(List<String> mainIngredients,
       List<String> subIngredients,
       String sortType,
       Pageable pageable) {
 
     CriteriaBuilder cb = em.getCriteriaBuilder();
-    CriteriaQuery<SearchPostEntity> cq = cb.createQuery(SearchPostEntity.class);
-    Root<SearchPostEntity> post = cq.from(SearchPostEntity.class);
-    Join<SearchPostEntity, RecipeIngredient> ri = post.join("recipeIngredients", JoinType.INNER);
+    CriteriaQuery<PostEntity> cq = cb.createQuery(PostEntity.class);
+    Root<PostEntity> post = cq.from(PostEntity.class);
+    Join<PostEntity, RecipeIngredient> ri = post.join("recipeIngredients", JoinType.INNER);
     Join<RecipeIngredient, Ingredient> ing = ri.join("ingredient", JoinType.INNER);
 
     // 조건
@@ -60,15 +60,15 @@ public class SearchRepositoryImpl implements SearchRepositoryCustom {
     cq.orderBy(orders);
 
     // 페이징
-    TypedQuery<SearchPostEntity> query = em.createQuery(cq);
+    TypedQuery<PostEntity> query = em.createQuery(cq);
     query.setFirstResult((int) pageable.getOffset());
     query.setMaxResults(pageable.getPageSize());
-    List<SearchPostEntity> results = query.getResultList();
+    List<PostEntity> results = query.getResultList();
 
     // 총 개수
     CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
-    Root<SearchPostEntity> postCount = countQuery.from(SearchPostEntity.class);
-    Join<SearchPostEntity, RecipeIngredient> riCount = postCount.join("recipeIngredients",
+    Root<PostEntity> postCount = countQuery.from(PostEntity.class);
+    Join<PostEntity, RecipeIngredient> riCount = postCount.join("recipeIngredients",
         JoinType.INNER);
     Join<RecipeIngredient, Ingredient> ingCount = riCount.join("ingredient", JoinType.INNER);
     countQuery.select(cb.countDistinct(postCount));

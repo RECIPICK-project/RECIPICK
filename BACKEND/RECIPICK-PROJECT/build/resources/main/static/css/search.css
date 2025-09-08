@@ -1,0 +1,684 @@
+:root {
+  --soft: #F9FBE7;
+  --tabbar-h: 60px;
+  --bg: #fafaf6;
+  --green-500: #4caf50;
+  --green-600: #43a047;
+  --green-700: #388e3c;
+  --accent: #F4B942;
+  --line: #e5e7eb;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --tabbar-h: 70px;
+  }
+}
+
+html, body {
+  height: 100%
+}
+
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  margin: 0
+}
+
+/* 프레임 - 반응형 */
+.phone.search-page {
+  width: 375px;
+  height: 812px;
+  max-height: 100vh;
+  background: var(--soft);
+  border: 1px solid #eef0ee;
+  border-radius: 22px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+}
+
+@media (min-width: 768px) {
+  .phone.search-page {
+    width: 800px;
+    height: min(1000px, 100vh);
+    border-radius: 28px;
+  }
+}
+
+/* 상단 */
+.head {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px;
+}
+
+@media (min-width: 768px) {
+  .head {
+    padding: 20px 24px;
+    gap: 14px;
+  }
+}
+
+.head h1 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+@media (min-width: 768px) {
+  .head h1 {
+    font-size: 20px;
+  }
+}
+
+.search-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 16px;
+  font-weight: 800;
+  margin: 0;
+}
+
+.back {
+  width: 40px;
+  height: 40px;
+  border-radius: 9999px;
+  border: 1px solid #ececec;
+  background: #fff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+@media (min-width: 768px) {
+  .back {
+    width: 48px;
+    height: 48px;
+  }
+}
+
+.spacer {
+  width: 40px;
+  height: 40px;
+}
+
+@media (min-width: 768px) {
+  .spacer {
+    width: 48px;
+    height: 48px;
+  }
+}
+
+/* 내부 여백 (탭바/CTA 고려) */
+.wrap {
+  padding: 0 14px 140px;
+}
+
+@media (min-width: 768px) {
+  .wrap {
+    padding: 0 24px 160px;
+  }
+}
+
+/* 메인 슬롯 (가시성↑) */
+.slot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border: 2px solid var(--green-500);
+  border-radius: 12px;
+  background: #F1F8E9;
+  margin-bottom: 10px;
+}
+
+@media (min-width: 768px) {
+  .slot {
+    padding: 18px 20px;
+    border-radius: 16px;
+    margin-bottom: 14px;
+  }
+}
+
+.slot .left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+@media (min-width: 768px) {
+  .slot .left {
+    gap: 12px;
+  }
+}
+
+/* ✅ 체크/마이너스: 초기(심플) 스타일 복원 */
+.slot .dot,
+.check {
+  width: 20px;
+  height: 20px;
+  border-radius: 9999px;
+  border: 2px solid var(--green-500);
+  background: #fff;
+  display: grid;
+  place-items: center;
+}
+
+@media (min-width: 768px) {
+  .slot .dot,
+  .check {
+    width: 24px;
+    height: 24px;
+    border-width: 3px;
+  }
+}
+
+.slot.has-main .dot,
+.item.is-main .check {
+  background: var(--green-500);
+  border-color: var(--green-500);
+}
+
+.slot.has-main .dot::after,
+.item.is-main .check::after {
+  content: "";
+  width: 6px;
+  height: 10px;
+  border-right: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+  transform: rotate(45deg);
+}
+
+@media (min-width: 768px) {
+  .slot.has-main .dot::after,
+  .item.is-main .check::after {
+    width: 8px;
+    height: 12px;
+    border-right-width: 3px;
+    border-bottom-width: 3px;
+  }
+}
+
+.slot .label {
+  font-weight: 800;
+}
+
+@media (min-width: 768px) {
+  .slot .label {
+    font-size: 18px;
+  }
+}
+
+.slot .minus,
+.minus {
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: #111;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (min-width: 768px) {
+  .slot .minus,
+  .minus {
+    width: 28px;
+    height: 28px;
+    border-radius: 10px;
+    font-size: 18px;
+  }
+}
+
+.slot .minus:disabled {
+  opacity: .4;
+  cursor: default;
+}
+
+/* 재료 추가 버튼 */
+.btn-add {
+  width: 100%;
+  height: 44px;
+  border-radius: 12px;
+  border: 1.5px solid var(--green-500);
+  color: var(--green-700);
+  background: #fff;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  .btn-add {
+    height: 52px;
+    border-radius: 16px;
+    font-size: 16px;
+    gap: 10px;
+    margin-bottom: 14px;
+    border-width: 2px;
+  }
+}
+
+.btn-add:active {
+  transform: translateY(1px);
+}
+
+/* 선택된 재료 리스트 */
+.list {
+  display: grid;
+  gap: 8px;
+}
+
+@media (min-width: 768px) {
+  .list {
+    gap: 10px;
+  }
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+@media (min-width: 768px) {
+  .item {
+    padding: 16px 18px;
+    border-radius: 16px;
+  }
+}
+
+.name {
+  flex: 1;
+  margin: 0 12px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  .name {
+    font-size: 16px;
+    margin: 0 16px;
+  }
+}
+
+/* 카메라 FAB : 검색 버튼 오른쪽 살짝 위 */
+.fab.cam {
+  position: absolute;
+  right: 24px; /* 오른쪽 살짝 안쪽 */
+  bottom: calc(var(--tabbar-h) + 64px); /* 검색버튼(48px) 위로 여유 */
+  width: 40px;
+  height: 40px;
+  border-radius: 9999px;
+  background: var(--green-600);
+  border: none;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .15);
+  z-index: 11;
+  pointer-events: auto;
+}
+
+@media (min-width: 768px) {
+  .fab.cam {
+    width: 48px;
+    height: 48px;
+    right: 32px;
+    bottom: calc(var(--tabbar-h) + 76px);
+  }
+}
+
+.fab.cam:hover {
+  background: var(--green-700);
+}
+
+/* 탭바 고정 (크기 고정) */
+.tabbar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--tabbar-h);
+  background: #fff;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, .06);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 14px;
+  z-index: 5;
+}
+
+@media (min-width: 768px) {
+  .tabbar {
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    padding: 0 20px;
+  }
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  min-width: 44px;
+  height: calc(var(--tabbar-h) - 10px);
+}
+
+.tab svg {
+  stroke: #6b7280;
+  fill: none;
+  width: 20px;
+  height: 20px;
+}
+
+@media (min-width: 768px) {
+  .tab {
+    min-width: 52px;
+  }
+
+  .tab svg {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+.tab .ring {
+  width: 40px;
+  height: 40px;
+  border-radius: 9999px;
+  background: var(--bg);
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--green-500);
+}
+
+@media (min-width: 768px) {
+  .tab .ring {
+    width: 48px;
+    height: 48px;
+    border-width: 3px;
+  }
+}
+
+/* ✅ CTA 검색 버튼: 색 확실(+ 클릭 보장) */
+.cta-search {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: calc(var(--tabbar-h) + 14px);
+  height: 48px;
+  border: none;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 16px;
+  background: var(--accent) !important;
+  color: #fff !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .10);
+  z-index: 9;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+@media (min-width: 768px) {
+  .cta-search {
+    left: 24px;
+    right: 24px;
+    bottom: calc(var(--tabbar-h) + 20px);
+    height: 56px;
+    border-radius: 16px;
+    font-size: 18px;
+  }
+}
+
+.cta-search:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+.cta-search:not(:disabled):active {
+  transform: translateY(1px);
+}
+
+/* 가운데 큰 모달 */
+.modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  z-index: 1000;
+}
+
+.modal[aria-hidden="false"] {
+  display: block;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, .35);
+}
+
+.dialog {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(680px, 85vw);
+  max-width: 375px;
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, .2);
+  display: flex;
+  flex-direction: column;
+  max-height: 80vh;
+}
+
+@media (min-width: 768px) {
+  .dialog {
+    max-width: 720px;
+    border-radius: 20px;
+  }
+}
+
+.dialog-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+@media (min-width: 768px) {
+  .dialog-head {
+    padding: 20px 24px;
+  }
+
+  .dialog-head strong {
+    font-size: 18px;
+  }
+}
+
+.dialog-head .x {
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+@media (min-width: 768px) {
+  .dialog-head .x {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    font-size: 20px;
+  }
+}
+
+.dialog-body {
+  padding: 12px 16px;
+  overflow: auto;
+}
+
+@media (min-width: 768px) {
+  .dialog-body {
+    padding: 16px 24px;
+  }
+}
+
+.picker-search {
+  padding-bottom: 10px;
+}
+
+@media (min-width: 768px) {
+  .picker-search {
+    padding-bottom: 14px;
+  }
+}
+
+.picker-search input {
+  width: 100%;
+  height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0 12px;
+  outline: none;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+@media (min-width: 768px) {
+  .picker-search input {
+    height: 48px;
+    border-radius: 12px;
+    padding: 0 16px;
+    font-size: 16px;
+  }
+}
+
+.picker-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-bottom: 6px;
+  max-height: 54vh;
+  overflow: auto;
+}
+
+@media (min-width: 768px) {
+  .picker-chips {
+    gap: 10px;
+    padding-bottom: 10px;
+  }
+}
+
+.picker-chips .chip {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s ease;
+}
+
+@media (min-width: 768px) {
+  .picker-chips .chip {
+    padding: 10px 16px;
+    font-size: 15px;
+    border-radius: 20px;
+  }
+}
+
+.picker-chips .chip:hover {
+  background: #f7f7f7;
+  border-color: var(--green-500);
+  color: var(--green-700);
+}
+
+/* === SEARCH CTA 강제 색상 오버라이드 (맨 아래에 추가) === */
+.phone.search-page .cta-search {
+  background: var(--accent, #F4B942) !important; /* 주황 노랑 포인트 */
+  color: #fff !important;
+  border: none !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .10);
+  transition: transform .05s ease, filter .05s ease;
+  z-index: 9; /* 위계 보장 */
+  pointer-events: auto; /* 클릭 보장 */
+}
+
+.phone.search-page .cta-search:hover:not(:disabled) {
+  filter: brightness(0.98);
+}
+
+.phone.search-page .cta-search:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.phone.search-page .cta-search:disabled {
+  background: #E5E7EB !important;
+  color: #9CA3AF !important;
+  box-shadow: none !important;
+}
+
+/* 혹시 상위 .btn 규칙이 색을 덮어쓰면 이걸로 차단 */
+.phone.search-page .cta-search.btn,
+.phone.search-page .cta-search.button {
+  all: unset;
+  display: block;
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: calc(var(--tabbar-h) + 14px);
+  height: 48px;
+  border-radius: 12px;
+  text-align: center;
+  line-height: 48px;
+  font-weight: 800;
+  font-size: 16px;
+  background: var(--accent, #F4B942) !important;
+  color: #fff !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .10);
+  cursor: pointer;
+}
+
+@media (min-width: 768px) {
+  .phone.search-page .cta-search.btn,
+  .phone.search-page .cta-search.button {
+    left: 24px;
+    right: 24px;
+    bottom: calc(var(--tabbar-h) + 20px);
+    height: 56px;
+    line-height: 56px;
+    border-radius: 16px;
+    font-size: 18px;
+  }
+}

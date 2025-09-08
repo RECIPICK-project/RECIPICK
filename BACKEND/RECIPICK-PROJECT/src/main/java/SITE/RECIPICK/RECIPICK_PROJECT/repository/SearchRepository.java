@@ -1,6 +1,6 @@
 package SITE.RECIPICK.RECIPICK_PROJECT.repository;
 
-import SITE.RECIPICK.RECIPICK_PROJECT.entity.SearchPostEntity;
+import SITE.RECIPICK.RECIPICK_PROJECT.entity.PostEntity;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -8,7 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface SearchRepository extends JpaRepository<SearchPostEntity, Long> {
+public interface SearchRepository extends JpaRepository<PostEntity, Long> {
 
   /**
    * 재료로 레시피 검색 (메인 재료 필수, 서브 재료 우선순위)

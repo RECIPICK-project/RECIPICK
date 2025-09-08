@@ -28,45 +28,50 @@ repositories {
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-//	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
-//	implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     implementation 'org.springframework.boot:spring-boot-starter-web'
-//	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
+    implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
+
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     runtimeOnly 'com.mysql:mysql-connector-j'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-//	testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation 'org.springframework.security:spring-security-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
     implementation 'me.paulschwarz:spring-dotenv:4.0.0'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.4'
+    // AWS SDK for S3
+    implementation 'software.amazon.awssdk:s3:2.25.16'
+    implementation 'software.amazon.awssdk:auth:2.25.16'
+    // Bean Validation
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.hibernate.validator:hibernate-validator:8.0.1.Final'
 
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
-
+    // ===== 로그인 회원가입 =====
+    implementation 'org.springframework.boot:spring-boot-starter-mail'          // 메일 발송
+    implementation "org.springframework.security:spring-security-oauth2-jose"   // OIDC/JWT 처리
+    runtimeOnly 'com.h2database:h2' // H2 인메모리 DB
 
     // ===== OCR 관련 의존성 =====
     // REST API 호출용
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
-
     // JSON 처리용
     implementation 'com.fasterxml.jackson.core:jackson-core'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
-
     // 파일 업로드 및 처리
     implementation 'commons-fileupload:commons-fileupload:1.5'
     implementation 'commons-io:commons-io:2.11.0'
-
     // Base64 인코딩 및 기타 유틸리티
     implementation 'commons-codec:commons-codec:1.15'
-
     // 이미지 처리
     implementation 'org.apache.commons:commons-imaging:1.0.0-alpha5'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.4'
 }
-// ============ Google Java Style Guide 설정 ============
 
-// Checkstyle 설정
+// Checkstyle 설정 < Google Java Style>
 checkstyle {
     toolVersion = '10.12.4'
     configFile = file("${rootDir}/google_checks.xml")
@@ -113,7 +118,8 @@ task copyFrontend(type: Copy) {
 // 빌드 과정에서 리소스 처리 전에 프론트엔드 파일 복사 실행
 // 이 설정으로  ./gradlew build 시 JAR 파일에 프론트엔드 파일이 포함됨
 processResources.dependsOn copyFrontend
-// 개발 서버 실행 전에 프론트엔드 파일 복사 실행  
+// 개발 서버 실행 전에 프론트엔드 파일 복사 실행
 // 이 설정으로  ./gradlew bootRun 시 최신 프론트엔드 파일이 자동 반영됨
 bootRun.dependsOn copyFrontend
 //서버 실행시  ./gradlew bootRun 으로 실행 필요
+//  http://localhost:8080/pages/post_upload.html 레시피 저장 테스트

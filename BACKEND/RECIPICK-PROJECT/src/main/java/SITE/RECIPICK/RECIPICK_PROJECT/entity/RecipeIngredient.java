@@ -31,7 +31,7 @@ public class RecipeIngredient {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "post_id", insertable = false, updatable = false)
-  private PostEntity postEntity;
+  private SearchPostEntity searchPostEntity;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "ing_id", insertable = false, updatable = false)

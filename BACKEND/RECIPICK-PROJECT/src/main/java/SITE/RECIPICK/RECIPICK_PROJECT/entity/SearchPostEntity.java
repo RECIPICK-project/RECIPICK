@@ -24,7 +24,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class PostEntity {
+public class SearchPostEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)

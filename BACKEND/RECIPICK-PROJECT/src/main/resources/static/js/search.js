@@ -45,7 +45,7 @@ function renderList() {
     row.innerHTML = `
       <div class="check" role="button" tabindex="0" aria-pressed="${it.main
         ? 'true' : 'false'}" title="${it.main ? '메인' : '서브'}"></div>
-      <div class="name">${it.name}${it.fromOCR ? ' 📄' : ''}</div>
+      <div class="name">${it.name}</div>
       <button class="minus" aria-label="${it.name} 삭제">−</button>
     `;
     const chk = row.querySelector('.check');

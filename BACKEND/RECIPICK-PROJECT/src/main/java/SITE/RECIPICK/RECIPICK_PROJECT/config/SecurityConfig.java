@@ -28,10 +28,14 @@ public class SecurityConfig {
             // 에러 페이지 허용 (무한 리다이렉트 방지)
             .requestMatchers("/error").permitAll()
 
-            // 정적 리소스 및 페이지 허용 (pages 폴더 경로 반영)
-            .requestMatchers("/", "/pages/home.html", "/pages/login.html",
-                "/pages/signup.html", "/pages/email-verification.html",
-                "/css/**", "/js/**", "/images/**").permitAll()
+              // 정적 리소스 및 페이지 허용 (pages 폴더 경로 반영)
+              .requestMatchers("/", "/pages/**",
+                    "/css/**", "/js/**", "/images/**").permitAll()
+
+//            // 정적 리소스 및 페이지 허용 (pages 폴더 경로 반영)
+//            .requestMatchers("/", "/pages/home.html", "/pages/login.html",
+//                "/pages/signup.html", "/pages/email-verification.html",
+//                "/css/**", "/js/**", "/images/**").permitAll()
 
             // 이메일 인증 API
             .requestMatchers("/api/auth/email/**").permitAll()
@@ -55,7 +59,7 @@ public class SecurityConfig {
 
             // 나머지 사용자 API
             .requestMatchers("/api/users/**").hasAnyRole("USER","ADMIN")
-            .anyRequest().authenticated()
+            .anyRequest().hasAnyRole("USER", "ADMIN")
         )
         .formLogin(form -> form
             .loginPage("/pages/login.html")  // pages 폴더 경로로 수정

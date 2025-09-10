@@ -1,73 +1,169 @@
 <!doctype html>
 <html lang="ko">
-
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <title>회원가입</title>
   <link rel="stylesheet" href="../css/signup.css">
   <script defer src="../js/theme.js"></script>
-
 </head>
-
 <body>
 
-  <!-- 회원가입 화면 시작 -->
-  <main class="phone" role="main" aria-label="회원가입 화면">
-    <!-- 뒤로가기 버튼 -->
-    <button class="back" aria-label="뒤로 가기" type="button">
-      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <path d="M15 6l-6 6 6 6" stroke="#111827" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-      </svg>
-    </button>
+<main class="phone" role="main" aria-label="회원가입 화면">
+  <button class="back" aria-label="뒤로 가기" type="button">
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M15 6l-6 6 6 6" stroke="#111827" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
 
-    <div class="wrap">
-      <!-- 타이틀 영역 -->
-      <div class="title">회원가입</div>
+  <div class="wrap">
+    <div class="title">회원가입</div>
 
-      <!-- 닉네임 입력 + 중복확인 버튼 -->
-      <div class="group">
-        <label class="label" for="nickname">닉네임</label>
-        <div class="row">
-          <input id="nickname" class="input" type="text" placeholder="닉네임" aria-label="닉네임" />
-          <button class="check" type="button">중복확인</button>
-        </div>
+    <div class="group">
+      <label class="label" for="nickname">닉네임</label>
+      <div class="row">
+        <input id="nickname" class="input" type="text" placeholder="닉네임" aria-label="닉네임" />
+        <button id="checkNicknameBtn" class="check" type="button">중복확인</button>
       </div>
-
-      <!-- 이메일 입력 + 중복확인 버튼 -->
-      <div class="group">
-        <label class="label" for="email">이메일</label>
-        <div class="row">
-          <input id="email" class="input" type="email" inputmode="email" placeholder="example@mail.com"
-            aria-label="이메일" />
-          <button class="check" type="button">중복확인</button>
-        </div>
-      </div>
-
-      <!-- 비밀번호 입력 + 비밀번호 확인 입력 -->
-      <div class="group">
-        <label class="label" for="pw">비밀번호</label>
-        <input id="pw" class="input" type="password" placeholder="비밀번호" aria-label="비밀번호" />
-        <input id="pw2" class="input" type="password" placeholder="비밀번호 확인" aria-label="비밀번호 확인" />
-      </div>
-
-      <!-- 가입하기 CTA 버튼 -->
-      <div class="cta">
-        <button class="submit" type="button" onclick="location.href='main.html'">가입하기</button>
-      </div>
-
-      <p class="tos">
-        가입하기 버튼을 누르면
-        <a href="terms.html" target="_blank">서비스 이용약관</a> 및
-        <a href="privacy.html" target="_blank">개인정보 처리방침</a>
-        에 동의하는 것으로 간주합니다.
-      </p>
-
-      <div class="spacer"></div>
+      <span id="nicknameMsg"></span>
     </div>
-  </main>
-  <!-- 회원가입 화면 끝 -->
+
+    <div class="group">
+      <label class="label" for="email">이메일</label>
+      <div class="row">
+        <input id="email" class="input" type="email" inputmode="email" placeholder="example@mail.com" aria-label="이메일" />
+        <button id="checkEmailBtn" class="check" type="button">중복확인</button>
+      </div>
+      <span id="emailMsg"></span>
+    </div>
+
+    <div class="group">
+      <label class="label" for="pw">비밀번호</label>
+      <input id="pw" class="input" type="password" placeholder="비밀번호" aria-label="비밀번호" />
+      <input id="pw2" class="input" type="password" placeholder="비밀번호 확인" aria-label="비밀번호 확인" />
+    </div>
+    
+    <p id="errorMsg" style="color:red; text-align:center;"></p>
+
+    <div class="cta">
+      <button id="signupBtn" class="submit" type="button">가입하기</button>
+    </div>
+
+    <p class="tos">
+      가입하기 버튼을 누르면
+      <a href="terms.html" target="_blank">서비스 이용약관</a> 및
+      <a href="privacy.html" target="_blank">개인정보 처리방침</a>
+      에 동의하는 것으로 간주합니다.
+    </p>
+
+    <div class="spacer"></div>
+  </div>
+</main>
+
+
+<script>
+  const BASE_API = "http://localhost:8080";
+
+  let isEmailValid = false;
+  let isNicknameValid = false;
+
+  // 이메일 중복 확인
+  document.getElementById("checkEmailBtn").addEventListener("click", async () => {
+    const email = document.getElementById("email").value.trim().toLowerCase();
+    const emailMsg = document.getElementById("emailMsg");
+    emailMsg.textContent = "";
+    isEmailValid = false;
+
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      emailMsg.textContent = "올바른 이메일 형식이 아닙니다.";
+      emailMsg.style.color = "red";
+      return;
+    }
+    const res = await fetch(`${BASE_API}/api/users/check-email?email=${encodeURIComponent(email)}`);
+    const data = await res.json();
+    if (data.exists) {
+      emailMsg.textContent = "이미 사용 중인 이메일입니다.";
+      emailMsg.style.color = "red";
+    } else {
+      emailMsg.textContent = "사용 가능한 이메일입니다.";
+      emailMsg.style.color = "green";
+      isEmailValid = true;
+    }
+  });
+
+  // 닉네임 중복 확인
+  document.getElementById("checkNicknameBtn").addEventListener("click", async () => {
+    const nickname = document.getElementById("nickname").value.trim();
+    const nicknameMsg = document.getElementById("nicknameMsg");
+    nicknameMsg.textContent = "";
+    isNicknameValid = false;
+
+    if (!nickname) {
+      nicknameMsg.textContent = "닉네임을 입력하세요.";
+      nicknameMsg.style.color = "red";
+      return;
+    }
+    if (!/^[가-힣]+$/.test(nickname)) {
+      nicknameMsg.textContent = "닉네임은 한글만 가능합니다.";
+      nicknameMsg.style.color = "red";
+      return;
+    }
+
+    const res = await fetch(`${BASE_API}/api/users/check-nickname?nickname=${encodeURIComponent(nickname)}`);
+    const data = await res.json();
+    if (data.exists) {
+      nicknameMsg.textContent = "이미 사용 중인 닉네임입니다.";
+      nicknameMsg.style.color = "red";
+    } else {
+      nicknameMsg.textContent = "사용 가능한 닉네임입니다.";
+      nicknameMsg.style.color = "green";
+      isNicknameValid = true;
+    }
+  });
+
+  // 가입하기 → 이메일 발송 성공 시 인증 페이지로 이동
+  document.getElementById("signupBtn").addEventListener("click", async (e) => {
+    const email = document.getElementById("email").value.trim().toLowerCase();
+    const password = document.getElementById("pw").value;
+    const confirmPassword = document.getElementById("pw2").value;
+    const nickname = document.getElementById("nickname").value.trim();
+    const errorMsg = document.getElementById("errorMsg");
+
+    errorMsg.textContent = "";
+
+    if (!isEmailValid) { errorMsg.textContent = "이메일 중복 확인을 해주세요."; return; }
+    if (!isNicknameValid) { errorMsg.textContent = "닉네임 중복 확인을 해주세요."; return; }
+    if (password !== confirmPassword) { errorMsg.textContent = "비밀번호가 일치하지 않습니다."; return; }
+    const regex = /^(?=.*[A-Z])(?=.*[!@#$])(?=.*[0-9])[A-Za-z0-9!@#$]{1,10}$/;
+    if (!regex.test(password)) {
+      errorMsg.textContent = "비밀번호는 영문+숫자 10자 이내, 대문자 1개 이상, !,@,#,$ 중 하나를 포함해야 합니다.";
+      return;
+    }
+
+    const btn = e.currentTarget;
+    btn.disabled = true;
+
+    try {
+      const res = await fetch(`${BASE_API}/api/auth/email/send?email=${encodeURIComponent(email)}`, { method: 'POST' });
+
+      if (!res.ok) {
+        const t = await res.text();
+        errorMsg.textContent = t || `이메일 발송 실패 (HTTP ${res.status})`;
+        return;
+      }
+
+      // 👉 인증페이지로 이동하기 전에 임시 저장(비번/닉네임을 URL에 싣지 않기 위함)
+      sessionStorage.setItem("pendingSignup", JSON.stringify({ email, password, nickname }));
+
+      // 👉 인증 페이지로 이동 (쿼리에는 이메일만)
+      location.href = `email-verification.html?email=${encodeURIComponent(email)}`;
+
+    } catch (err) {
+      console.error(err);
+      errorMsg.textContent = "이메일 발송 중 네트워크 오류가 발생했습니다.";
+    } finally {
+      btn.disabled = false;
+    }
+  });
+</script>
 
 </body>
-
 </html>

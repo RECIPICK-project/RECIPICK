@@ -1,7 +1,6 @@
 package SITE.RECIPICK.RECIPICK_PROJECT.controller;
 
 import SITE.RECIPICK.RECIPICK_PROJECT.dto.SearchPostDto;
-import SITE.RECIPICK.RECIPICK_PROJECT.service.OCRService;
 import SITE.RECIPICK.RECIPICK_PROJECT.service.SearchService;
 import java.util.List;
 import java.util.Map;
@@ -23,7 +22,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class SearchController {
 
   private final SearchService searchService;
-  private final OCRService ocrService;
 
   @GetMapping("/search_page")
   public String search_page() {

@@ -86,18 +86,18 @@ document.addEventListener("DOMContentLoaded", function () {
     renderRecipeData(sampleRecipeData);
     initializeCommentSystem();
     renderComments();
-
+    
     // 슬라이드 메뉴 이벤트 리스너 추가
     initializeSlideMenu();
 });
 
 // 슬라이드 메뉴 초기화
 function initializeSlideMenu() {
-    const slideMenu = document.getElementById("slideMenu");
-
+    const slideMenu = document.getElementById('slideMenu');
+    
     // 오버레이 클릭 시 메뉴 닫기
-    slideMenu.addEventListener("click", function (e) {
-        if (e.target.classList.contains("slide-menu-overlay")) {
+    slideMenu.addEventListener('click', function(e) {
+        if (e.target.classList.contains('slide-menu-overlay')) {
             closeSlideMenu();
         }
     });
@@ -433,18 +433,17 @@ async function getSubstituteIngredient(ingredientName, button) {
 
         // 데모용 대체 재료 추천 (실제로는 API 호출)
         // const response = await fetch("/api/gpt/substitute", {
-        const response = await new Promise((resolve) => {
+        const response = await new Promise(resolve => {
             setTimeout(() => {
                 resolve({
                     ok: true,
-                    json: () =>
-                        Promise.resolve({
-                            substitute: `${ingredientName} 대신 사용할 수 있는 대체 재료:\n\n1. 비슷한 맛의 재료\n2. 영양가가 비슷한 재료\n3. 식감이 비슷한 재료`,
-                        }),
+                    json: () => Promise.resolve({
+                        substitute: `${ingredientName} 대신 사용할 수 있는 대체 재료:\n\n1. 비슷한 맛의 재료\n2. 영양가가 비슷한 재료\n3. 식감이 비슷한 재료`
+                    })
                 });
             }, 1000);
         });
-
+        
         /*
         const response = await fetch("/api/gpt/substitute", {
             method: "POST",
@@ -482,34 +481,34 @@ function goToCoupang(ingredientName) {
 
 // 슬라이드 메뉴 열기
 function toggleSlideMenu() {
-    const slideMenu = document.getElementById("slideMenu");
-    slideMenu.classList.toggle("active");
-
+    const slideMenu = document.getElementById('slideMenu');
+    slideMenu.classList.toggle('active');
+    
     // body 스크롤 방지
-    if (slideMenu.classList.contains("active")) {
-        document.body.style.overflow = "hidden";
+    if (slideMenu.classList.contains('active')) {
+        document.body.style.overflow = 'hidden';
     } else {
-        document.body.style.overflow = "";
+        document.body.style.overflow = '';
     }
 }
 
 // 슬라이드 메뉴 닫기
 function closeSlideMenu() {
-    const slideMenu = document.getElementById("slideMenu");
-    slideMenu.classList.remove("active");
-    document.body.style.overflow = "";
+    const slideMenu = document.getElementById('slideMenu');
+    slideMenu.classList.remove('active');
+    document.body.style.overflow = '';
 }
 
 // 로그아웃 처리
 function handleLogout() {
-    if (confirm("로그아웃하시겠습니까?")) {
+    if (confirm('로그아웃하시겠습니까?')) {
         // 실제로는 로그아웃 API 호출
         // 예: await logout();
-
+        
         // 데모용으로 로컬스토리지 정리 및 리다이렉트
         localStorage.clear();
-        alert("로그아웃되었습니다.");
-        window.location.href = "/login";
+        alert('로그아웃되었습니다.');
+        window.location.href = '/login';
     }
 }
 
@@ -532,8 +531,8 @@ function setActiveTab(tabName) {
 }
 
 // ESC 키로 메뉴 닫기
-document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape") {
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
         closeSlideMenu();
     }
 });

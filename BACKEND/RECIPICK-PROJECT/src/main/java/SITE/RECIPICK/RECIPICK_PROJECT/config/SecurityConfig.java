@@ -30,7 +30,7 @@ public class SecurityConfig {
 
               // 정적 리소스 및 페이지 허용 (pages 폴더 경로 반영)
               .requestMatchers("/", "/pages/**",
-                    "/css/**", "/js/**", "/images/**").permitAll()
+                    "/css/**", "/js/**", "/images/**", "/api/posts/**").permitAll()
 
 //            // 정적 리소스 및 페이지 허용 (pages 폴더 경로 반영)
 //            .requestMatchers("/", "/pages/home.html", "/pages/login.html",

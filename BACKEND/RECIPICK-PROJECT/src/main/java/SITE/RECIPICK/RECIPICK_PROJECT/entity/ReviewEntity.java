@@ -58,7 +58,7 @@ public class ReviewEntity {
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "user_id", nullable = false,
       foreignKey = @ForeignKey(name = "fk_review_user"))
-  private UserTestEntity user;
+  private UserEntity user;
 
   /**
    * 평점 (0.00 ~ 5.00)
@@ -76,6 +76,7 @@ public class ReviewEntity {
   /**
    * 신고 횟수
    */
+  @Builder.Default
   @Column(name = "report_count", columnDefinition = "INT UNSIGNED DEFAULT 0")
   private Integer reportCount = 0;
 

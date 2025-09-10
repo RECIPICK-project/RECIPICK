@@ -28,8 +28,8 @@ repositories {
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-//	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
-//	implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
@@ -39,16 +39,21 @@ dependencies {
     runtimeOnly 'com.mysql:mysql-connector-j'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-//	testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation 'org.springframework.security:spring-security-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     implementation 'me.paulschwarz:spring-dotenv:4.0.0'
-//    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
     // AWS SDK for S3
     implementation 'software.amazon.awssdk:s3:2.25.16'
     implementation 'software.amazon.awssdk:auth:2.25.16'
     // Bean Validation
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.hibernate.validator:hibernate-validator:8.0.1.Final'
+
+    // ===== 로그인 회원가입 =====
+    implementation 'org.springframework.boot:spring-boot-starter-mail'          // 메일 발송
+    implementation "org.springframework.security:spring-security-oauth2-jose"   // OIDC/JWT 처리
+    runtimeOnly 'com.h2database:h2' // H2 인메모리 DB
 
     // ===== OCR 관련 의존성 =====
     // REST API 호출용

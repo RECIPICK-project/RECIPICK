@@ -4,10 +4,10 @@ import SITE.RECIPICK.RECIPICK_PROJECT.dto.ReviewDto;
 import SITE.RECIPICK.RECIPICK_PROJECT.dto.ReviewResponseDto;
 import SITE.RECIPICK.RECIPICK_PROJECT.entity.PostEntity;
 import SITE.RECIPICK.RECIPICK_PROJECT.entity.ReviewEntity;
-import SITE.RECIPICK.RECIPICK_PROJECT.entity.UserTestEntity;
+import SITE.RECIPICK.RECIPICK_PROJECT.entity.UserEntity;
 import SITE.RECIPICK.RECIPICK_PROJECT.repository.PostRepository;
 import SITE.RECIPICK.RECIPICK_PROJECT.repository.ReviewRepository;
-import SITE.RECIPICK.RECIPICK_PROJECT.repository.UserTestRepository;
+import SITE.RECIPICK.RECIPICK_PROJECT.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +24,7 @@ public class ReviewService {
 
   private final ReviewRepository reviewRepository;
   private final PostRepository postRepository;
-  private  final UserTestRepository userTestRepository;
+  private final UserRepository userRepository;
 
   /**
    * Create a new review for a post
@@ -34,7 +34,7 @@ public class ReviewService {
     PostEntity post = postRepository.findById(postId)
         .orElseThrow(() -> new EntityNotFoundException("Post not found with id: " + postId));
 
-    UserTestEntity user = userTestRepository.findById(requestDto.getUserId())
+    UserEntity user = userRepository.findById(requestDto.getUserId())
         .orElseThrow(
             () -> new EntityNotFoundException("User not found with id: " + requestDto.getUserId()));
 

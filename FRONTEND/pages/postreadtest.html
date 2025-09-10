@@ -1,0 +1,1350 @@
+<!doctype html>
+<html lang="ko">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>레시피 상세 페이지</title>
+
+  <style>
+    :root {
+      /* palette */
+      --green-700: #2e7d32;
+      --green-600: #388e3c;
+      --green-500: #4caf50;
+      --mint-200: #c8e6c9;
+      --bg: #f1f8e9;
+      --amber: #f4b942;
+      --text: #111827;
+      --muted: #6b7280;
+      --white: #fff;
+      --line: #e5e7eb;
+      --soft: #f9fbe7;
+      --star-yellow: #ffc107;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR",
+        sans-serif;
+    }
+
+    /* 프레임 */
+    body.detail {
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      background: var(--bg);
+      margin: 0;
+      padding: 20px 0 100px 0;
+      /* 하단 탭바 공간 확보 */
+    }
+
+    /* 메인 컨테이너 - 800px */
+    .phone.detail-page {
+      width: 800px;
+      max-width: 95vw;
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+      min-height: 600px;
+    }
+
+    /* 헤더 */
+    .head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 20px;
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .back {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 1px solid var(--line);
+      background: #fff;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .back:hover {
+      background: #f8f9fa;
+      transform: scale(1.05);
+    }
+
+    .head h1 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text);
+      text-align: center;
+      flex: 1;
+      padding: 0 16px;
+    }
+
+    .spacer {
+      width: 40px;
+      height: 40px;
+      flex-shrink: 0;
+    }
+
+    /* 메인 콘텐츠 */
+    .wrap {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      max-width: 760px;
+      margin: 0 auto;
+    }
+
+    /* 로고 */
+    .logo {
+      text-align: center;
+      font-size: 36px;
+      font-weight: 900;
+      color: var(--text);
+      margin: 20px 0;
+      letter-spacing: 2px;
+    }
+
+    /* 카드 */
+    .card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      transition: all 0.2s ease;
+      margin-bottom: 0;
+    }
+
+    .card:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    }
+
+    /* 썸네일 이미지 */
+    .thumbnail {
+      width: 100%;
+      height: 240px;
+      border-radius: 12px;
+      border: 2px dashed #cfd8dc;
+      background: #f8faf8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .thumbnail.has-img {
+      border-style: solid;
+      border-color: var(--line);
+      background: #000;
+    }
+
+    .thumbnail img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .thumbnail-placeholder {
+      color: var(--muted);
+      font-size: 18px;
+    }
+
+    /* 레시피 정보 */
+    .recipe-title {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--text);
+      margin: 0 0 16px 0;
+      text-align: left;
+    }
+
+    .author-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .location-icon {
+      width: 18px;
+      height: 18px;
+      fill: #e53935;
+    }
+
+    .author-name {
+      color: var(--text);
+      font-weight: 600;
+      font-size: 16px;
+    }
+
+    /* 메타 정보 */
+    .meta-info {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      margin-bottom: 20px;
+    }
+
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .meta-icon {
+      width: 20px;
+      height: 20px;
+    }
+
+    .star-icon {
+      fill: var(--amber);
+    }
+
+    .person-icon {
+      fill: var(--muted);
+    }
+
+    .time-icon {
+      fill: var(--amber);
+    }
+
+    .meta-text {
+      font-weight: 600;
+      color: var(--text);
+      font-size: 16px;
+    }
+
+    /* 섹션 제목 */
+    .section-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 16px;
+    }
+
+    /* 재료 섹션 */
+    .ingredient-item {
+      display: grid;
+      grid-template-columns: 2fr 1fr auto auto;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 12px;
+      padding: 12px;
+      background: var(--soft);
+      border-radius: 10px;
+      border: 1px solid var(--line);
+    }
+
+    .ingredient-name {
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .ingredient-amount {
+      color: var(--muted);
+      text-align: right;
+    }
+
+    .btn-small {
+      height: 32px;
+      padding: 0 12px;
+      border-radius: 8px;
+      border: 1px solid var(--green-500);
+      background: #fff;
+      color: var(--green-600);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-small:hover {
+      background: var(--green-500);
+      color: #fff;
+    }
+
+    .btn-substitute {
+      border-color: var(--amber);
+      color: var(--amber);
+    }
+
+    .btn-substitute:hover {
+      background: var(--amber);
+      color: #fff;
+    }
+
+    /* 조리순서 섹션 */
+    .cooking-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .step-item {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 18px;
+      background: #fff;
+    }
+
+    .step-header {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+
+    .step-content {
+      display: grid;
+      grid-template-columns: 1fr 200px;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .step-description {
+      font-size: 15px;
+      line-height: 1.6;
+      color: var(--text);
+    }
+
+    .step-image {
+      width: 200px;
+      height: 150px;
+      border-radius: 10px;
+      background: #f8faf8;
+      border: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .step-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .step-image-placeholder {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    /* 댓글 섹션 */
+    .comment-form {
+      margin-bottom: 24px;
+      padding: 20px;
+      background: var(--soft);
+      border-radius: 12px;
+      border: 1px solid var(--line);
+    }
+
+    .comment-form.disabled {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    .comment-form-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 16px;
+    }
+
+    .rating-section {
+      margin-bottom: 20px;
+    }
+
+    .rating-label {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .star-rating {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 8px;
+    }
+
+    .star {
+      width: 32px;
+      height: 32px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .star:hover {
+      transform: scale(1.1);
+    }
+
+    .star svg {
+      width: 100%;
+      height: 100%;
+      fill: #e0e0e0;
+      stroke: #ccc;
+      stroke-width: 1;
+      transition: all 0.2s ease;
+    }
+
+    .star.filled svg {
+      fill: var(--star-yellow);
+      stroke: var(--star-yellow);
+    }
+
+    .star.half-filled svg {
+      fill: url(#half-fill);
+      stroke: var(--star-yellow);
+    }
+
+    .rating-text {
+      font-size: 14px;
+      color: var(--muted);
+      margin-left: 8px;
+    }
+
+    .comment-input {
+      width: 100%;
+      min-height: 100px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      resize: vertical;
+      margin-bottom: 16px;
+    }
+
+    .comment-input:focus {
+      outline: none;
+      border-color: var(--green-500);
+      box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.1);
+    }
+
+    .comment-submit {
+      background: var(--green-500);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      width: 100%;
+    }
+
+    .comment-submit:hover {
+      background: var(--green-600);
+      transform: translateY(-1px);
+    }
+
+    .comment-submit:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .comments-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .comment-item {
+      padding: 16px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+    }
+
+    .comment-header {
+      display: flex;
+      align-items: center;
+      justify-content: between;
+      margin-bottom: 12px;
+      gap: 12px;
+    }
+
+    .comment-user {
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .comment-rating {
+      display: flex;
+      gap: 2px;
+    }
+
+    .comment-star {
+      width: 16px;
+      height: 16px;
+    }
+
+    .comment-star svg {
+      width: 100%;
+      height: 100%;
+      fill: #e0e0e0;
+      stroke: none;
+    }
+
+    .comment-star.filled svg {
+      fill: var(--star-yellow);
+    }
+
+    .comment-star.half-filled svg {
+      fill: url(#half-fill-small);
+    }
+
+    .comment-date {
+      font-size: 12px;
+      color: var(--muted);
+      margin-left: auto;
+    }
+
+    .comment-text {
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--text);
+    }
+
+    .no-comments {
+      text-align: center;
+      color: var(--muted);
+      padding: 40px 20px;
+      font-size: 16px;
+    }
+
+    .already-commented {
+      background: #e8f5e8;
+      color: var(--green-700);
+      padding: 16px;
+      border-radius: 8px;
+      text-align: center;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+
+    /* 하단 고정 탭바 */
+    .bottom-tabbar {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 800px;
+      max-width: 95vw;
+      height: 80px;
+      background: #fff;
+      border-top: 1px solid var(--line);
+      border-radius: 20px 20px 0 0;
+      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 0 20px;
+      z-index: 1000;
+    }
+
+    .tab-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      padding: 8px;
+      border-radius: 12px;
+      min-width: 50px;
+    }
+
+    .tab-item:hover {
+      background: var(--soft);
+    }
+
+    .tab-item.active {
+      background: var(--mint-200);
+    }
+
+    .tab-item.active .tab-icon {
+      stroke: var(--green-700);
+      fill: var(--green-700);
+    }
+
+    .tab-icon {
+      width: 28px;
+      height: 28px;
+      stroke: var(--muted);
+      fill: none;
+      stroke-width: 2;
+      transition: all 0.2s ease;
+    }
+
+    .tab-icon.search {
+      width: 48px;
+      height: 48px;
+      background: var(--mint-200);
+      border-radius: 50%;
+      stroke: var(--green-700);
+      padding: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .tab-label {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    .tab-item.active .tab-label {
+      color: var(--green-700);
+      font-weight: 600;
+    }
+
+    /* 반응형 */
+    @media (max-width: 850px) {
+      .phone.detail-page {
+        width: 95%;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .ingredient-item {
+        grid-template-columns: 1fr;
+        gap: 8px;
+        text-align: center;
+      }
+
+      .step-content {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .step-image {
+        width: 100%;
+        height: 200px;
+      }
+
+      .meta-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+
+      .comment-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+
+      .comment-date {
+        margin-left: 0;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .phone.detail-page {
+        width: 100vw;
+        border-radius: 0;
+        margin: 0;
+      }
+
+      body.detail {
+        padding: 0 0 100px 0;
+      }
+
+      .recipe-title {
+        font-size: 24px;
+      }
+
+      .logo {
+        font-size: 28px;
+        margin: 16px 0;
+      }
+    }
+  </style>
+</head>
+
+<body class="detail">
+  <!-- SVG 정의 (별점 반쪽 채우기용) -->
+  <svg style="position: absolute; width: 0; height: 0; opacity: 0;">
+    <defs>
+      <linearGradient id="half-fill" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="50%" style="stop-color:#ffc107;stop-opacity:1" />
+        <stop offset="50%" style="stop-color:#e0e0e0;stop-opacity:1" />
+      </linearGradient>
+      <linearGradient id="half-fill-small" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="50%" style="stop-color:#ffc107;stop-opacity:1" />
+        <stop offset="50%" style="stop-color:#e0e0e0;stop-opacity:1" />
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <div class="phone detail-page">
+    <!-- 헤더 -->
+    <header class="head">
+      <button class="back" onclick="history.back()">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M15 6l-6 6 6 6" />
+        </svg>
+      </button>
+      <h1>레시피 상세 페이지</h1>
+      <div class="spacer"></div>
+    </header>
+
+    <div class="wrap">
+      <!-- 로고 -->
+      <div class="logo">LOGO</div>
+
+      <!-- 썸네일 이미지 -->
+      <section class="card">
+        <div class="thumbnail" id="thumbnailBox">
+          <div class="thumbnail-placeholder">썸네일 이미지</div>
+        </div>
+      </section>
+
+      <!-- 레시피 기본 정보 -->
+      <section class="card">
+        <h1 class="recipe-title" id="recipeTitle">Burger Bistro</h1>
+
+        <div class="author-info">
+          <svg class="location-icon" viewBox="0 0 24 24">
+            <path
+              d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+          </svg>
+          <span class="author-name" id="authorName">Rose Garden</span>
+        </div>
+
+        <div class="meta-info">
+          <div class="meta-item">
+            <svg class="meta-icon star-icon" viewBox="0 0 24 24">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+            </svg>
+            <span class="meta-text" id="difficulty">3</span>
+          </div>
+          <div class="meta-item">
+            <svg class="meta-icon person-icon" viewBox="0 0 24 24">
+              <path
+                d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+            </svg>
+            <span class="meta-text" id="servings">3</span>
+          </div>
+          <div class="meta-item">
+            <svg class="meta-icon time-icon" viewBox="0 0 24 24">
+              <path
+                d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm4.2 14.2L11 13V7h1.5v5.2l4.5 2.7-.8 1.3z" />
+            </svg>
+            <span class="meta-text" id="cookingTime">20 min</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 재료 섹션 -->
+      <section class="card">
+        <h2 class="section-title">재료</h2>
+        <div id="ingredientsList">
+          <!-- JavaScript로 동적 생성 -->
+        </div>
+      </section>
+
+      <!-- 조리순서 섹션 -->
+      <section class="card">
+        <h2 class="section-title">조리순서</h2>
+        <div class="cooking-steps" id="cookingStepsList">
+          <!-- JavaScript로 동적 생성 -->
+        </div>
+      </section>
+
+      <!-- 댓글 섹션 -->
+      <section class="card">
+        <h2 class="section-title">댓글</h2>
+
+        <!-- 댓글 입력 폼 -->
+        <div class="comment-form" id="commentForm">
+          <div class="comment-form-title">이 레시피는 어떠셨나요?</div>
+
+          <!-- 별점 입력 -->
+          <div class="rating-section">
+            <label class="rating-label">별점</label>
+            <div class="star-rating" id="starRating">
+              <div class="star" data-rating="1">
+                <svg viewBox="0 0 24 24">
+                  <path
+                    d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                </svg>
+              </div>
+              <div class="star" data-rating="2">
+                <svg viewBox="0 0 24 24">
+                  <path
+                    d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                </svg>
+              </div>
+              <div class="star" data-rating="3">
+                <svg viewBox="0 0 24 24">
+                  <path
+                    d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                </svg>
+              </div>
+              <div class="star" data-rating="4">
+                <svg viewBox="0 0 24 24">
+                  <path
+                    d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                </svg>
+              </div>
+              <div class="star" data-rating="5">
+                <svg viewBox="0 0 24 24">
+                  <path
+                    d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                </svg>
+              </div>
+            </div>
+            <span class="rating-text" id="ratingText">별점을 선택해주세요</span>
+          </div>
+
+          <!-- 댓글 입력 -->
+          <textarea class="comment-input" id="commentText" placeholder="이 레시피에 대한 경험을 공유해주세요..."></textarea>
+
+          <!-- 제출 버튼 -->
+          <button class="comment-submit" id="submitComment">댓글 등록</button>
+        </div>
+
+        <!-- 댓글 목록 -->
+        <div class="comments-list" id="commentsList">
+          <!-- JavaScript로 동적 생성 -->
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- 하단 고정 탭바 -->
+  <nav class="bottom-tabbar">
+    <div class="tab-item" data-tab="menu" onclick="goToPage('/menu')">
+      <svg class="tab-icon" viewBox="0 0 24 24">
+        <path d="M3 12h18M3 6h18M3 18h18" />
+      </svg>
+      <span class="tab-label">메뉴</span>
+    </div>
+
+    <div class="tab-item" data-tab="favorite" onclick="goToPage('/favorites')">
+      <svg class="tab-icon" viewBox="0 0 24 24">
+        <path
+          d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+      </svg>
+      <span class="tab-label">찜</span>
+    </div>
+
+    <div class="tab-item active" data-tab="search" onclick="goToPage('/search')">
+      <svg class="tab-icon search" viewBox="0 0 24 24">
+        <circle cx="11" cy="11" r="8" />
+        <path d="m21 21-4.35-4.35" />
+      </svg>
+    </div>
+
+    <div class="tab-item" data-tab="add" onclick="goToPage('/add-recipe')">
+      <svg class="tab-icon" viewBox="0 0 24 24">
+        <path d="M12 5v14M5 12h14" />
+      </svg>
+      <span class="tab-label">추가</span>
+    </div>
+
+    <div class="tab-item" data-tab="profile" onclick="goToPage('/profile')">
+      <svg class="tab-icon" viewBox="0 0 24 24">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+        <circle cx="12" cy="7" r="4" />
+      </svg>
+      <span class="tab-label">프로필</span>
+    </div>
+  </nav>
+
+  <script>
+    // 예시 레시피 데이터
+    const sampleRecipeData = {
+      title: "소고기콩나물솥밥",
+      author: "맛있는요리사",
+      difficulty: 4,
+      servings: 4,
+      cookingTime: "45 min",
+      thumbnailUrl: "", // 이미지가 있으면 URL 넣기
+      ingredients: "쌀|4컵|콩나물|200g|소고기다짐육|100g|다시마|3조각|부추|넉넉히|설탕|1/2스푼",
+      steps: [
+        {
+          description: "소고기콩나물솥밥을 소개합니다.",
+          imageUrl: ""
+        },
+        {
+          description: "쌀은 깨끗하게 씻어준후 30분간 불린후 다시다 우린물에 밥을 지어주세요.냄비",
+          imageUrl: ""
+        },
+        {
+          description: "소고기다짐육을 후라이팬에 볶아가면서 설탕을 조금 넣어서 볶아주세요.프라이팬,요리스푼",
+          imageUrl: ""
+        },
+        {
+          description: "밥을 지어준후 뜸을 들일때쯤 뚜껑을 열어서 콩나물을 넉넉히 넣어서 뜸을 들여주세요.위생장갑",
+          imageUrl: ""
+        },
+        {
+          description: "10분정도 약불로 뜸을 들여준후 볶은 소고기를 올려주세요.",
+          imageUrl: ""
+        },
+        {
+          description: "부추를 송송송 썰어준후 뚜껑을 닫아주세요.",
+          imageUrl: ""
+        },
+        {
+          description: "주걱을 이용해서 고슬고슬 지어진 밥을 콩나물과 잘 섞이도록 잘 섞어주세요.밥주걱",
+          imageUrl: ""
+        },
+        {
+          description: "부추의 향이 가득 배인 소고기콩나물솥밥 이랍니다.",
+          imageUrl: ""
+        },
+        {
+          description: "소고기콩나물솥밥이 완성이 되었습니다.",
+          imageUrl: ""
+        }
+      ]
+    };
+
+    // 댓글 데이터 (예시)
+    let commentsData = [
+      {
+        id: 1,
+        user: "김요리사",
+        rating: 4.5,
+        text: "정말 맛있었어요! 콩나물이 아삭아삭하고 소고기와 잘 어울리네요. 다만 불 조절을 조심해야 할 것 같아요.",
+        date: "2024-03-15"
+      },
+      {
+        id: 2,
+        user: "박주부",
+        rating: 5,
+        text: "가족들이 너무 좋아해요. 특히 아이들이 맛있다고 하네요. 레시피 감사합니다!",
+        date: "2024-03-14"
+      }
+    ];
+
+    // 현재 사용자의 댓글 여부 (실제로는 서버에서 확인)
+    let hasUserCommented = false;
+    let currentUserRating = 0;
+
+    // 페이지 로드시 실행
+    document.addEventListener('DOMContentLoaded', function () {
+      // URL에서 레시피 ID 추출 (예: /recipe/123)
+      const pathArray = window.location.pathname.split('/');
+      const recipeId = pathArray[pathArray.length - 1];
+
+      // 실제 환경에서는 API 호출
+      // loadRecipeData(recipeId);
+
+      // 데모용으로 샘플 데이터 사용
+      renderRecipeData(sampleRecipeData);
+      initializeCommentSystem();
+      renderComments();
+    });
+
+    // 댓글 시스템 초기화
+    function initializeCommentSystem() {
+      const stars = document.querySelectorAll('.star');
+      const ratingText = document.getElementById('ratingText');
+      const submitButton = document.getElementById('submitComment');
+
+      // 별점 클릭 이벤트
+      stars.forEach((star, index) => {
+        star.addEventListener('click', function (e) {
+          const rect = star.getBoundingClientRect();
+          const clickX = e.clientX - rect.left;
+          const starWidth = rect.width;
+
+          // 클릭 위치에 따라 0.5 또는 1점 결정
+          const isHalf = clickX < starWidth / 2;
+          const rating = index + (isHalf ? 0.5 : 1);
+
+          setRating(rating);
+          updateRatingText(rating);
+        });
+
+        // 호버 효과
+        star.addEventListener('mouseenter', function (e) {
+          const rect = star.getBoundingClientRect();
+          const mouseX = e.clientX - rect.left;
+          const starWidth = rect.width;
+          const isHalf = mouseX < starWidth / 2;
+          const hoverRating = index + (isHalf ? 0.5 : 1);
+
+          previewRating(hoverRating);
+        });
+
+        star.addEventListener('mousemove', function (e) {
+          const rect = star.getBoundingClientRect();
+          const mouseX = e.clientX - rect.left;
+          const starWidth = rect.width;
+          const isHalf = mouseX < starWidth / 2;
+          const hoverRating = index + (isHalf ? 0.5 : 1);
+
+          previewRating(hoverRating);
+        });
+      });
+
+      // 별점 영역을 벗어날 때 원래 상태로 복원
+      document.getElementById('starRating').addEventListener('mouseleave', function () {
+        setRating(currentUserRating);
+      });
+
+      // 댓글 제출
+      submitButton.addEventListener('click', function () {
+        submitComment();
+      });
+
+      // 이미 댓글을 작성했는지 확인 (실제로는 서버에서)
+      checkUserCommentStatus();
+    }
+
+    // 별점 설정
+    function setRating(rating) {
+      const stars = document.querySelectorAll('.star');
+
+      stars.forEach((star, index) => {
+        const starRating = index + 1;
+        star.classList.remove('filled', 'half-filled');
+
+        if (rating >= starRating) {
+          star.classList.add('filled');
+        } else if (rating >= starRating - 0.5) {
+          star.classList.add('half-filled');
+        }
+      });
+    }
+
+    // 별점 미리보기
+    function previewRating(rating) {
+      setRating(rating);
+      updateRatingText(rating);
+    }
+
+    // 별점 텍스트 업데이트
+    function updateRatingText(rating) {
+      const ratingText = document.getElementById('ratingText');
+      if (rating === 0) {
+        ratingText.textContent = '별점을 선택해주세요';
+      } else {
+        const ratingTexts = {
+          0.5: '별로예요',
+          1: '별로예요',
+          1.5: '그저 그래요',
+          2: '그저 그래요',
+          2.5: '괜찮아요',
+          3: '괜찮아요',
+          3.5: '좋아요',
+          4: '좋아요',
+          4.5: '훌륭해요',
+          5: '최고예요!'
+        };
+        ratingText.textContent = `${rating}점 - ${ratingTexts[rating]}`;
+      }
+    }
+
+    // 사용자 댓글 작성 여부 확인
+    function checkUserCommentStatus() {
+      // 실제로는 서버 API 호출
+      // 여기서는 데모용으로 localStorage 사용
+      const recipeId = 'sample-recipe'; // 실제로는 현재 레시피 ID
+      const userComment = localStorage.getItem(`comment_${recipeId}`);
+
+      if (userComment) {
+        hasUserCommented = true;
+        showAlreadyCommentedMessage();
+      }
+    }
+
+    // 이미 댓글 작성 완료 메시지 표시
+    function showAlreadyCommentedMessage() {
+      const commentForm = document.getElementById('commentForm');
+      commentForm.innerHTML = `
+        <div class="already-commented">
+          이미 이 레시피에 댓글을 작성하셨습니다.
+        </div>
+      `;
+      commentForm.classList.add('disabled');
+    }
+
+    // 댓글 제출
+    function submitComment() {
+      if (hasUserCommented) {
+        alert('이미 댓글을 작성하셨습니다.');
+        return;
+      }
+
+      const rating = currentUserRating;
+      const commentText = document.getElementById('commentText').value.trim();
+
+      if (rating === 0) {
+        alert('별점을 선택해주세요.');
+        return;
+      }
+
+      if (commentText === '') {
+        alert('댓글을 입력해주세요.');
+        return;
+      }
+
+      // 실제로는 서버에 전송
+      const newComment = {
+        id: Date.now(),
+        user: '현재사용자', // 실제로는 로그인된 사용자 정보
+        rating: rating,
+        text: commentText,
+        date: new Date().toISOString().split('T')[0]
+      };
+
+      // 댓글 추가
+      commentsData.unshift(newComment);
+
+      // localStorage에 저장 (실제로는 서버 처리)
+      const recipeId = 'sample-recipe';
+      localStorage.setItem(`comment_${recipeId}`, JSON.stringify(newComment));
+
+      // 댓글 작성 완료 처리
+      hasUserCommented = true;
+      showAlreadyCommentedMessage();
+      renderComments();
+
+      alert('댓글이 등록되었습니다!');
+    }
+
+    // 댓글 목록 렌더링
+    function renderComments() {
+      const container = document.getElementById('commentsList');
+
+      if (commentsData.length === 0) {
+        container.innerHTML = '<div class="no-comments">첫 댓글을 작성해보세요!</div>';
+        return;
+      }
+
+      container.innerHTML = '';
+
+      commentsData.forEach(comment => {
+        const commentItem = document.createElement('div');
+        commentItem.className = 'comment-item';
+        commentItem.innerHTML = `
+          <div class="comment-header">
+            <span class="comment-user">${comment.user}</span>
+            <div class="comment-rating">${renderCommentStars(comment.rating)}</div>
+            <span class="comment-date">${comment.date}</span>
+          </div>
+          <div class="comment-text">${comment.text}</div>
+        `;
+        container.appendChild(commentItem);
+      });
+    }
+
+    // 댓글의 별점 렌더링
+    function renderCommentStars(rating) {
+      let starsHtml = '';
+
+      for (let i = 1; i <= 5; i++) {
+        let starClass = 'comment-star';
+        if (rating >= i) {
+          starClass += ' filled';
+        } else if (rating >= i - 0.5) {
+          starClass += ' half-filled';
+        }
+
+        starsHtml += `
+          <div class="${starClass}">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+            </svg>
+          </div>
+        `;
+      }
+
+      return starsHtml;
+    }
+
+    // 별점 클릭 시 현재 선택값 저장
+    document.addEventListener('click', function (e) {
+      if (e.target.closest('.star')) {
+        const star = e.target.closest('.star');
+        const stars = document.querySelectorAll('.star');
+        const index = Array.from(stars).indexOf(star);
+
+        const rect = star.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const starWidth = rect.width;
+        const isHalf = clickX < starWidth / 2;
+
+        currentUserRating = index + (isHalf ? 0.5 : 1);
+      }
+    });
+
+    // 실제 레시피 데이터 로드 함수
+    async function loadRecipeData(recipeId) {
+      try {
+        const response = await fetch(`/api/recipes/${recipeId}`);
+        if (!response.ok) {
+          throw new Error('레시피를 불러올 수 없습니다.');
+        }
+        const recipeData = await response.json();
+        renderRecipeData(recipeData);
+      } catch (error) {
+        console.error('레시피 로드 에러:', error);
+        alert('레시피를 불러오는데 실패했습니다: ' + error.message);
+      }
+    }
+
+    // 레시피 데이터 렌더링
+    function renderRecipeData(data) {
+      // 기본 정보 업데이트
+      document.getElementById('recipeTitle').textContent = data.title;
+      document.getElementById('authorName').textContent = data.author;
+      document.getElementById('difficulty').textContent = data.difficulty;
+      document.getElementById('servings').textContent = data.servings;
+      document.getElementById('cookingTime').textContent = data.cookingTime;
+
+      // 썸네일 이미지
+      if (data.thumbnailUrl) {
+        const thumbnail = document.getElementById('thumbnailBox');
+        thumbnail.innerHTML = `<img src="${data.thumbnailUrl}" alt="레시피 이미지">`;
+        thumbnail.classList.add('has-img');
+      }
+
+      // 재료 렌더링
+      renderIngredients(data.ingredients);
+
+      // 조리순서 렌더링
+      renderCookingSteps(data.steps);
+    }
+
+    // 재료 리스트 렌더링
+    function renderIngredients(ingredientsString) {
+      const ingredientsArray = ingredientsString.split('|');
+      const container = document.getElementById('ingredientsList');
+      container.innerHTML = '';
+
+      for (let i = 0; i < ingredientsArray.length; i += 2) {
+        const name = ingredientsArray[i];
+        const amount = ingredientsArray[i + 1] || '';
+
+        const ingredientItem = document.createElement('div');
+        ingredientItem.className = 'ingredient-item';
+        ingredientItem.innerHTML = `
+          <span class="ingredient-name">${name}</span>
+          <span class="ingredient-amount">${amount}</span>
+          <button class="btn-small btn-substitute" onclick="getSubstituteIngredient('${name}', this)">대체</button>
+          <button class="btn-small" onclick="goToCoupang('${name}')">구매</button>
+        `;
+
+        container.appendChild(ingredientItem);
+      }
+    }
+
+    // 조리순서 렌더링
+    function renderCookingSteps(steps) {
+      const container = document.getElementById('cookingStepsList');
+      container.innerHTML = '';
+
+      steps.forEach((step, index) => {
+        const stepItem = document.createElement('div');
+        stepItem.className = 'step-item';
+        stepItem.innerHTML = `
+          <div class="step-header">${index + 1}단계</div>
+          <div class="step-content">
+            <div class="step-description">${step.description}</div>
+            <div class="step-image">
+              ${step.imageUrl ?
+            `<img src="${step.imageUrl}" alt="${index + 1}단계 이미지">` :
+            '<div class="step-image-placeholder">사진</div>'
+          }
+            </div>
+          </div>
+        `;
+
+        container.appendChild(stepItem);
+      });
+    }
+
+    // GPT API를 통한 대체 재료 추천
+    async function getSubstituteIngredient(ingredientName, button) {
+      try {
+        button.disabled = true;
+        button.textContent = '로딩...';
+
+        const response = await fetch('/api/gpt/substitute', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            ingredient: ingredientName
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('대체 재료 추천을 받을 수 없습니다.');
+        }
+
+        const result = await response.json();
+        alert(`${ingredientName} 대체 재료 추천:\n\n${result.substitute}`);
+
+      } catch (error) {
+        console.error('대체 재료 추천 에러:', error);
+        alert('대체 재료 추천에 실패했습니다: ' + error.message);
+      } finally {
+        button.disabled = false;
+        button.textContent = '대체';
+      }
+    }
+
+    // 쿠팡 구매 링크로 이동
+    function goToCoupang(ingredientName) {
+      const coupangUrl = `https://www.coupang.com/np/search?component=&q=${encodeURIComponent(ingredientName)}`;
+      window.open(coupangUrl, '_blank');
+    }
+
+    // 페이지 이동 함수
+    function goToPage(url) {
+      window.location.href = url;
+    }
+
+    // 탭바 활성화 상태 변경
+    function setActiveTab(tabName) {
+      const tabItems = document.querySelectorAll('.tab-item');
+      tabItems.forEach(item => {
+        if (item.dataset.tab === tabName) {
+          item.classList.add('active');
+        } else {
+          item.classList.remove('active');
+        }
+      });
+    }
+  </script>
+</body>
+
+</html>

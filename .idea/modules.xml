@@ -3,6 +3,8 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/RECIPICK.iml" filepath="$PROJECT_DIR$/.idea/RECIPICK.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/RECIPICK-PROJECT.iml" filepath="$PROJECT_DIR$/.idea/modules/RECIPICK-PROJECT.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/RECIPICK-PROJECT.test.iml" filepath="$PROJECT_DIR$/.idea/modules/RECIPICK-PROJECT.test.iml" />
     </modules>
   </component>
 </project>

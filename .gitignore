@@ -1,49 +1,42 @@
 # 🌐 FRONTEND
-FRONT/node_modules/
-FRONT/dist/
-FRONT/.env
+FRONTEND/node_modules/
+FRONTEND/dist/
+FRONTEND/build/
+FRONTEND/.env
+FRONTEND/.env.local
+FRONTEND/.env.production
 
 # 🛠 BACKEND
-BACK/.gradle/
-BACK/build/
-!BACK/gradle/wrapper/gradle-wrapper.jar
-!BACK/src/main/**/build/
-!BACK/src/test/**/build/
-BACK/.env
+BACKEND/RECIPICK-PROJECT/.gradle/
+BACKEND/RECIPICK-PROJECT/build/
+BACKEND/RECIPICK-PROJECT/bin/
+BACKEND/RECIPICK-PROJECT/out/
+BACKEND/RECIPICK-PROJECT/.env
+!BACKEND/RECIPICK-PROJECT/gradle/wrapper/gradle-wrapper.jar
 
 # 🧪 IDE 설정
+**/.idea/
+**/.vscode/
 *.iml
 *.ipr
 *.iws
-.idea/
-.vscode/
 .project
 .classpath
 .settings/
 .springBeans
 .sts4-cache
-.apt_generated
-.factorypath
-bin/
-out/
-nbproject/private/
-nbbuild/
-dist/
-nbdist/
-.nb-gradle/
 
-# 🔐 환경 변수
+# 🔐 환경 변수 (루트)
 .env
 
 # ⚙️ 컴파일 결과물
-*.class
-*.jar
-*.war
-*.zip
-*.tar.gz
-*.rar
-*.log
-*.ctxt
+**/*.class
+**/*.log
+**/*.ctxt
 .mtj.tmp/
 hs_err_pid*
 replay_pid*
+
+# 🗂 시스템 파일
+.DS_Store
+Thumbs.db

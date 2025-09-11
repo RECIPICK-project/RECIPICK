@@ -1,0 +1,316 @@
+/* =============== Recipe Detail — 최종 정리본 =============== */
+
+/* 컬러/치수 */
+:root{
+  --soft:#F9FBE7;        /* 상세 페이지 전용 연녹 배경 */
+  --tabbar-h:60px;       /* 탭바 높이(슬림) */
+  --app-vh:100vh;        /* 실제 가시 높이(JS로 갱신) */
+}
+
+/* ----- 화면 중앙에 프레임 배치 ----- */
+body.detail{
+  min-height:100vh;
+  margin:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:var(--bg); /* 전역 배경은 기존 색 유지 */
+}
+
+/* ----- 모바일 프레임(.phone) 규격/스크롤 ----- */
+body.detail .phone.recipe-detail{
+  width:375px;
+  height:min(812px, var(--app-vh)); /* 화면보다 크지 않게, 최대 812 */
+  max-height:100vh;
+  position:relative;               /* 탭바/플로팅 기준 */
+  border:1px solid #eef0ee;
+  border-radius:22px;
+  background:var(--soft);          /* 상세만 F9FBE7 */
+  overflow-y:auto;                 /* 내부 스크롤 */
+  -webkit-overflow-scrolling:touch;
+}
+
+/* 상단 헤더/본문 기본 */
+.head{ display:flex; align-items:center; gap:10px; padding:12px 14px }
+.head h1{ margin:0 auto 0 0; font-size:18px; font-weight:800 }
+.head .back{ width:40px; height:40px; border-radius:9999px; border:1px solid #ececec; background:#fff; display:grid; place-items:center }
+
+.wrap{ padding:0 14px calc(var(--tabbar-h) + 24px) } /* 탭바 여유 */
+
+/* 타이틀/대표 이미지/단계 */
+.title{ font-size:15px; font-weight:700; margin:4px 0 6px }
+.desc{ font-size:13px; color:var(--muted); margin:0 0 12px }
+.hero-photo{ height:160px; border-radius:14px; background:#99a6b6; margin-bottom:12px }
+
+.step-flow{ list-style:none; padding:0; margin:0; display:grid; gap:14px }
+.s-head{ display:flex; align-items:center; gap:6px; font-size:13px; font-weight:700; margin-bottom:8px }
+.tri{ width:0; height:0; border-left:6px solid transparent; border-right:6px solid transparent; border-top:10px solid #c9cfc9; border-radius:2px }
+.photo{ height:200px; border-radius:14px; background:#98a7b6; margin-bottom:8px }
+.s-body{ font-size:14px; line-height:1.55 }
+
+/* ============ 레시피 상세: 탭바 최종 고정값 ============ */
+
+/* 1) 상세 페이지용 탭바 높이 변수 */
+:root{ --tabbar-h: 60px; }
+
+/* 2) 스크롤 컨테이너는 .phone (이미 overflow-y:auto;) */
+body.detail .phone.recipe-detail{ position: relative; overflow-y: auto; }
+
+/* 3) 탭바: 항상 프레임 바닥에 붙어 있고, 높이 고정 */
+body.detail .phone.recipe-detail .tabbar{
+  position: sticky;       /* ✅ sticky로 고정 */
+  bottom: 0;
+  height: var(--tabbar-h) !important;   /* ✅ 공용 72px 무시 */
+  background: #fff;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+  box-shadow: 0 -4px 12px rgba(0,0,0,.06);
+  display: flex; align-items: center; justify-content: space-around;
+  padding: 0 12px;        /* 내부 여백 컴팩트 */
+  z-index: 5;
+  box-sizing: border-box;
+}
+
+/* 4) 탭바 안 요소들 크기를 강제(세로로 늘어나는 현상 방지) */
+body.detail .phone.recipe-detail .tabbar .tab{
+  display: grid; place-items: center;
+  min-width: 44px;        /* 터치 타겟 보장 */
+  height: calc(var(--tabbar-h) - 10px);
+}
+
+body.detail .phone.recipe-detail .tabbar svg{
+  width: 20px; height: 20px; stroke: #6b7280; fill: none;
+}
+
+body.detail .phone.recipe-detail .tabbar .ring{
+  width: 40px; height: 40px;
+  border-radius: 9999px;
+  border: 2px solid var(--green-500);
+  background: var(--bg);
+  display: grid; place-items: center;
+}
+
+/* 5) 콘텐츠가 탭바에 가리지 않도록 하단 여유(탭바 높이와 동기화) */
+body.detail .phone.recipe-detail .wrap{
+  padding-bottom: calc(var(--tabbar-h) + 24px) !important;
+}
+
+/* 6) 플로팅 액션(하트/별점)은 탭바 바로 위에 뜨도록 */
+body.detail .phone.recipe-detail .float-actions{
+  position: sticky;                     /* 스크롤해도 바닥 근처 유지 */
+  bottom: calc(var(--tabbar-h) + 12px); /* 탭바 위 여유 */
+  display: flex; gap: 14px; justify-content: center; align-items: center;
+  z-index: 6;
+}
+
+/* 7) 작은 세로 화면일 때 자동 슬림 */
+@media (max-height: 700px){
+  :root{ --tabbar-h: 56px; }
+  body.detail .phone.recipe-detail .wrap{
+    padding-bottom: calc(var(--tabbar-h) + 20px) !important;
+  }
+}
+
+.tab svg{ width:20px; height:20px; stroke:#6b7280; fill:none }
+.tab .ring{ width:40px; height:40px; border:2px solid var(--green-500); border-radius:9999px; background:var(--bg); display:grid; place-items:center }
+
+/* ----- 플로팅 액션(하트/별점) : 탭바 위에 떠 있게 ----- */
+.float-actions{
+  position:absolute;
+  left:0; right:0; bottom:calc(var(--tabbar-h) + 16px);
+  display:flex; gap:14px; justify-content:center; align-items:center;
+  z-index:6;
+}
+.fab{
+  width:44px; height:44px; border-radius:9999px;
+  background:#fff; border:1px solid var(--line);
+  display:grid; place-items:center; box-shadow:0 2px 6px rgba(0,0,0,.06);
+}
+.fab .ico-heart{ fill:none; stroke:#6b7280; stroke-width:2 }
+.fab.is-on .ico-heart{ fill:#FF4D6D; stroke:#FF4D6D }
+
+/* 별점 팝오버 */
+.rating-wrap{ position:relative }
+.rating-pop{
+  position:absolute; left:50%; transform:translateX(-50%); bottom:58px;
+  display:flex; gap:6px; background:#fff; border:1px solid var(--line);
+  padding:8px 10px; border-radius:999px; box-shadow:0 6px 18px rgba(0,0,0,.12); z-index:10;
+}
+.rating-pop[hidden]{ display:none !important; }
+.rating-pop .star{ width:28px; height:28px; border:none; background:transparent; cursor:pointer; display:grid; place-items:center; border-radius:6px }
+.rating-pop .star svg path{ fill:none; stroke:#f5b301; stroke-width:2 }
+.rating-pop .star.on svg path{ fill:#f5b301; stroke:#f5b301 }
+
+/* 작은 세로 화면에서 살짝 더 타이트하게 */
+@media (max-height:700px){
+  :root{ --tabbar-h:56px; }
+  .wrap{ padding-bottom:calc(var(--tabbar-h) + 20px) }
+  .float-actions{ bottom:calc(var(--tabbar-h) + 12px) }
+}
+
+/* =============== 레시피 상세 · 최종 고정 =============== */
+
+/* 프레임을 화면 정중앙에(데스크톱 미리보기용) */
+body.detail{
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:var(--bg);
+  margin:0;
+}
+
+/* 모바일 프레임 */
+.phone.recipe-detail{
+  width:375px;
+  height:min(812px, 100vh);
+  max-height:100vh;
+  background:#F9FBE7;               /* 상세만 연녹 */
+  border:1px solid #eef0ee;
+  border-radius:22px;
+  overflow-y:auto;                   /* 내부 스크롤 */
+  -webkit-overflow-scrolling:touch;
+  position:relative;                 /* 탭바/플로팅 기준 */
+  padding:0 !important;              /* ← 좌우 여백 제거(핵심) */
+}
+
+/* 헤더/본문 기본 */
+.head{display:flex; align-items:center; gap:10px; padding:12px 14px}
+.head h1{margin:0 auto 0 0; font-size:18px; font-weight:800}
+.head .back{width:40px; height:40px; border-radius:9999px; border:1px solid #ececec; background:#fff; display:grid; place-items:center}
+
+.wrap{
+  padding:0 14px 92px;               /* 내용 여백 + 탭바 피해서 하단 패딩 */
+}
+
+.title{font-size:15px; font-weight:700; margin:4px 0 6px}
+.desc{font-size:13px; color:var(--muted); margin:0 0 12px}
+.hero-photo{height:160px; border-radius:14px; background:#99a6b6; margin-bottom:12px}
+
+.step-flow{list-style:none; padding:0; margin:0; display:grid; gap:14px}
+.s-head{display:flex; align-items:center; gap:6px; font-size:13px; font-weight:700; margin-bottom:8px}
+.tri{width:0; height:0; border-left:6px solid transparent; border-right:6px solid transparent; border-top:10px solid #c9cfc9; border-radius:2px}
+.photo{height:200px; border-radius:14px; background:#98a7b6; margin-bottom:8px}
+.s-body{font-size:14px; line-height:1.55}
+
+/* === 탭바: 프레임 가로 꽉 채우기, 높이 컴팩트(60px) === */
+.tabbar{
+  position:absolute;                 /* 프레임 절대 하단 */
+  left:0; right:0; bottom:0;
+  height:60px;
+  background:#fff;
+  border-top-left-radius:20px;
+  border-top-right-radius:20px;
+  box-shadow:0 -4px 12px rgba(0,0,0,.06);
+  display:flex; align-items:center; justify-content:space-around;
+  padding:0 14px;
+  z-index:5;
+}
+
+.tab{display:grid; place-items:center}
+.tab svg{width:22px; height:22px; stroke:#6b7280; fill:none}
+.tab .ring{
+  width:44px; height:44px; border-radius:9999px;
+  background:var(--bg); border:2px solid var(--green-500);
+  display:grid; place-items:center;
+}
+
+/* === 플로팅 액션(하트/별) : 탭바 바로 위에 떠 있게 === */
+.float-actions{
+  position:absolute;
+  left:0; right:0; bottom:76px;      /* 탭바(60) + 여유 */
+  display:flex; gap:14px; justify-content:center; align-items:center;
+  z-index:6;
+}
+.fab{
+  width:44px; height:44px; border-radius:9999px;
+  background:#fff; border:1px solid var(--line);
+  display:grid; place-items:center; box-shadow:0 2px 6px rgba(0,0,0,.06);
+}
+.fab .ico-heart{fill:none; stroke:#6b7280; stroke-width:2}
+.fab.is-on .ico-heart{fill:#FF4D6D; stroke:#FF4D6D}
+
+/* 별점 팝오버 */
+.rating-wrap{position:relative}
+.rating-pop{
+  position:absolute; left:50%; transform:translateX(-50%); bottom:58px;
+  display:flex; gap:6px; background:#fff; border:1px solid var(--line);
+  padding:8px 10px; border-radius:999px; box-shadow:0 6px 18px rgba(0,0,0,.12); z-index:10;
+}
+.rating-pop[hidden]{display:none !important}
+.rating-pop .star{width:28px; height:28px; border:none; background:transparent; cursor:pointer; display:grid; place-items:center; border-radius:6px}
+.rating-pop .star svg path{fill:none; stroke:#f5b301; stroke-width:2}
+.rating-pop .star.on svg path{fill:#f5b301; stroke:#f5b301}
+
+/* 화면이 낮은 기기에서 살짝 압축 */
+@media (max-height:700px){
+  .tabbar{height:56px}
+  .wrap{padding-bottom: calc(56px + 20px)}
+  .float-actions{bottom:72px}
+}
+
+/* ====================== Search Home 탭바 고정 패치 ====================== */
+/* ↓ 반드시 css/search_home.css 파일의 '맨 마지막'에 추가 */
+
+:root{
+  --tabbar-h: 60px;  /* 원래 쓰던 슬림 높이 */
+}
+
+/* 스크롤 컨테이너는 .phone.search-home 자체 */
+.phone.search-home{
+  position: relative;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 탭바: sticky + 정확한 높이/정렬 강제 */
+.phone.search-home .tabbar{
+  position: sticky !important;     /* 따라 움직이게 */
+  bottom: 0 !important;
+  height: var(--tabbar-h) !important;
+  background: #fff !important;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  box-shadow: 0 -4px 12px rgba(0,0,0,.06);
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-around !important;
+  padding: 0 14px !important;
+  box-sizing: border-box !important;
+  z-index: 5;
+}
+
+/* 아이콘 터치 타겟/크기도 고정 (전역 규칙 무력화) */
+.phone.search-home .tabbar .tab{
+  display: grid !important;
+  place-items: center !important;
+  min-width: 44px;
+  height: calc(var(--tabbar-h) - 10px);
+}
+.phone.search-home .tabbar .tab svg{
+  width: 22px !important;
+  height: 22px !important;
+  stroke: #6b7280;
+  fill: none;
+}
+.phone.search-home .tabbar .tab .ring{
+  width: 44px; height: 44px;
+  border-radius: 9999px;
+  background: var(--bg);
+  border: 2px solid var(--green-500);
+  display: grid; place-items: center;
+}
+
+/* 콘텐츠가 탭바에 가리지 않도록 하단 여유 */
+.phone.search-home .wrap{
+  padding-bottom: calc(var(--tabbar-h) + 20px) !important;
+}
+
+/* 세로가 낮은 화면에서 살짝 슬림 */
+@media (max-height: 700px){
+  :root{ --tabbar-h: 56px; }
+  .phone.search-home .wrap{
+    padding-bottom: calc(var(--tabbar-h) + 16px) !important;
+  }
+}
+

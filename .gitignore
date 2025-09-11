@@ -1,18 +1,16 @@
 # 🌐 FRONTEND
 FRONTEND/node_modules/
 FRONTEND/dist/
-FRONTEND/build/
 FRONTEND/.env
-FRONTEND/.env.local
-FRONTEND/.env.production
 
 # 🛠 BACKEND
 BACKEND/RECIPICK-PROJECT/.gradle/
 BACKEND/RECIPICK-PROJECT/build/
 BACKEND/RECIPICK-PROJECT/bin/
-BACKEND/RECIPICK-PROJECT/out/
-BACKEND/RECIPICK-PROJECT/.env
 !BACKEND/RECIPICK-PROJECT/gradle/wrapper/gradle-wrapper.jar
+!BACKEND/RECIPICK-PROJECT/src/main/**/build/
+!BACKEND/RECIPICK-PROJECT/src/test/**/build/
+BACKEND/RECIPICK-PROJECT/.env
 
 # 🧪 IDE 설정
 **/.idea/

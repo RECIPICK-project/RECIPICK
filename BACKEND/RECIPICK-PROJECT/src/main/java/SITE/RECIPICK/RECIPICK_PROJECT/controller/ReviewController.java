@@ -3,12 +3,18 @@ package SITE.RECIPICK.RECIPICK_PROJECT.controller;
 import SITE.RECIPICK.RECIPICK_PROJECT.dto.ReviewDto;
 import SITE.RECIPICK.RECIPICK_PROJECT.dto.ReviewResponseDto;
 import SITE.RECIPICK.RECIPICK_PROJECT.service.ReviewService;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
@@ -36,7 +42,7 @@ public class ReviewController {
   // 3. Update a review
   @PutMapping("/reviews/{reviewId}")
   public ResponseEntity<ReviewResponseDto> updateReview(
-      @PathVariable Long reviewId,
+      @PathVariable Integer reviewId,
       @RequestBody ReviewDto requestDto) {
     ReviewResponseDto updatedReview = reviewService.updateReview(reviewId, requestDto);
     return ResponseEntity.ok(updatedReview);
@@ -44,7 +50,7 @@ public class ReviewController {
 
   // 4. Delete a review
   @DeleteMapping("/reviews/{reviewId}")
-  public ResponseEntity<Void> deleteReview(@PathVariable Long reviewId) {
+  public ResponseEntity<Void> deleteReview(@PathVariable Integer reviewId) {
     reviewService.deleteReview(reviewId);
     return ResponseEntity.noContent().build();
   }

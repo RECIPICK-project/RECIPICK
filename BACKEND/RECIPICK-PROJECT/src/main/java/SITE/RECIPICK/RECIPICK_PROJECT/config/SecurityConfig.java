@@ -1,54 +1,122 @@
 package SITE.RECIPICK.RECIPICK_PROJECT.config;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-/**
- * Spring Security 전역 설정 (배포용).
- * <p>
- * 규칙 - Swagger 리소스는 전부 허용 - /users/** : 로그인 필요 - /admin/** : ROLE_ADMIN 권한 필요 - 그 외 요청 : 로그인 필요
- * <p>
- * 비고 - 현재 JWT를 쓰지 않으므로 Basic(임시) + 세션으로 운영 - 컨트롤러의 @PreAuthorize 사용을 위해 @EnableMethodSecurity 활성화
- */
 @Configuration
-@EnableMethodSecurity(prePostEnabled = true) // @PreAuthorize("hasRole('ADMIN')") 등 메소드 보안 활성화
+@RequiredArgsConstructor
 public class SecurityConfig {
 
+  private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+
   @Bean
-  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+  SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     http
+        // ✅ 프론트(라이브 서버 5500)에서 API 호출 허용
+        .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+        .csrf(csrf -> csrf.disable())
+        .authorizeHttpRequests(auth -> auth
+            .requestMatchers("/", "/home.html", "/login.html", "/signup", "/signup.html",
+                "/email-verification.html",               //
+                "/css/**", "/js/**").permitAll()
+            // ✅ 이메일 인증 API는 로그인 없이 접근 가능
+            .requestMatchers("/api/auth/email/**").permitAll()
 
-        // 경로별 인가 규칙
-        .authorizeHttpRequests(reg -> reg
-            // Swagger/OpenAPI 문서 및 정적 리소스는 모두 허용
-            .requestMatchers(
-                "/v3/api-docs/**",
-                "/swagger-ui/**",
-                "/swagger-ui.html",
-                "/webjars/**",
-                "/css/**", "/js/**", "/img/**", "/", "/error"
-            ).permitAll()
+            // ✅ 중복 확인 API (비로그인 허용)
+            .requestMatchers("/api/users/check-email", "/api/users/check-nickname").permitAll()
 
-            // 마이페이지(사용자 API): 로그인 필요
-            .requestMatchers("/users/**", "/me/**").authenticated()
+            // ✅ 회원가입/로그인 API (비로그인 허용)
+            .requestMatchers("/api/users/signup", "/api/users/login").permitAll()
 
-            // 관리자 API: ADMIN 권한 필요 (DB/권한에 ROLE_ 접두사 포함되어 있어야 함)
-            .requestMatchers("/admin/**").hasRole("ADMIN")
+            // ✅ OAuth2 관련 엔드포인트 허용
+            .requestMatchers("/oauth2/**", "/login/oauth2/**", "/oauth2/authorization/**")
+            .permitAll()
 
-            // 나머지 전부 로그인 필요
+            // ✅페이지 접근 권한
+            .requestMatchers("/main.html").hasAnyRole("USER", "ADMIN")
+            .requestMatchers("/admin.html").hasRole("ADMIN")
+
+            // ✅관리용 API
+            .requestMatchers("/api/users/all", "/api/users/set-active").hasRole("ADMIN")
+            .requestMatchers("/api/admin/**").hasRole("ADMIN")
+
+            // ✅나머지 사용자 API
+            .requestMatchers("/api/users/**").hasAnyRole("USER", "ADMIN")
             .anyRequest().authenticated()
         )
+        .formLogin(form -> form
+            .loginPage("/login.html")
+            .loginProcessingUrl("/login")
+            .usernameParameter("email")          // ⬅️ 폼에서 name="email"이면 꼭 추가
+            .passwordParameter("password")       // (옵션) 기본값과 동일
+            .successHandler((req, res, auth) -> res.sendRedirect("/main.html"))
+            .failureHandler((req, res, ex) -> {  // ⬅️ 실패 원인 확인용
+              ex.printStackTrace();
+              String msg = URLEncoder.encode(
+                  String.valueOf(ex.getMessage()),
+                  StandardCharsets.UTF_8
+              );
+              res.sendRedirect("/login.html?error=" + msg);
+            })
+            .permitAll()
+        )
 
-        // 임시: Swagger에서 Authorization: Basic 헤더로 테스트 가능
-        .httpBasic(Customizer.withDefaults());
-
-    // 세션 전략: 기본값(필요 시 생성) — JWT 미사용 환경에 맞춤
-    // .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED));
+        .oauth2Login(oauth -> oauth
+            .loginPage("/login.html")
+            .userInfoEndpoint(u -> u.userAuthoritiesMapper(authorities -> {
+              java.util.Set<org.springframework.security.core.GrantedAuthority> result = new java.util.HashSet<>();
+              result.addAll(authorities);
+              result.add(new org.springframework.security.core.authority.SimpleGrantedAuthority(
+                  "ROLE_USER"));
+              return result;
+            }))
+            .failureHandler((req, res, ex) -> {
+              ex.printStackTrace(); // 콘솔에 상세 스택 출력
+              String msg = URLEncoder.encode(
+                  ex.getClass().getSimpleName() + ": " + ex.getMessage(),
+                  StandardCharsets.UTF_8
+              );
+              res.sendRedirect("/login.html?error=" + msg);
+            })
+            .successHandler(oAuth2LoginSuccessHandler)
+        )
+        .logout(logout -> logout.logoutSuccessUrl("/login.html").permitAll())   // ✅ (선택) 로그아웃 처리
+    ;
 
     return http.build();
+  }
+
+  // ✅ 프론트(라이브 서버) 오리진 허용: 주소/포트 필요에 맞게 추가
+  @Bean
+  public CorsConfigurationSource corsConfigurationSource() {
+    CorsConfiguration c = new CorsConfiguration();
+    c.setAllowedOriginPatterns(List.of(
+        "http://127.0.0.1:5500",
+        "http://localhost:5500"
+        // 필요하면 추가: "http://localhost:3000", "http://localhost:5173" 등
+    ));
+    c.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+    c.setAllowedHeaders(List.of("*"));
+    // 쿠키/세션을 쓸 때만 true (JWT 헤더 방식이면 false여도 됨)
+    c.setAllowCredentials(true);
+
+    UrlBasedCorsConfigurationSource src = new UrlBasedCorsConfigurationSource();
+    src.registerCorsConfiguration("/**", c);
+    return src;
+  }
+
+  @Bean
+  public BCryptPasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder();
   }
 }

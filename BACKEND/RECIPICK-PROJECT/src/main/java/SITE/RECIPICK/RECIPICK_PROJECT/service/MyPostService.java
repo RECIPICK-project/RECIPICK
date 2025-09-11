@@ -1,6 +1,6 @@
 package SITE.RECIPICK.RECIPICK_PROJECT.service;
 
-import SITE.RECIPICK.RECIPICK_PROJECT.dto.PostDTO;
+import SITE.RECIPICK.RECIPICK_PROJECT.dto.PostDto;
 import SITE.RECIPICK.RECIPICK_PROJECT.repository.PostRepository;
 import SITE.RECIPICK.RECIPICK_PROJECT.util.PostMapper;
 import java.util.List;
@@ -34,9 +34,9 @@ public class MyPostService {
    * rcp_is_official = true 인 것만 - created_at 내림차순 3) 엔티티 → DTO 매핑 후 반환
    */
   @Transactional(readOnly = true)
-  public List<PostDTO> getMyOfficialPosts(Integer me, int offset, int limit) {
+  public List<PostDto> getMyOfficialPosts(Integer me, int offset, int limit) {
     var page = PageRequest.of(offset / Math.max(limit, 1), Math.max(limit, 1));
-    return postRepo.findByUserEntity_IdAndRcpIsOfficialTrueOrderByCreatedAtDesc(me, page)
+    return postRepo.findByUserIdAndRcpIsOfficialOrderByCreatedAtDesc(me, 1, page)
         .stream().map(PostMapper::toDto).toList();
   }
 
@@ -51,9 +51,9 @@ public class MyPostService {
    * 구현 포인트는 getMyOfficialPosts와 동일하되, rcp_is_official = false 조건을 사용한다.
    */
   @Transactional(readOnly = true)
-  public List<PostDTO> getMyTempPosts(Integer me, int offset, int limit) {
+  public List<PostDto> getMyTempPosts(Integer me, int offset, int limit) {
     var page = PageRequest.of(offset / Math.max(limit, 1), Math.max(limit, 1));
-    return postRepo.findByUserEntity_IdAndRcpIsOfficialFalseOrderByCreatedAtDesc(me, page)
+    return postRepo.findByUserIdAndRcpIsOfficialOrderByCreatedAtDesc(me, 0, page)
         .stream()
         .map(PostMapper::toDto)
         .toList();

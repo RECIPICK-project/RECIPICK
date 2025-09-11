@@ -1,6 +1,6 @@
 package SITE.RECIPICK.RECIPICK_PROJECT.controller;
 
-import SITE.RECIPICK.RECIPICK_PROJECT.dto.PostDTO;
+import SITE.RECIPICK.RECIPICK_PROJECT.dto.PostDto;
 import SITE.RECIPICK.RECIPICK_PROJECT.service.MyPostService;
 import SITE.RECIPICK.RECIPICK_PROJECT.util.CurrentUser;
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,6 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class MyPostController {
 
   private final MyPostService myPostService;
+  private final CurrentUser currentUser;
 
   /**
    * 내 레시피 조회 (정식/임시)
@@ -55,7 +56,7 @@ public class MyPostController {
       @ApiResponse(responseCode = "401", description = "인증 필요"),
       @ApiResponse(responseCode = "500", description = "서버 오류")
   })
-  public List<PostDTO> myPosts(
+  public List<PostDto> myPosts(
       @Parameter(description = "레시피 종류 (official/temp)", example = "official")
       @RequestParam(defaultValue = "official") String type,
       @Parameter(description = "페이지 시작 위치", example = "0")
@@ -64,7 +65,7 @@ public class MyPostController {
       @RequestParam(defaultValue = "20") int limit
   ) {
     // ✅ 인증된 사용자 ID 획득 (하드코딩 제거)
-    Integer userId = CurrentUser.currentUserId();
+    Integer userId = currentUser.userId();
 
     // type이 temp면 임시 레시피, 아니면 정식 레시피 반환
     if ("temp".equalsIgnoreCase(type)) {

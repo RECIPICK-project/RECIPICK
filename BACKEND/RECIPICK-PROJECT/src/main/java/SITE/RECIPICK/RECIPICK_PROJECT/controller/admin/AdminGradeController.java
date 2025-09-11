@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
  * ✅ 예외 처리(권장) - @ControllerAdvice(GlobalExceptionHandler)에서 IllegalArgumentException → 400
  * NoSuchElementException   → 404 IllegalStateException    → 409 로 매핑하면 Swagger 에서도 깔끔하게 확인 가능.
  */
+
 @RestController
 @RequestMapping("/admin/users")
 @RequiredArgsConstructor
@@ -44,6 +45,7 @@ public class AdminGradeController {
    * <p>
    * 보안: ROLE_ADMIN 필수
    */
+
   @PatchMapping("/{userId}/grade")
   @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<Void> changeGrade(

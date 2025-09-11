@@ -16,7 +16,7 @@ public interface UserRepository extends JpaRepository<UserEntity, Integer> {
 
   long countByActiveTrue();
 
-  List<UserEntity> findAllByOrderByIdDesc(Pageable pageable);
+  List<UserEntity> findAllByOrderByUserIdDesc(Pageable pageable);
 
   @Query("""
       select u
@@ -32,6 +32,12 @@ public interface UserRepository extends JpaRepository<UserEntity, Integer> {
   Optional<UserEntity> findByEmail(String email);
 
   // ★ 필요한 건 userId 숫자뿐이니 projection으로 가볍게
-  @Query("select u.id from UserEntity u where u.email = :email")
+  @Query("select u.userId from UserEntity u where u.email = :email")
   Optional<Integer> findIdByEmail(@Param("email") String email);
+
+  Optional<UserEntity> findByNickname(String nickname);
+
+  boolean existsByEmail(String email);
+
+  boolean existsByNickname(String nickname);
 }

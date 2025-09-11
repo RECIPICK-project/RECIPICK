@@ -1,3 +1,4 @@
+/*
 package SITE.RECIPICK.RECIPICK_PROJECT.config;
 
 import org.springframework.context.annotation.Bean;
@@ -5,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+*/
 /**
  * SecurityBeans
  * <p>
@@ -17,19 +19,23 @@ import org.springframework.security.crypto.password.PasswordEncoder;
  * <p>
  * ✅ 사용 예시 - 회원가입 시: 평문 비밀번호를 encoder.encode()로 해싱 후 DB 저장 - 로그인 시: 입력 비밀번호와 DB 저장 해시를
  * encoder.matches()로 비교
- */
+ *//*
+
 @Configuration
 public class SecurityBeans {
 
-  /**
-   * PasswordEncoder Bean 등록
-   *
-   * @return BCryptPasswordEncoder 인스턴스
-   * <p>
-   * 스프링 컨테이너가 이 메서드 리턴 객체를 빈으로 등록 → 필요한 곳(@Autowired 등)에서 바로 사용 가능
-   */
+  */
+/**
+ * PasswordEncoder Bean 등록
+ *
+ * @return BCryptPasswordEncoder 인스턴스
+ * <p>
+ * 스프링 컨테이너가 이 메서드 리턴 객체를 빈으로 등록 → 필요한 곳(@Autowired 등)에서 바로 사용 가능
+ *//*
+
   @Bean
   public PasswordEncoder passwordEncoder() {
     return new BCryptPasswordEncoder(); // 강력한 해시 함수로 안전하게 비밀번호 암호화
   }
 }
+*/

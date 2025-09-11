@@ -1,6 +1,6 @@
 package SITE.RECIPICK.RECIPICK_PROJECT.service.admin;
 
-import SITE.RECIPICK.RECIPICK_PROJECT.dto.PostDTO;
+import SITE.RECIPICK.RECIPICK_PROJECT.dto.PostDto;
 import SITE.RECIPICK.RECIPICK_PROJECT.dto.ReportCreateRequest;
 import SITE.RECIPICK.RECIPICK_PROJECT.dto.ReportModerateRequest;
 import SITE.RECIPICK.RECIPICK_PROJECT.dto.admin.AdminDashboardResponse;
@@ -16,6 +16,7 @@ import SITE.RECIPICK.RECIPICK_PROJECT.repository.ReviewRepository;
 import SITE.RECIPICK.RECIPICK_PROJECT.repository.UserRepository;
 import SITE.RECIPICK.RECIPICK_PROJECT.util.PostMapper;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -58,7 +59,9 @@ public class AdminService {
     // 카테고리별 업로드 (기간 내)
     var catAgg = postRepo.countByCategoryBetween(fromDate, toDate); // 아래 레포 쿼리 참조
     var categoryUploads = catAgg.stream()
-        .map(a -> new AdminDashboardResponse.CategoryCount(a.getCategory(), a.getCnt()))
+        .map(a -> new AdminDashboardResponse.CategoryCount(
+            a.getCategory() == null ? null : a.getCategory().getDescription(),
+            a.getCnt()))
         .toList();
 
     // 최근 신고 top개
@@ -75,7 +78,7 @@ public class AdminService {
     // 최근 가입 top개
     var recentSignups = userRepo.findTopNByOrderByCreatedAtDesc(top).stream()
         .map(u -> new AdminDashboardResponse.RecentSignupItem(
-            u.getId(),
+            u.getUserId(),
             safeNickOrEmail(u), // 닉네임 없으면 이메일
             u.getCreatedAt().toLocalDate()
         )).toList();
@@ -92,19 +95,19 @@ public class AdminService {
   }
 
   private String safeNickOrEmail(UserEntity u) {
-    var pr = u.getProfileEntity(); // 없으면 null 허용
-    return (pr != null && pr.getNickname() != null) ? pr.getNickname() : u.getEmail();
+    String nick = u.getNickname();
+    return (nick != null && !nick.isBlank()) ? nick : u.getEmail();
   }
 
   // === User 관리 ===
   @Transactional(readOnly = true)
   public java.util.List<UserSummaryDTO> listUsers(int offset, int limit) {
     var page = PageRequest.of(offset / Math.max(1, limit), Math.max(1, limit));
-    return userRepo.findAllByOrderByIdDesc(page).stream()
+    return userRepo.findAllByOrderByUserIdDesc(page).stream()
         .map(u -> UserSummaryDTO.builder()
-            .userId(u.getId())
+            .userId(u.getUserId())
             .email(u.getEmail())
-            .active(u.isActive())
+            .active(u.getActive())
             .role(u.getRole())
             .build())
         .toList();
@@ -128,9 +131,9 @@ public class AdminService {
   }
 
   // === Post 관리 ===
-  public List<PostDTO> listPendingPosts(int offset, int limit) {
+  public List<PostDto> listPendingPosts(int offset, int limit) {
     var page = PageRequest.of(offset / Math.max(1, limit), Math.max(1, limit));
-    return postRepo.findByRcpIsOfficialFalseOrderByCreatedAtDesc(page)
+    return postRepo.findByRcpIsOfficialOrderByCreatedAtDesc(0, page)
         .stream()
         .map(PostMapper::toDto)
         .toList();
@@ -138,21 +141,22 @@ public class AdminService {
 
 
   @Transactional
-  public void publishPost(Long postId) {
+  public void publishPost(Integer postId) {
     var p = postRepo.findById(postId)
         .orElseThrow(() -> new IllegalArgumentException("POST_NOT_FOUND"));
-    p.publish(); // rcpIsOfficial=true
+    p.setRcpIsOfficial(1);
   }
 
+
   @Transactional
-  public void deletePost(Long postId) {
+  public void deletePost(Integer postId) {
     // 운영정책에 따라 soft delete 필요하면 별도 플래그로 처리
     postRepo.deleteById(postId);
   }
 
   // === 신고 많은 항목 ===
   @Transactional(readOnly = true)
-  public java.util.List<SITE.RECIPICK.RECIPICK_PROJECT.dto.PostDTO> topReportedPosts(int min,
+  public java.util.List<SITE.RECIPICK.RECIPICK_PROJECT.dto.PostDto> topReportedPosts(int min,
       int offset, int limit) {
     var page = PageRequest.of(offset / Math.max(1, limit), Math.max(1, limit));
     return postRepo.findByReportCountGreaterThanOrderByReportCountDesc(min, page)
@@ -278,5 +282,21 @@ public class AdminService {
 
     throw new IllegalArgumentException("INVALID_STATUS");
   }
+
+  public void suspendUser(Integer userId, LocalDateTime until, String reason) {
+    var u = userRepo.findById(userId).orElseThrow();
+    if (until == null) { // 해제
+      u.setSuspendedUntil(null);
+      u.setSuspendedReason(null);
+    } else {
+      if (until.isBefore(LocalDateTime.now())) {
+        throw new IllegalArgumentException("UNTIL_IN_PAST");
+      }
+      u.setSuspendedUntil(until);
+      u.setSuspendedReason(reason);
+    }
+    userRepo.save(u);
+  }
+
 
 }

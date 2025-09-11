@@ -3,7 +3,7 @@ package SITE.RECIPICK.RECIPICK_PROJECT.controller;
 import SITE.RECIPICK.RECIPICK_PROJECT.dto.MyProfileResponse;
 import SITE.RECIPICK.RECIPICK_PROJECT.dto.NicknameUpdateRequest;
 import SITE.RECIPICK.RECIPICK_PROJECT.service.MyPageService;
-import SITE.RECIPICK.RECIPICK_PROJECT.util.AuthUtil;
+import SITE.RECIPICK.RECIPICK_PROJECT.util.CurrentUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -30,13 +31,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/me") // 모든 API 경로는 /me 로 시작
 @Tag(name = "My Page", description = "마이페이지: 프로필 조회/수정 APIs")
+@RequiredArgsConstructor
 public class MyPageController {
 
   private final MyPageService myPageService;
-
-  public MyPageController(MyPageService myPageService) {
-    this.myPageService = myPageService;
-  }
+  private final CurrentUser currentUser;
 
   /**
    * 프로필 조회
@@ -72,8 +71,7 @@ public class MyPageController {
       )
   })
   public MyProfileResponse getProfile() {
-    Integer userId = AuthUtil.getLoginUserId(); // ← 로그인 사용자 ID
-    return myPageService.getMyProfile(userId);
+    return myPageService.getMyProfile(currentUser.userId());// ← 로그인 사용자 ID
   }
 
   /**
@@ -105,8 +103,7 @@ public class MyPageController {
       @Parameter(description = "변경할 닉네임", required = true)
       @RequestBody NicknameUpdateRequest req
   ) {
-    Integer userId = AuthUtil.getLoginUserId(); // ← 로그인 사용자 ID
-    myPageService.changeNickname(userId, req);
+    myPageService.changeNickname(currentUser.userId(), req);
     return ResponseEntity.noContent().build();
   }
 }

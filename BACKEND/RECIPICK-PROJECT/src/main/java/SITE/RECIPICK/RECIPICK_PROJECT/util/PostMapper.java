@@ -1,90 +1,143 @@
 package SITE.RECIPICK.RECIPICK_PROJECT.util;
 
-import SITE.RECIPICK.RECIPICK_PROJECT.dto.PostDTO;
+import SITE.RECIPICK.RECIPICK_PROJECT.dto.PostDto;
 import SITE.RECIPICK.RECIPICK_PROJECT.entity.PostEntity;
+import SITE.RECIPICK.RECIPICK_PROJECT.entity.PostEntity.CookingCategory;
+import SITE.RECIPICK.RECIPICK_PROJECT.entity.PostEntity.CookingKind;
+import SITE.RECIPICK.RECIPICK_PROJECT.entity.PostEntity.CookingMethod;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 
-/**
- * PostMapper
- * <p>
- * ✅ 역할 - 엔티티(Post) ↔ DTO(PostDTO) 변환 담당 (컨트롤러/서비스의 중복 코드 제거)
- * <p>
- * ✅ 원칙 - toDto: 엔티티를 API 응답용 DTO로 풀매핑 - toEntity: "등록/수정 요청"에 해당하는 입력 필드만 선택 매핑 (집계/상태/시간 필드는 여기서
- * 세팅하지 않고, 서비스 계층/엔티티 라이프사이클에서 관리)
- * <p>
- * ⚠️ 주의 - NPE 방어: 인자 null 시 null 반환 - createdAt/updatedAt은 @PrePersist/@PreUpdate로 관리하는 걸 기본으로, 정말
- * 필요할 때만 수동 세팅
- */
 public final class PostMapper {
 
-  // 유틸 클래스: 생성자 막기
+  private static final String SPLIT = "\\|";
+  private static final String JOIN = "|";
+
   private PostMapper() {
   }
 
-  /**
-   * 엔티티(Post) → DTO(PostDTO) - 조회 응답에 필요한 대부분의 필드를 매핑
-   */
-  public static PostDTO toDto(PostEntity p) {
+  /* ========== Entity -> DTO (응답) ========== */
+  public static PostDto toDto(PostEntity p) {
     if (p == null) {
       return null;
     }
 
-    return PostDTO.builder()
-        .postId(p.getPostId())
+    return PostDto.builder()
         .title(p.getTitle())
         .foodName(p.getFoodName())
-        .viewCount(p.getViewCount())
-        .likeCount(p.getLikeCount())
-        .ckgMth(p.getCkgMth())
-        .ckgCategory(p.getCkgCategory())
-        .ckgKnd(p.getCkgKnd())
-        .ckgMtrlCn(p.getCkgMtrlCn())
-        .ckgInbun(p.getCkgInbun() == null ? 0 : p.getCkgInbun())
-        .ckgLevel(p.getCkgLevel() == null ? 0 : p.getCkgLevel())
-        .ckgTime(p.getCkgTime() == null ? 0 : p.getCkgTime())
+
+        // enum -> String (설명 한글 라벨로 내려줌; 필요하면 .name()으로 교체)
+        .ckgMth(p.getCkgMth() == null ? null : p.getCkgMth().getDescription())
+        .ckgCategory(p.getCkgCategory() == null ? null : p.getCkgCategory().getDescription())
+        .ckgKnd(p.getCkgKnd() == null ? null : p.getCkgKnd().getDescription())
+
+        // '|' 문자열 -> List<String>
+        .ckgMtrlCn(split(p.getCkgMtrlCn()))
+
+        .ckgInbun(p.getCkgInbun())
+        .ckgLevel(p.getCkgLevel())
+        .ckgTime(p.getCkgTime())
+
         .rcpImgUrl(p.getRcpImgUrl())
-        .rcpSteps(p.getRcpSteps())
-        .rcpStepsImg(p.getRcpStepsImg())
-        .rcpIsOfficial(p.isRcpIsOfficial())
-        .createdAt(p.getCreatedAt())
-        .updatedAt(p.getUpdatedAt())
-        .reportCount(p.getReportCount())
+        .rcpSteps(split(p.getRcpSteps()))
+        .rcpStepsImg(split(p.getRcpStepsImg()))
         .build();
   }
 
-  /**
-   * DTO(PostDTO) → 엔티티(Post)
-   * <p>
-   * 💡 용도 - "등록/수정" 입력 DTO를 엔티티로 옮길 때 사용. - 카운트/신고/정식여부/시간 같은 **서버 관리 필드**는 여기서 건드리지 않음.
-   * <p>
-   * ⚠️ 주의 - PK(postId)는 DB가 생성하므로 세팅하지 않음. - createdAt/updatedAt은 보통 엔티티 훅(@PrePersist/@PreUpdate)로
-   * 관리. - 필요 시, 서비스 계층에서만 엄격히 통제하여 세팅하세요.
-   */
-  public static PostEntity toEntity(PostDTO dto) {
-    if (dto == null) {
+  /* ========== DTO -> Entity (등록/수정 입력) ========== */
+  public static PostEntity toEntity(PostDto d) {
+    if (d == null) {
       return null;
     }
 
-    PostEntity p = new PostEntity();
+    PostEntity e = new PostEntity();
+    // PK/userId/집계/플래그/시간은 여기서 세팅하지 않음 (서비스/라이프사이클에서 관리)
 
-    // === 입력용(클라이언트가 바꿀 수 있는 내용)만 매핑 ===
-    p.setTitle(dto.getTitle());
-    p.setFoodName(dto.getFoodName());
-    p.setCkgMth(dto.getCkgMth());
-    p.setCkgCategory(dto.getCkgCategory());
-    p.setCkgKnd(dto.getCkgKnd());
-    p.setCkgMtrlCn(dto.getCkgMtrlCn());
-    p.setCkgInbun(dto.getCkgInbun());
-    p.setCkgLevel(dto.getCkgLevel());
-    p.setCkgTime(dto.getCkgTime());
-    p.setRcpImgUrl(dto.getRcpImgUrl());
-    p.setRcpSteps(dto.getRcpSteps());
-    p.setRcpStepsImg(dto.getRcpStepsImg());
+    e.setTitle(d.getTitle());
+    e.setFoodName(d.getFoodName());
 
-    // === 서버 관리 필드: 여기서는 세팅하지 않음 ===
-    // - viewCount / likeCount / reportCount: 집계 로직으로만 변경
-    // - rcpIsOfficial: 서비스에서 publish() 같은 메서드로 상태 변경
-    // - createdAt / updatedAt: 엔티티 라이프사이클로 관리 (@PrePersist/@PreUpdate)
+    // String -> Enum (대소문자 무시 + 한글 라벨 허용)
+    e.setCkgMth(parseCookingMethod(d.getCkgMth()));
+    e.setCkgCategory(parseCookingCategory(d.getCkgCategory()));
+    e.setCkgKnd(parseCookingKind(d.getCkgKnd()));
 
-    return p;
+    // List<String> -> '|' 조인
+    e.setCkgMtrlCn(join(d.getCkgMtrlCn()));
+
+    e.setCkgInbun(d.getCkgInbun());
+    e.setCkgLevel(d.getCkgLevel());
+    e.setCkgTime(d.getCkgTime());
+
+    e.setRcpImgUrl(d.getRcpImgUrl());
+    e.setRcpSteps(join(d.getRcpSteps()));
+    e.setRcpStepsImg(join(d.getRcpStepsImg()));
+
+    return e;
+  }
+
+  /* ========== helpers ========== */
+  private static List<String> split(String raw) {
+    if (raw == null || raw.isBlank()) {
+      return List.of();
+    }
+    return new ArrayList<>(Arrays.asList(raw.split(SPLIT, -1)));
+  }
+
+  private static String join(List<String> list) {
+    if (list == null || list.isEmpty()) {
+      return "";
+    }
+    return String.join(JOIN, list.stream()
+        .filter(Objects::nonNull)
+        .map(String::trim)
+        .filter(s -> !s.isEmpty())
+        .toList());
+  }
+
+  private static CookingMethod parseCookingMethod(String s) {
+    if (s == null || s.isBlank()) {
+      return null;
+    }
+    for (CookingMethod v : CookingMethod.values()) {
+      if (v.name().equalsIgnoreCase(s)) {
+        return v;               // 영문 상수명
+      }
+      if (v.getDescription().equalsIgnoreCase(s)) {
+        return v;     // 한글 라벨
+      }
+    }
+    throw new IllegalArgumentException("INVALID_COOKING_METHOD");
+  }
+
+  private static CookingCategory parseCookingCategory(String s) {
+    if (s == null || s.isBlank()) {
+      return null;
+    }
+    for (CookingCategory v : CookingCategory.values()) {
+      if (v.name().equalsIgnoreCase(s)) {
+        return v;
+      }
+      if (v.getDescription().equalsIgnoreCase(s)) {
+        return v;
+      }
+    }
+    throw new IllegalArgumentException("INVALID_COOKING_CATEGORY");
+  }
+
+  private static CookingKind parseCookingKind(String s) {
+    if (s == null || s.isBlank()) {
+      return null;
+    }
+    for (CookingKind v : CookingKind.values()) {
+      if (v.name().equalsIgnoreCase(s)) {
+        return v;
+      }
+      if (v.getDescription().equalsIgnoreCase(s)) {
+        return v;
+      }
+    }
+    throw new IllegalArgumentException("INVALID_COOKING_KIND");
   }
 }

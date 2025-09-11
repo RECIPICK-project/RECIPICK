@@ -12,8 +12,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 /**
  * 📌 마이페이지 관련 서비스
@@ -54,10 +54,10 @@ public class MyPageService {
     long totalLikesOnMyPosts = postRepo.sumLikesOnUsersPublished(me); // 좋아요 합계
 
     // 3) 리뷰 + 댓글 집계
-    long reviewCount = reviewRepo.countByAuthorId(me);
+    long reviewCount = reviewRepo.countByAuthor_UserId(me);
     long commentCount;
     try {
-      commentCount = commentRepo.countByAuthorId(me);
+      commentCount = commentRepo.countByAuthor_userId(me);
     } catch (Exception e) {
       commentCount = 0; // COMMENT 테이블이 없거나 초기화 전이면 안전하게 0 처리
     }
@@ -122,7 +122,7 @@ public class MyPageService {
     pr.setUpdatedAt(LocalDateTime.now());
   }
 
-  @ControllerAdvice  // 전역 예외 처리기
+  @RestControllerAdvice  // 전역 예외 처리기
   public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)

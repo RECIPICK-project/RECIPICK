@@ -25,6 +25,6 @@ public class CurrentUserProvider {
     }
     String email = auth.getName(); // CustomUserDetailService에서 username으로 email 사용
     Optional<UserEntity> userOpt = userRepository.findByEmail(email);
-    return userOpt.orElseThrow(() -> new IllegalStateException("USER_NOT_FOUND")).getId();
+    return userOpt.orElseThrow(() -> new IllegalStateException("USER_NOT_FOUND")).getUserId();
   }
 }

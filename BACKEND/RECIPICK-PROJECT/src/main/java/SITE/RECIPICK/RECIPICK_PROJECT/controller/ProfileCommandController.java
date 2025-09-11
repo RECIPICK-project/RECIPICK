@@ -26,9 +26,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class ProfileCommandController {
 
   private final ProfileCommandService svc; // 프로필 변경 로직 담당 서비스
+  private final CurrentUser currentUser;
 
-  public ProfileCommandController(ProfileCommandService svc) {
+  public ProfileCommandController(ProfileCommandService svc, CurrentUser currentUser) {
     this.svc = svc;
+    this.currentUser = currentUser;
   }
 
   /**
@@ -55,7 +57,7 @@ public class ProfileCommandController {
   })
   public void changeImage(@RequestBody ProfileImageUpdateRequest req) {
     // ✅ 배포용: SecurityContext에서 userId 가져오기
-    Integer userId = CurrentUser.currentUserId();
+    Integer userId = currentUser.userId();
 
     svc.changeProfileImage(userId, req);
   }

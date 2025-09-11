@@ -22,6 +22,8 @@ public enum UserGrade {
       case "BRONZE" -> BRONZE;
       case "SILVER" -> SILVER;
       case "GOLD" -> GOLD;
+      case "PLATINUM" -> PLATINUM;
+      case "DIAMOND" -> DIAMOND;
       default -> throw new IllegalArgumentException("INVALID_GRADE");
     };
   }

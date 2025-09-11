@@ -1,7 +1,7 @@
 package SITE.RECIPICK.RECIPICK_PROJECT.controller;
 
 import SITE.RECIPICK.RECIPICK_PROJECT.config.CurrentUserProvider;
-import SITE.RECIPICK.RECIPICK_PROJECT.dto.PostDTO;
+import SITE.RECIPICK.RECIPICK_PROJECT.dto.PostDto;
 import SITE.RECIPICK.RECIPICK_PROJECT.service.MyLikeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -46,12 +46,12 @@ public class MyLikeController {
       @ApiResponse(
           responseCode = "200",
           description = "성공",
-          content = @Content(array = @ArraySchema(schema = @Schema(implementation = PostDTO.class)))
+          content = @Content(array = @ArraySchema(schema = @Schema(implementation = PostDto.class)))
       ),
       @ApiResponse(responseCode = "401", description = "인증 실패", content = @Content),
       @ApiResponse(responseCode = "500", description = "서버 오류", content = @Content)
   })
-  public List<PostDTO> myLikes(
+  public List<PostDto> myLikes(
       @Parameter(description = "오프셋(0부터 시작)", example = "0")
       @RequestParam(defaultValue = "0") int offset,
       @Parameter(description = "가져올 개수(기본 20)", example = "20")

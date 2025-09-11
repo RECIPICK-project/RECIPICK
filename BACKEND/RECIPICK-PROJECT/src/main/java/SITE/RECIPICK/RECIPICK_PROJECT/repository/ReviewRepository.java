@@ -14,7 +14,7 @@ public interface ReviewRepository extends JpaRepository<ReviewEntity, Integer> {
   /**
    * 작성자 ID 기준으로 리뷰 개수 조회
    */
-  long countByAuthorId(Integer userId);
+  long countByAuthor_UserId(Integer userId);
 
   long countByReportCountGreaterThan(int min);
 

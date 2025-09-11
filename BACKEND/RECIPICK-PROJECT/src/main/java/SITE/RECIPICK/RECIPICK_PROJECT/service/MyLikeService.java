@@ -1,10 +1,9 @@
 package SITE.RECIPICK.RECIPICK_PROJECT.service;
 
-import SITE.RECIPICK.RECIPICK_PROJECT.dto.PostDTO;
+import SITE.RECIPICK.RECIPICK_PROJECT.dto.PostDto;
 import SITE.RECIPICK.RECIPICK_PROJECT.repository.PostRepository;
 import SITE.RECIPICK.RECIPICK_PROJECT.util.PostMapper;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -45,16 +44,13 @@ public class MyLikeService {
    * @Transactional(readOnly = true) → SELECT 전용, 성능 최적화
    */
   @Transactional(readOnly = true)
-  public List<PostDTO> getMyLikedPosts(Integer me, int offset, int limit) {
+  public List<PostDto> getMyLikedPosts(Integer me, int offset, int limit) {
     // 1. offset/limit 기반 페이지네이션 객체 생성
     var pageable = PageRequest.of(offset / Math.max(1, limit), Math.max(1, limit));
 
-    // 2. Repository에서 "내가 좋아요한 Post" 조회
-    var posts = postRepo.findLikedPosts(me, pageable);
-
     // 3. 엔티티(Post) → DTO(PostDTO) 변환 후 리스트로 반환
-    return posts.stream()
+    return postRepo.findLikedPosts(me, pageable).stream()
         .map(PostMapper::toDto)
-        .collect(Collectors.toList());
+        .toList();
   }
 }

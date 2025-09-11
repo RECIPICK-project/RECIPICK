@@ -54,7 +54,7 @@ public class MyPageService {
     long totalLikesOnMyPosts = postRepo.sumLikesOnUsersPublished(me); // 좋아요 합계
 
     // 3) 리뷰 + 댓글 집계
-    long reviewCount = reviewRepo.countByAuthor_UserId(me);
+    long reviewCount = reviewRepo.countByUser_UserId(me);
     long commentCount;
     try {
       commentCount = commentRepo.countByAuthor_userId(me);

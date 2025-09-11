@@ -10,12 +10,11 @@ import SITE.RECIPICK.RECIPICK_PROJECT.repository.ReviewRepository;
 import SITE.RECIPICK.RECIPICK_PROJECT.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor // For constructor injection
@@ -72,7 +71,7 @@ public class ReviewService {
   /**
    * Update an existing review
    */
-  public ReviewResponseDto updateReview(Long reviewId, ReviewDto requestDto) {
+  public ReviewResponseDto updateReview(Integer reviewId, ReviewDto requestDto) {
     ReviewEntity review = reviewRepository.findById(reviewId)
         .orElseThrow(() -> new EntityNotFoundException("Review not found with id: " + reviewId));
 
@@ -89,7 +88,7 @@ public class ReviewService {
   /**
    * Delete a review
    */
-  public void deleteReview(Long reviewId) {
+  public void deleteReview(Integer reviewId) {
     if (!reviewRepository.existsById(reviewId)) {
       throw new EntityNotFoundException("Review not found with id: " + reviewId);
     }

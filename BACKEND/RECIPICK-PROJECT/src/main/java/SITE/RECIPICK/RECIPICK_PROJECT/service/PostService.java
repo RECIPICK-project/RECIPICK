@@ -95,7 +95,7 @@ public class PostService {
 
     // String → Enum 변환
     PostEntity.CookingMethod cookingMethod = convertToCookingMethod(postDto.getCkgMth());
-    PostEntity.CookingCategory cookingCategory = convertToCookingCategory(postDto.getCkgCategory());
+    PostEntity.CookingCategory cookingCategory = convertToCookingCategory(postDto.getCkgCategory());  
     PostEntity.CookingKind cookingKind = convertToCookingKind(postDto.getCkgKnd());
 
     // DTO → Entity 변환 (변환된 enum 사용)
@@ -158,13 +158,13 @@ public class PostService {
     if (methodStr == null || methodStr.trim().isEmpty()) {
       return PostEntity.CookingMethod.OTHER;
     }
-
+    
     for (PostEntity.CookingMethod method : PostEntity.CookingMethod.values()) {
       if (method.getDescription().equals(methodStr.trim())) {
         return method;
       }
     }
-
+    
     log.warn("알 수 없는 조리방법: {}, OTHER로 설정", methodStr);
     return PostEntity.CookingMethod.OTHER;
   }
@@ -174,13 +174,13 @@ public class PostService {
     if (categoryStr == null || categoryStr.trim().isEmpty()) {
       return PostEntity.CookingCategory.OTHER;
     }
-
+    
     for (PostEntity.CookingCategory category : PostEntity.CookingCategory.values()) {
       if (category.getDescription().equals(categoryStr.trim())) {
         return category;
       }
     }
-
+    
     log.warn("알 수 없는 카테고리: {}, OTHER로 설정", categoryStr);
     return PostEntity.CookingCategory.OTHER;
   }
@@ -190,13 +190,13 @@ public class PostService {
     if (kindStr == null || kindStr.trim().isEmpty()) {
       return PostEntity.CookingKind.OTHER;
     }
-
+    
     for (PostEntity.CookingKind kind : PostEntity.CookingKind.values()) {
       if (kind.getDescription().equals(kindStr.trim())) {
         return kind;
       }
     }
-
+    
     log.warn("알 수 없는 요리 종류: {}, OTHER로 설정", kindStr);
     return PostEntity.CookingKind.OTHER;
   }

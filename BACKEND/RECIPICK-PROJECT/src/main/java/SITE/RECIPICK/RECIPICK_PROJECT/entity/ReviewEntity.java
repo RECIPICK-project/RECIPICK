@@ -3,96 +3,94 @@ package SITE.RECIPICK.RECIPICK_PROJECT.entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-/**
- * REVIEW 테이블 매핑
- * <p>
- * ✅ 핵심 - PK: review_id (AUTO_INCREMENT) - FK: post_id  → POST.post_id (N:1) - FK: user_id  →
- * USER.user_id (N:1) - 평점: decimal(3,2) = 0.00 ~ 9.99 범위 표현 가능. (비즈니스적으로 1.00~5.00만 허용하고 싶으면 서비스에서
- * 검증) - 코멘트: TEXT - 신고횟수: int (기본 0) - 생성/수정시각: @PrePersist / @PreUpdate 로 자동 기록
- * <p>
- * ⚠️ 주의 - BigDecimal은 null 가능 → 서비스에서 null 차단 또는 기본값 로직 넣는 게 안전. - FK 지연 로딩(LAZY) 사용 → 트랜잭션 밖에서
- * 접근하면 LazyInitializationException 가능.
- */
 @Entity
-@Getter
-@Setter
-@Table(name = "REVIEW")
+@Table(
+    name = "REVIEW",
+    uniqueConstraints = {
+        @UniqueConstraint(name = "uq_user_post_review", columnNames = {"user_id", "post_id"})
+    },
+    indexes = {
+        @Index(name = "idx_review_post", columnList = "post_id"),
+        @Index(name = "idx_review_user", columnList = "user_id"),
+        @Index(name = "idx_review_rating", columnList = "review_rating"),
+        @Index(name = "idx_review_created", columnList = "created_at")
+    }
+)
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class ReviewEntity {
 
-  // ====== PK ======
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY) // MySQL AUTO_INCREMENT
-  @Column(name = "review_id")
-  private Integer id;
-
-  // ====== 연관관계 ======
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "post_id", nullable = false)  // REVIEW.post_id → POST.post_id
-  private PostEntity postEntity;                               // 대상 게시글
-
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "user_id", nullable = false)  // REVIEW.user_id → USER.user_id
-  private UserEntity author;                             // 작성자
-
-  // ====== 컬럼 ======
-  @Column(name = "review_rating", precision = 3, scale = 2, nullable = false)
-  private BigDecimal rating; // 예: 4.50 (서비스/컨트롤러 단에서 1.00~5.00 범위 검증 권장)
-
-  @Column(name = "comment", columnDefinition = "TEXT")
-  private String comment;    // 리뷰 내용
-
-  @Column(name = "report_count")
-  private Integer reportCount = 0; // 신고 횟수(기본 0)
-
-  @Column(name = "created_at")
-  private LocalDateTime createdAt;
-
-  @Column(name = "updated_at")
-  private LocalDateTime updatedAt;
-
-  // ====== 라이프사이클 훅 ======
-  // INSERT/UPDATE 직전에 시간/기본값을 안전하게 채워준다.
-  @PrePersist
-  void prePersist() {
-    LocalDateTime now = LocalDateTime.now();
-    if (createdAt == null) {
-      createdAt = now;
-    }
-    if (updatedAt == null) {
-      updatedAt = now;
-    }
-    if (reportCount == null) {
-      reportCount = 0;
-    }
-  }
-
-  @PreUpdate
-  void preUpdate() {
-    updatedAt = LocalDateTime.now();
-  }
-
-  // ====== 비즈니스 메서드 ======
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(name = "review_id", updatable = false, nullable = false, columnDefinition = "INT UNSIGNED")
+  private Long id;
 
   /**
-   * 신고 누적 +1 (null 방어 포함)
+   * 게시글
    */
-  public void increaseReport() {
-    if (reportCount == null) {
-      reportCount = 0;
-    }
-    reportCount++;
-  }
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "post_id", nullable = false,
+      foreignKey = @ForeignKey(name = "fk_review_post"))
+  private PostEntity post;
+
+  /**
+   * 작성자
+   */
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "user_id", nullable = false,
+      foreignKey = @ForeignKey(name = "fk_review_user"))
+  private UserEntity user;
+
+  /**
+   * 평점 (0.00 ~ 5.00)
+   */
+  @Column(name = "review_rating", nullable = false, precision = 3, scale = 2)
+  private BigDecimal rating;
+
+  /**
+   * 리뷰 내용
+   */
+  @Lob
+  @Column(name = "comment")
+  private String comment;
+
+  /**
+   * 신고 횟수
+   */
+  @Builder.Default
+  @Column(name = "report_count", columnDefinition = "INT UNSIGNED DEFAULT 0")
+  private Integer reportCount = 0;
+
+  /**
+   * 작성일
+   */
+  @Column(name = "created_at", updatable = false, insertable = false,
+      columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+  private LocalDateTime createdAt;
+
+  /**
+   * 수정일
+   */
+  @Column(name = "updated_at", insertable = false,
+      columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
+  private LocalDateTime updatedAt;
 }

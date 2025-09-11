@@ -22,92 +22,98 @@ public class SecurityConfig {
   @Bean
   SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     http
-        // ✅ 프론트(라이브 서버 5500)에서 API 호출 허용
         .cors(cors -> cors.configurationSource(corsConfigurationSource()))
         .csrf(csrf -> csrf.disable())
         .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/", "/home.html", "/login.html", "/signup", "/signup.html",
-                "/email-verification.html",               //
-                "/css/**", "/js/**").permitAll()
-            // ✅ 이메일 인증 API는 로그인 없이 접근 가능
+            // 에러 페이지 허용 (무한 리다이렉트 방지)
+            .requestMatchers("/error").permitAll()
+
+              // 정적 리소스 및 페이지 허용 (pages 폴더 경로 반영)
+              .requestMatchers("/", "/pages/**",
+                    "/css/**", "/js/**", "/images/**", "/api/posts/**").permitAll()
+
+//            // 정적 리소스 및 페이지 허용 (pages 폴더 경로 반영)
+//            .requestMatchers("/", "/pages/home.html", "/pages/login.html",
+//                "/pages/signup.html", "/pages/email-verification.html",
+//                "/css/**", "/js/**", "/images/**").permitAll()
+
+            // 이메일 인증 API
             .requestMatchers("/api/auth/email/**").permitAll()
 
-            // ✅ 중복 확인 API (비로그인 허용)
+            // 중복 확인 API (비로그인 허용)
             .requestMatchers("/api/users/check-email", "/api/users/check-nickname").permitAll()
 
-            // ✅ 회원가입/로그인 API (비로그인 허용)
+            // 회원가입/로그인 API (비로그인 허용)
             .requestMatchers("/api/users/signup", "/api/users/login").permitAll()
 
-            // ✅ OAuth2 관련 엔드포인트 허용
-            .requestMatchers("/oauth2/**", "/login/oauth2/**", "/oauth2/authorization/**")
-            .permitAll()
+            // OAuth2 관련 엔드포인트 허용
+            .requestMatchers("/oauth2/**", "/login/oauth2/**", "/oauth2/authorization/**").permitAll()
 
-            // ✅페이지 접근 권한
-            .requestMatchers("/main.html").hasAnyRole("USER", "ADMIN")
-            .requestMatchers("/admin.html").hasRole("ADMIN")
+            // 페이지 접근 권한 (pages 폴더 경로 반영)
+            .requestMatchers("/pages/main.html").hasAnyRole("USER","ADMIN")
+            .requestMatchers("/pages/admin.html").hasRole("ADMIN")
 
-            // ✅관리용 API
+            // 관리용 API
             .requestMatchers("/api/users/all", "/api/users/set-active").hasRole("ADMIN")
             .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
-            // ✅나머지 사용자 API
-            .requestMatchers("/api/users/**").hasAnyRole("USER", "ADMIN")
-            .anyRequest().authenticated()
+            // 나머지 사용자 API
+            .requestMatchers("/api/users/**").hasAnyRole("USER","ADMIN")
+            .anyRequest().hasAnyRole("USER", "ADMIN")
         )
         .formLogin(form -> form
-            .loginPage("/login.html")
+            .loginPage("/pages/login.html")  // pages 폴더 경로로 수정
             .loginProcessingUrl("/login")
-            .usernameParameter("email")          // ⬅️ 폼에서 name="email"이면 꼭 추가
-            .passwordParameter("password")       // (옵션) 기본값과 동일
-            .successHandler((req, res, auth) -> res.sendRedirect("/main.html"))
-            .failureHandler((req, res, ex) -> {  // ⬅️ 실패 원인 확인용
+            .usernameParameter("email")
+            .passwordParameter("password")
+            .successHandler((req, res, auth) -> res.sendRedirect("/pages/main.html"))  // pages 폴더 경로로 수정
+            .failureHandler((req, res, ex) -> {
               ex.printStackTrace();
               String msg = URLEncoder.encode(
                   String.valueOf(ex.getMessage()),
                   StandardCharsets.UTF_8
               );
-              res.sendRedirect("/login.html?error=" + msg);
+              res.sendRedirect("/pages/login.html?error=" + msg);  // pages 폴더 경로로 수정
             })
             .permitAll()
         )
 
         .oauth2Login(oauth -> oauth
-            .loginPage("/login.html")
+            .loginPage("/pages/login.html")  // pages 폴더 경로로 수정
             .userInfoEndpoint(u -> u.userAuthoritiesMapper(authorities -> {
               java.util.Set<org.springframework.security.core.GrantedAuthority> result = new java.util.HashSet<>();
               result.addAll(authorities);
-              result.add(new org.springframework.security.core.authority.SimpleGrantedAuthority(
-                  "ROLE_USER"));
+              result.add(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_USER"));
               return result;
             }))
             .failureHandler((req, res, ex) -> {
-              ex.printStackTrace(); // 콘솔에 상세 스택 출력
+              ex.printStackTrace();
               String msg = URLEncoder.encode(
-                  ex.getClass().getSimpleName() + ": " + ex.getMessage(),
+                  ex.getClass().getSimpleName() + ": " + String.valueOf(ex.getMessage()),
                   StandardCharsets.UTF_8
               );
-              res.sendRedirect("/login.html?error=" + msg);
+              res.sendRedirect("/pages/login.html?error=" + msg);  // pages 폴더 경로로 수정
             })
             .successHandler(oAuth2LoginSuccessHandler)
         )
-        .logout(logout -> logout.logoutSuccessUrl("/login.html").permitAll())   // ✅ (선택) 로그아웃 처리
+        .logout(logout -> logout.logoutSuccessUrl("/pages/login.html").permitAll())  // pages 폴더 경로로 수정
     ;
 
     return http.build();
   }
 
-  // ✅ 프론트(라이브 서버) 오리진 허용: 주소/포트 필요에 맞게 추가
+  // CORS 설정 (8080 포트 추가)
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration c = new CorsConfiguration();
     c.setAllowedOriginPatterns(List.of(
         "http://127.0.0.1:5500",
-        "http://localhost:5500"
-        // 필요하면 추가: "http://localhost:3000", "http://localhost:5173" 등
+        "http://localhost:5500",
+        "http://localhost:8080",  // 추가
+        "http://localhost:9999"   // 추가 (혹시 필요할 경우)
     ));
-    c.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+    c.setAllowedMethods(List.of("GET","POST","PUT","DELETE","PATCH","OPTIONS"));
     c.setAllowedHeaders(List.of("*"));
-    // 쿠키/세션을 쓸 때만 true (JWT 헤더 방식이면 false여도 됨)
     c.setAllowCredentials(true);
 
     UrlBasedCorsConfigurationSource src = new UrlBasedCorsConfigurationSource();
@@ -116,7 +122,5 @@ public class SecurityConfig {
   }
 
   @Bean
-  public BCryptPasswordEncoder passwordEncoder() {
-    return new BCryptPasswordEncoder();
-  }
+  public BCryptPasswordEncoder passwordEncoder() { return new BCryptPasswordEncoder(); }
 }

@@ -28,19 +28,6 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
   private final UserRepository userRepository;
   private final EmailService emailService;
 
-  private static String asString(Object o) {
-    return o == null ? null : String.valueOf(o);
-  }
-
-  private static String firstNonEmpty(String... xs) {
-    for (String x : xs) {
-      if (x != null && !x.isBlank()) {
-        return x;
-      }
-    }
-    return null;
-  }
-
   @Override
   public void onAuthenticationSuccess(HttpServletRequest request,
       HttpServletResponse response,
@@ -57,7 +44,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
     log.debug("OAuth2 principal class={}, attrs={}", principal.getClass().getName(), attr.keySet());
 
     String email = asString(attr.get("email"));
-    String name = firstNonEmpty(asString(attr.get("name")),
+    String name  = firstNonEmpty(asString(attr.get("name")),
         asString(attr.get("given_name")),
         "사용자");
 
@@ -65,19 +52,12 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
     Boolean emailVerified = null;
     if (principal instanceof OidcUser oidc) {
       emailVerified = oidc.getEmailVerified();
-      if (email == null) {
-        email = oidc.getEmail();
-      }
-      if (oidc.getFullName() != null && !oidc.getFullName().isBlank()) {
-        name = oidc.getFullName();
-      }
+      if (email == null) email = oidc.getEmail();
+      if (oidc.getFullName() != null && !oidc.getFullName().isBlank()) name = oidc.getFullName();
     } else {
       Object ev = attr.get("email_verified");
-      if (ev instanceof Boolean b) {
-        emailVerified = b;
-      } else if (ev instanceof String s) {
-        emailVerified = Boolean.valueOf(s);
-      }
+      if (ev instanceof Boolean b) emailVerified = b;
+      else if (ev instanceof String s) emailVerified = Boolean.valueOf(s);
     }
 
     if (email == null || email.isBlank()) {
@@ -133,18 +113,21 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
     response.sendRedirect("/email-verification.html?email=" + q);
   }
 
+  private static String asString(Object o) { return o == null ? null : String.valueOf(o); }
+
+  private static String firstNonEmpty(String... xs) {
+    for (String x : xs) if (x != null && !x.isBlank()) return x;
+    return null;
+  }
+
   private String uniqueNickname(String base) {
     String safe = (base == null || base.isBlank()) ? "user" : base.trim();
-    if (safe.length() > 50) {
-      safe = safe.substring(0, 50);
-    }
+    if (safe.length() > 50) safe = safe.substring(0, 50);
     String candidate = safe;
     int i = 1;
     while (userRepository.findByNickname(candidate).isPresent()) {
       candidate = safe + "_" + i++;
-      if (candidate.length() > 50) {
-        candidate = candidate.substring(0, 50);
-      }
+      if (candidate.length() > 50) candidate = candidate.substring(0, 50);
     }
     return candidate;
   }

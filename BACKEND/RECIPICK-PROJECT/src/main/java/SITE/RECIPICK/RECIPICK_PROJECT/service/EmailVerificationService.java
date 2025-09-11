@@ -20,14 +20,16 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class EmailVerificationService {
 
+  private final EmailVerificationRepository repository;
+  private final JavaMailSender mailSender;
+
   // 정책
   private static final int EXPIRE_MINUTES = 10;      // 코드 유효 시간
   private static final int MAX_ATTEMPTS = 5;         // 최대 시도 횟수
   private static final int DAILY_LIMIT = 5;          // 하루 발송 횟수
   private static final Duration COOLDOWN = Duration.ofSeconds(60); // 발송 쿨다운
+
   private static final SecureRandom RND = new SecureRandom();
-  private final EmailVerificationRepository repository;
-  private final JavaMailSender mailSender;
 
   // 발송
   @Transactional
@@ -99,22 +101,14 @@ public class EmailVerificationService {
   public boolean verifyCode(String email, String inputCode) {
     email = norm(email);
     Optional<EmailVerification> latestOpt = repository.findTopByEmailOrderByCreatedAtDesc(email);
-    if (latestOpt.isEmpty()) {
-      return false;
-    }
+    if (latestOpt.isEmpty()) return false;
 
     EmailVerification v = latestOpt.get();
     LocalDateTime now = LocalDateTime.now();
 
-    if (v.isUsed()) {
-      return false;
-    }
-    if (now.isAfter(v.getExpireAt())) {
-      return false;
-    }
-    if (v.getAttempts() >= MAX_ATTEMPTS) {
-      return false;
-    }
+    if (v.isUsed()) return false;
+    if (now.isAfter(v.getExpireAt())) return false;
+    if (v.getAttempts() >= MAX_ATTEMPTS) return false;
 
     String inputHash = sha256(inputCode);
     if (inputHash.equalsIgnoreCase(v.getCodeHash())) {
@@ -146,9 +140,7 @@ public class EmailVerificationService {
       MessageDigest md = MessageDigest.getInstance("SHA-256");
       byte[] dig = md.digest(s.getBytes(StandardCharsets.UTF_8));
       StringBuilder sb = new StringBuilder(64);
-      for (byte b : dig) {
-        sb.append(String.format("%02x", b));
-      }
+      for (byte b : dig) sb.append(String.format("%02x", b));
       return sb.toString();
     } catch (Exception e) {
       throw new RuntimeException(e);

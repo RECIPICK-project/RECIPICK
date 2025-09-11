@@ -1,22 +1,18 @@
 package SITE.RECIPICK.RECIPICK_PROJECT.repository;
 
 import SITE.RECIPICK.RECIPICK_PROJECT.entity.ReviewEntity;
-import java.util.List;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-/**
- * REVIEW 테이블 접근 레포지토리 - 기본 CRUD 제공 (findById, save, delete 등) - 커스텀 메서드: 특정 유저가 작성한 리뷰(별점) 개수 카운트 →
- * MyPageService에서 "activityCount" 계산할 때 사용
- */
-public interface ReviewRepository extends JpaRepository<ReviewEntity, Integer> {
+import java.util.List;
+import java.util.Optional;
 
-  /**
-   * 작성자 ID 기준으로 리뷰 개수 조회
-   */
-  long countByAuthor_UserId(Integer userId);
+@Repository
+public interface ReviewRepository extends JpaRepository<ReviewEntity, Long> {
 
-  long countByReportCountGreaterThan(int min);
+  // Find all reviews for a given post, ordered by creation date
+  List<ReviewEntity> findByPost_PostIdOrderByCreatedAtDesc(Integer postId);
 
-  List<ReviewEntity> findByReportCountGreaterThanOrderByReportCountDesc(int min, Pageable pageable);
+  // Check if a review exists by a user for a specific post
+  Optional<ReviewEntity> findByUser_UserIdAndPost_PostId(Integer userId, Integer postId);
 }

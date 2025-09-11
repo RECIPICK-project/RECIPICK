@@ -43,9 +43,7 @@ public class EmailService {
     return String.valueOf(new SecureRandom().nextInt(900000) + 100000);
   }
 
-  /**
-   * 인증 코드 발송 (DB에는 해시만 저장)
-   */
+  /** 인증 코드 발송 (DB에는 해시만 저장) */
   @Transactional
   public void sendVerificationCode(String rawEmail) {
     String email = norm(rawEmail);
@@ -69,9 +67,7 @@ public class EmailService {
     mailSender.send(message);
   }
 
-  /**
-   * 코드 검증 (가장 최근 레코드 기준)
-   */
+  /** 코드 검증 (가장 최근 레코드 기준) */
   @Transactional
   public boolean verifyCode(String rawEmail, String inputCode) {
     String email = norm(rawEmail);
@@ -80,24 +76,16 @@ public class EmailService {
     Optional<EmailVerification> latestOpt =
         verificationRepository.findTopByEmailOrderByCreatedAtDesc(email);
 
-    if (latestOpt.isEmpty()) {
-      return false;
-    }
+    if (latestOpt.isEmpty()) return false;
 
     EmailVerification v = latestOpt.get();
 
     // 만료 또는 이미 사용됨
-    if (v.isUsed()) {
-      return false;
-    }
-    if (v.getExpireAt() != null && v.getExpireAt().isBefore(LocalDateTime.now())) {
-      return false;
-    }
+    if (v.isUsed()) return false;
+    if (v.getExpireAt() != null && v.getExpireAt().isBefore(LocalDateTime.now())) return false;
 
     // 해시 비교
-    if (!inputHash.equalsIgnoreCase(v.getCodeHash())) {
-      return false;
-    }
+    if (!inputHash.equalsIgnoreCase(v.getCodeHash())) return false;
 
     // 사용 처리
     v.setUsed(true);

@@ -13,7 +13,6 @@ public interface EmailVerificationRepository extends JpaRepository<EmailVerifica
 
   // 기존
   Optional<EmailVerification> findTopByEmailOrderByCreatedAtDesc(String email);
-
   boolean existsByEmailAndUsedTrue(String email);
 
   // (선택) 사용되지 않은 최신 건만 보고 싶을 때

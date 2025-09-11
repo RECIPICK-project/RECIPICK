@@ -42,7 +42,7 @@ public class ReviewEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "review_id", updatable = false, nullable = false, columnDefinition = "INT UNSIGNED")
-  private Long id;
+  private Integer id;
 
   /**
    * 게시글

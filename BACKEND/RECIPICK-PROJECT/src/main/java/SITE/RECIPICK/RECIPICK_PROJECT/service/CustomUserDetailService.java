@@ -16,17 +16,20 @@ public class CustomUserDetailService implements UserDetailsService {
     this.userRepository = userRepository;
   }
 
+  // CustomUserDetailService.java
   @Override
   public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-    // DB에서 유저 검색
     UserEntity user = userRepository.findByEmail(email)
         .orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));
 
-    // Spring Security의 User 객체로 변환
     return org.springframework.security.core.userdetails.User.builder()
-        .username(user.getEmail())          // 로그인 ID
-        .password(user.getPassword())      // 암호화된 비밀번호
-        .authorities(user.getRole())             // 권한 (ex: ROLE_USER, ROLE_ADMIN)
+        .username(user.getEmail())
+        .password(user.getPassword())
+        .authorities(user.getRole()) // ROLE_USER, ROLE_ADMIN 등이 저장되어야 함
+        .accountExpired(false)
+        .accountLocked(false)
+        .credentialsExpired(false)
+        .disabled(!user.getActive()) // 활성화 상태 반영
         .build();
   }
 }

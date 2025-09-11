@@ -1,5 +1,0 @@
-/* 공통 문서 스타일 */
-.header{ text-align:center; font-weight:800; font-size:18px; margin:16px 0; }
-.doc{ background: var(--surface); border:1px solid var(--green-500); border-radius:12px; padding:16px; display:grid; gap:16px; }
-.doc h2{ font-weight:700; font-size:15px; margin:0 0 4px }
-.doc p{ margin:0; font-size:14px; line-height:1.5; color:var(--text) }

@@ -1,9 +1,0 @@
-.header{ text-align:center; font-weight:800; font-size:18px; margin:16px 0; }
-
-.faq-list{ display:grid; gap:12px; margin-top:8px; }
-.faq-item{
-  background:#fff; border:1px solid var(--green-500);
-  border-radius:12px; padding:14px;
-}
-.q{ font-weight:700; margin-bottom:6px; }
-.a{ color:var(--muted); font-size:14px; line-height:1.5; }

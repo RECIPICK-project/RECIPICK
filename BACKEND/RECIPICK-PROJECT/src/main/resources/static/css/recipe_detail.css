@@ -248,3 +248,69 @@ body.detail{
   .wrap{padding-bottom: calc(56px + 20px)}
   .float-actions{bottom:72px}
 }
+
+/* ====================== Search Home 탭바 고정 패치 ====================== */
+/* ↓ 반드시 css/search_home.css 파일의 '맨 마지막'에 추가 */
+
+:root{
+  --tabbar-h: 60px;  /* 원래 쓰던 슬림 높이 */
+}
+
+/* 스크롤 컨테이너는 .phone.search-home 자체 */
+.phone.search-home{
+  position: relative;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 탭바: sticky + 정확한 높이/정렬 강제 */
+.phone.search-home .tabbar{
+  position: sticky !important;     /* 따라 움직이게 */
+  bottom: 0 !important;
+  height: var(--tabbar-h) !important;
+  background: #fff !important;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  box-shadow: 0 -4px 12px rgba(0,0,0,.06);
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-around !important;
+  padding: 0 14px !important;
+  box-sizing: border-box !important;
+  z-index: 5;
+}
+
+/* 아이콘 터치 타겟/크기도 고정 (전역 규칙 무력화) */
+.phone.search-home .tabbar .tab{
+  display: grid !important;
+  place-items: center !important;
+  min-width: 44px;
+  height: calc(var(--tabbar-h) - 10px);
+}
+.phone.search-home .tabbar .tab svg{
+  width: 22px !important;
+  height: 22px !important;
+  stroke: #6b7280;
+  fill: none;
+}
+.phone.search-home .tabbar .tab .ring{
+  width: 44px; height: 44px;
+  border-radius: 9999px;
+  background: var(--bg);
+  border: 2px solid var(--green-500);
+  display: grid; place-items: center;
+}
+
+/* 콘텐츠가 탭바에 가리지 않도록 하단 여유 */
+.phone.search-home .wrap{
+  padding-bottom: calc(var(--tabbar-h) + 20px) !important;
+}
+
+/* 세로가 낮은 화면에서 살짝 슬림 */
+@media (max-height: 700px){
+  :root{ --tabbar-h: 56px; }
+  .phone.search-home .wrap{
+    padding-bottom: calc(var(--tabbar-h) + 16px) !important;
+  }
+}
+

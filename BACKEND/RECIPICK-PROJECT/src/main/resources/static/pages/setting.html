@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <!-- [설정] 심플 리스트 버전 -->
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>설정</title>
+  <link rel="stylesheet" href="../css/setting.css" />
+</head>
+<body>
+<main class="phone" role="main" aria-label="설정 화면">
+  <!-- 뒤로가기 -->
+  <button class="back" aria-label="뒤로 가기" type="button" onclick="history.back()">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M15 6l-6 6 6 6" stroke="#111827" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+  </button>
+
+  <h1 class="header">설정</h1>
+
+  <div class="wrap">
+    <!-- 계정 -->
+    <section class="list">
+      <h2 class="section">계정</h2>
+
+      <a class="row link" href="#">
+        <div class="title-col">
+          <div class="title">이메일</div>
+          <div class="sub">example@mail.com</div>
+        </div>
+        <span class="chev">›</span>
+      </a>
+
+      <a class="row link" href="#">
+        <div class="title-col">
+          <div class="title">비밀번호</div>
+          <div class="sub">마지막 변경: 2025-08-01</div>
+        </div>
+        <span class="chev">›</span>
+      </a>
+    </section>
+
+    <!-- 알림 -->
+    <section class="list">
+      <h2 class="section">알림</h2>
+
+      <label class="row switch">
+        <span class="title">댓글 알림</span>
+        <input type="checkbox" checked />
+        <span class="slider" aria-hidden="true"></span>
+      </label>
+
+      <label class="row switch">
+        <span class="title">좋아요 알림</span>
+        <input type="checkbox" />
+        <span class="slider" aria-hidden="true"></span>
+      </label>
+
+      <label class="row switch">
+        <span class="title">운영 공지</span>
+        <input type="checkbox" checked />
+        <span class="slider" aria-hidden="true"></span>
+      </label>
+    </section>
+
+    <!-- 표시 -->
+    <section class="list">
+      <h2 class="section">표시</h2>
+
+      <div class="row">
+        <span class="title">테마</span>
+        <div class="radios">
+          <label class="chip"><input type="radio" name="theme" value="light" checked /><span>라이트</span></label>
+          <label class="chip"><input type="radio" name="theme" value="dark" /><span>다크</span></label>
+        </div>
+      </div>
+
+      <div class="row">
+        <span class="title">언어</span>
+        <div class="select">
+          <select aria-label="언어 선택">
+            <option selected>한국어 (ko)</option>
+            <option>English (en)</option>
+            <option>日本語 (ja)</option>
+          </select>
+          <svg viewBox="0 0 24 24" class="dd"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- 정보 -->
+    <section class="list">
+      <h2 class="section">정보</h2>
+      <a class="row link" href="faq.html"><span class="title">자주 묻는 질문</span><span class="chev">›</span></a>
+      <a class="row link" href="terms.html"><span class="title">서비스 이용약관</span><span class="chev">›</span></a>
+      <a class="row link" href="privacy.html"><span class="title">개인정보 처리방침</span><span class="chev">›</span></a>
+      <div class="meta">버전 1.0.0 · RECIPICK</div>
+    </section>
+
+    <!-- 계정 액션 -->
+    <section class="list danger">
+      <button class="btn-ghost full">로그아웃</button>
+      <button class="btn-danger full">회원탈퇴</button>
+    </section>
+
+    <div style="height:92px"></div>
+  </div>
+
+  <!-- 탭바 (확정 아이콘 세트 / 프로필 활성) -->
+  <nav class="tabbar" aria-label="탭바">
+    <div class="tab"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg></div>
+    <div class="tab">
+      <svg viewBox="0 0 24 24" fill="#E53935">
+        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5
+                 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09
+                 C13.09 3.81 14.76 3 16.5 3
+                 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55
+                 11.54L12 21.35z"/>
+      </svg>
+    </div>
+    <div class="tab">
+      <div class="ring">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      </div>
+    </div>
+    <div class="tab"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></div>
+    <div class="tab is-active"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c2-4 14-4 16 0"/></svg></div>
+  </nav>
+</main>
+</body>
+</html>

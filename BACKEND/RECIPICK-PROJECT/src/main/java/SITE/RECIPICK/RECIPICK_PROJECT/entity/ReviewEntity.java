@@ -11,6 +11,8 @@ import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import java.math.BigDecimal;
@@ -21,18 +23,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(
-    name = "REVIEW",
-    uniqueConstraints = {
-        @UniqueConstraint(name = "uq_user_post_review", columnNames = {"user_id", "post_id"})
-    },
-    indexes = {
-        @Index(name = "idx_review_post", columnList = "post_id"),
-        @Index(name = "idx_review_user", columnList = "user_id"),
-        @Index(name = "idx_review_rating", columnList = "review_rating"),
-        @Index(name = "idx_review_created", columnList = "created_at")
-    }
-)
+@Table(name="review")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -48,16 +39,14 @@ public class ReviewEntity {
    * 게시글
    */
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "post_id", nullable = false,
-      foreignKey = @ForeignKey(name = "fk_review_post"))
+  @JoinColumn(name = "post_id", nullable = false)
   private PostEntity post;
 
   /**
    * 작성자
    */
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "user_id", nullable = false,
-      foreignKey = @ForeignKey(name = "fk_review_user"))
+  @JoinColumn(name = "user_id", nullable = false)
   private UserEntity user;
 
   /**
@@ -69,28 +58,27 @@ public class ReviewEntity {
   /**
    * 리뷰 내용
    */
-  @Lob
-  @Column(name = "comment")
+  @Column(name = "comment", columnDefinition = "TEXT", nullable = false)
   private String comment;
 
-  /**
-   * 신고 횟수
-   */
   @Builder.Default
-  @Column(name = "report_count", columnDefinition = "INT UNSIGNED DEFAULT 0")
-  private Integer reportCount = 0;
+  @Column(name = "report_count", nullable = false)
+  private int reportCount = 0; // 신고 횟수 (기본값 0)
 
-  /**
-   * 작성일
-   */
-  @Column(name = "created_at", updatable = false, insertable = false,
-      columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-  private LocalDateTime createdAt;
+  @Column(name = "created_at", updatable = false)
+  private LocalDateTime createdAt; // 작성일시
 
-  /**
-   * 수정일
-   */
-  @Column(name = "updated_at", insertable = false,
-      columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
-  private LocalDateTime updatedAt;
+  @Column(name = "updated_at")
+  private LocalDateTime updatedAt; // 수정일시
+
+  @PrePersist
+  protected void onCreate() {
+    this.createdAt = LocalDateTime.now();
+    this.updatedAt = LocalDateTime.now();
+  }
+
+  @PreUpdate
+  protected void onUpdate() {
+    this.updatedAt = LocalDateTime.now();
+  }
 }

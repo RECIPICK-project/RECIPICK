@@ -168,12 +168,12 @@ public class AdminController {
   /**
    * 댓글 삭제 (관리자)
    */
-
-  @DeleteMapping("/reports/comments/{commentId}")
-  @Operation(summary = "댓글 삭제")
-  public void deleteComment(@PathVariable Integer commentId) {
-    svc.deleteComment(commentId);
-  }
+//
+//  @DeleteMapping("/reports/comments/{commentId}")
+//  @Operation(summary = "댓글 삭제")
+//  public void deleteComment(@PathVariable Integer commentId) {
+//    svc.deleteComment(commentId);
+//  }
 
 
   /**

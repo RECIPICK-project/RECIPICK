@@ -134,14 +134,26 @@ body.detail{
   background:#fff; border:1px solid var(--line); border-radius:12px; padding:12px;
 }
 
-/* 링크 카드 전체를 클릭 영역으로 + 밑줄 제거 */
+/* ===== [FIX] 링크 카드 한 글자씩 내려가던 문제 ===== */
+/* 부모 그리드를 해제하고 a.link가 레이아웃을 담당 */
+.cards.linkable .card{ display:block; }              /* ✅ 부모 grid 해제 */
 .cards.linkable .card a.link{
   display:grid;
-  grid-template-columns:48px 1fr auto;
+  grid-template-columns:48px 1fr auto;               /* 썸네일 | 제목/서브 | 별점 */
   align-items:center; gap:10px;
+  width:100%; min-width:0;                           /* ✅ 텍스트 말줄임 안정화 */
   text-decoration:none; color:inherit;
 }
+.cards.linkable .card .meta{ min-width:0; }          /* ✅ 텍스트 컨테이너 폭 보장 */
+.cards.linkable .card .meta .title{
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.cards.linkable .card .meta .sub{
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.cards.linkable .card .rating{ justify-self:end; }   /* ✅ 별점 오른쪽 정렬 */
 
+/* ===== 공통 카드 파트 ===== */
 .card .thumb{
   width:48px; height:48px; border-radius:8px;
   background:#ddd; background-size:cover; background-position:center;

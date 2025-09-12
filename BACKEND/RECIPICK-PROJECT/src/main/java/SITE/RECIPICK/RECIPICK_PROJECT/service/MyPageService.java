@@ -52,10 +52,10 @@ public class MyPageService {
     long totalLikesOnMyPosts = postRepo.sumLikesOnUsersPublished(me); // 좋아요 합계
 
     // 3) 리뷰 + 댓글 집계
-    long reviewCount = reviewRepo.countByUser_UserId(me);
+    long reviewCount = reviewRepo.countByUserUserId(me);
     long commentCount;
     try {
-      commentCount = reviewRepo.countByUser_UserId(me);
+      commentCount = reviewRepo.countByUserUserId(me);
     } catch (Exception e) {
       commentCount = 0; // COMMENT 테이블이 없거나 초기화 전이면 안전하게 0 처리
     }

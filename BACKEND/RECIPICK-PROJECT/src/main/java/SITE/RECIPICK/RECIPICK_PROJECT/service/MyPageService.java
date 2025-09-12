@@ -2,7 +2,6 @@ package SITE.RECIPICK.RECIPICK_PROJECT.service;
 
 import SITE.RECIPICK.RECIPICK_PROJECT.dto.MyProfileResponse;
 import SITE.RECIPICK.RECIPICK_PROJECT.dto.NicknameUpdateRequest;
-import SITE.RECIPICK.RECIPICK_PROJECT.repository.CommentRepository;
 import SITE.RECIPICK.RECIPICK_PROJECT.repository.PostRepository;
 import SITE.RECIPICK.RECIPICK_PROJECT.repository.ProfileRepository;
 import SITE.RECIPICK.RECIPICK_PROJECT.repository.ReviewRepository;
@@ -30,7 +29,6 @@ public class MyPageService {
   private final ProfileRepository profileRepo;   // 프로필 정보 조회/수정
   private final PostRepository postRepo;         // 내가 올린 정식 레시피/좋아요 집계
   private final ReviewRepository reviewRepo;     // 내가 쓴 리뷰 집계
-  private final CommentRepository commentRepo;   // 내가 쓴 댓글 집계
 
   /**
    * ✅ [GET /me/profile]
@@ -57,7 +55,7 @@ public class MyPageService {
     long reviewCount = reviewRepo.countByUser_UserId(me);
     long commentCount;
     try {
-      commentCount = commentRepo.countByAuthor_userId(me);
+      commentCount = reviewRepo.countByUser_UserId(me);
     } catch (Exception e) {
       commentCount = 0; // COMMENT 테이블이 없거나 초기화 전이면 안전하게 0 처리
     }

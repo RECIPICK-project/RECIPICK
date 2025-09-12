@@ -1,3 +1,4 @@
+/*
 package SITE.RECIPICK.RECIPICK_PROJECT.entity;
 
 import jakarta.persistence.Column;
@@ -14,6 +15,7 @@ import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import lombok.Getter;
 
+*/
 /**
  * COMMENT 테이블 매핑 엔티티
  * <p>
@@ -24,7 +26,9 @@ import lombok.Getter;
  * updatedAt: 수정 시각 (insert/update 시 자동 갱신)
  * <p>
  * ✔ JPA 생명주기 훅(@PrePersist, @PreUpdate)으로 날짜 자동 세팅
- */
+ *//*
+
+
 @Entity
 @Getter
 @Table(name = "COMMENT")
@@ -67,3 +71,4 @@ public class CommentEntity {
     this.updatedAt = LocalDateTime.now();
   }
 }
+*/

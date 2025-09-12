@@ -9,7 +9,6 @@ import SITE.RECIPICK.RECIPICK_PROJECT.entity.ReportEntity;
 import SITE.RECIPICK.RECIPICK_PROJECT.entity.ReportStatus;
 import SITE.RECIPICK.RECIPICK_PROJECT.entity.ReportTargetType;
 import SITE.RECIPICK.RECIPICK_PROJECT.entity.UserEntity;
-import SITE.RECIPICK.RECIPICK_PROJECT.repository.CommentRepository;
 import SITE.RECIPICK.RECIPICK_PROJECT.repository.PostRepository;
 import SITE.RECIPICK.RECIPICK_PROJECT.repository.ReportRepository;
 import SITE.RECIPICK.RECIPICK_PROJECT.repository.ReviewRepository;
@@ -31,7 +30,6 @@ public class AdminService {
   private final UserRepository userRepo;
   private final PostRepository postRepo;
   private final ReviewRepository reviewRepo;
-  private final CommentRepository commentRepo;
   private final ReportRepository reportRepo;
 
   @Transactional(readOnly = true)
@@ -169,8 +167,8 @@ public class AdminService {
   }
 
   @Transactional
-  public void deleteComment(Integer commentId) {
-    commentRepo.deleteById(commentId);
+  public void deleteComment(Integer reviewId) {
+    reviewRepo.deleteById(reviewId);
   }
 
   // ===== 신고 등록 =====

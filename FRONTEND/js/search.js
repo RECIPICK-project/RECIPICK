@@ -102,7 +102,8 @@ function renderList() {
 function render() {
   renderMain();
   renderList();
-  searchBtn.disabled = selected.length === 0;
+  const hasMainIngredient = selected.some(item => item.main === true);
+  searchBtn.disabled = !hasMainIngredient;
 }
 
 // --- 재료 선택 모달 관련 함수들 ---

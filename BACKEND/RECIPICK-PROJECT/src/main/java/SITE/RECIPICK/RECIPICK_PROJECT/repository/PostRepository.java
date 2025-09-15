@@ -47,6 +47,7 @@ public interface PostRepository extends JpaRepository<PostEntity, Integer> {
   // 내가 올린 정식 레시피들의 총 좋아요 수
   @Query("SELECT COALESCE(SUM(p.likeCount), 0) FROM PostEntity p WHERE p.userId = :userId AND p.rcpIsOfficial = 1")
   long sumLikesOnUsersPublished(@Param("userId") Integer userId);
+  
 
   // 특정 유저가 올린 레시피 중 정식/임시 구분하여 최신순 조회
   List<PostEntity> findByUserIdAndRcpIsOfficialOrderByCreatedAtDesc(

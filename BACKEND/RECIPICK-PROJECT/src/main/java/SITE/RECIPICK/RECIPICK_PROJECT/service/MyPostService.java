@@ -54,8 +54,6 @@ public class MyPostService {
   public List<PostDto> getMyTempPosts(Integer me, int offset, int limit) {
     var page = PageRequest.of(offset / Math.max(limit, 1), Math.max(limit, 1));
     return postRepo.findByUserIdAndRcpIsOfficialOrderByCreatedAtDesc(me, 0, page)
-        .stream()
-        .map(PostMapper::toDto)
-        .toList();
+        .stream().map(PostMapper::toDto).toList();
   }
 }

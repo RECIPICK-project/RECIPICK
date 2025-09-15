@@ -2,11 +2,15 @@ package SITE.RECIPICK.RECIPICK_PROJECT.service;
 
 import SITE.RECIPICK.RECIPICK_PROJECT.dto.MyProfileResponse;
 import SITE.RECIPICK.RECIPICK_PROJECT.dto.NicknameUpdateRequest;
+import SITE.RECIPICK.RECIPICK_PROJECT.dto.PostDto;
 import SITE.RECIPICK.RECIPICK_PROJECT.repository.PostRepository;
 import SITE.RECIPICK.RECIPICK_PROJECT.repository.ProfileRepository;
 import SITE.RECIPICK.RECIPICK_PROJECT.repository.ReviewRepository;
+import SITE.RECIPICK.RECIPICK_PROJECT.util.PostMapper;
 import java.time.LocalDateTime;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -118,6 +122,39 @@ public class MyPageService {
     // 5) 변경 실행
     pr.setNickname(newNickname);
     pr.setUpdatedAt(LocalDateTime.now());
+  }
+
+  /**
+   * 내가 좋아요한 레시피 목록을 조회한다.
+   *
+   * @param me     현재 로그인한 사용자 ID
+   * @param offset 페이지네이션 시작 지점 (몇 번째 데이터부터 가져올지)
+   * @param limit  한 페이지에 가져올 데이터 개수
+   * @return 사용자가 좋아요한 레시피(PostDTO)의 리스트
+   * <p>
+   * 1) offset과 limit을 기반으로 PageRequest 생성 - PageRequest.of(page, size) 구조인데, page = offset / limit
+   * 으로 환산 - Math.max(1, limit) → limit이 0 들어와도 최소 1개는 조회하도록 방어
+   * <p>
+   * 2) postRepo.findLikedPosts(me, pageable) 호출 - 내부적으로 JOIN(LikeTable + Post) 쿼리 실행 - 내가 좋아요한 Post
+   * 엔티티 목록 반환
+   * <p>
+   * 3) Entity(Post) → DTO(PostDTO) 변환 - PostMapper::toDto 메서드로 매핑 -
+   * stream().map(...).collect(toList()) 형태
+   * <p>
+   * 4) 최종적으로 JSON 응답에 쓰일 DTO 리스트 리턴
+   * <p>
+   * 트랜잭션 속성:
+   * @Transactional(readOnly = true) → SELECT 전용, 성능 최적화
+   */
+  @Transactional(readOnly = true)
+  public List<PostDto> getMyLikedPosts(Integer me, int offset, int limit) {
+    // 1. offset/limit 기반 페이지네이션 객체 생성
+    var pageable = PageRequest.of(offset / Math.max(1, limit), Math.max(1, limit));
+
+    // 3. 엔티티(Post) → DTO(PostDTO) 변환 후 리스트로 반환
+    return postRepo.findLikedPosts(me, pageable).stream()
+        .map(PostMapper::toDto)
+        .toList();
   }
 
   @RestControllerAdvice  // 전역 예외 처리기

@@ -57,6 +57,10 @@ public class UserEntity {
   @Column(nullable = false, length = 50)
   private String provider;
 
+//  //프로필 엔티티를 1대1로 물려서 닉네임을 읽게 하려고
+//  @OneToOne(fetch = FetchType.LAZY, mappedBy = "users")
+//  private ProfileEntity profile;
+
 
   //유저 정지관련 기능으로 추가한거 2개
   @Column(name = "suspended_until")

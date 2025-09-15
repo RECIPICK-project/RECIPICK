@@ -4,9 +4,13 @@ package SITE.RECIPICK.RECIPICK_PROJECT.dto;
 // import SITE.RECIPICK.RECIPICK_PROJECT.entity.PostEntity.CookingCategory;
 // import SITE.RECIPICK.RECIPICK_PROJECT.entity.PostEntity.CookingKind;  
 // import SITE.RECIPICK.RECIPICK_PROJECT.entity.PostEntity.CookingMethod;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -66,4 +70,36 @@ public class PostDto {
 
   // 단계별 이미지 URLs (| 구분자로 저장)
   private List<String> rcpStepsImg;
+
+  // ====== (조회용 추가 필드; 검증 없음) ======
+  private Integer postId;          // 식별자
+  private Integer rcpIsOfficial;   // 0/1
+  private Integer likeCount;       // 좋아요(별점 대신 사용)
+  private LocalDateTime createdAt; // 작성일
+
+  // ====== (프론트 편의 alias; 읽기 전용) ======
+  @JsonProperty("id")
+  public Integer getId() {
+    return postId;
+  }
+
+  @JsonProperty("official")
+  public boolean isOfficial() {
+    return rcpIsOfficial != null && rcpIsOfficial == 1;
+  }
+
+  @JsonProperty("thumb")
+  public String getThumb() {
+    return rcpImgUrl;
+  }
+
+  @JsonProperty("rating")
+  public Integer getRating() {
+    return likeCount;
+  }
+
+  @JsonProperty("date")
+  public String getDate() {
+    return createdAt == null ? null : createdAt.format(DateTimeFormatter.ISO_LOCAL_DATE);
+  }
 }

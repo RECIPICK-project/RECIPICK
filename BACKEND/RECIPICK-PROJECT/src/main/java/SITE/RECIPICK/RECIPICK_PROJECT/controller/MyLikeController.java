@@ -1,3 +1,4 @@
+/*
 package SITE.RECIPICK.RECIPICK_PROJECT.controller;
 
 import SITE.RECIPICK.RECIPICK_PROJECT.config.CurrentUserProvider;
@@ -18,11 +19,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+*/
 /**
  * 내가 '좋아요'한 레시피 조회 컨트롤러
  * <p>
  * - 인증 사용자 기준으로 최신 좋아요 순서대로 반환 - 페이징: offset/limit - SecurityContext의 이메일(username)로 userId 조회
- */
+ *//*
+
 @RestController
 @RequestMapping("/me")
 @RequiredArgsConstructor
@@ -61,3 +64,4 @@ public class MyLikeController {
     return myLikeService.getMyLikedPosts(me, offset, limit);
   }
 }
+*/

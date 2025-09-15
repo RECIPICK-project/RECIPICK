@@ -1,9 +1,13 @@
 package SITE.RECIPICK.RECIPICK_PROJECT.service;
 
 import SITE.RECIPICK.RECIPICK_PROJECT.dto.PostDto;
+import SITE.RECIPICK.RECIPICK_PROJECT.entity.Ingredient;
 import SITE.RECIPICK.RECIPICK_PROJECT.entity.PostEntity;
+import SITE.RECIPICK.RECIPICK_PROJECT.entity.RecipeIngredient;
 import SITE.RECIPICK.RECIPICK_PROJECT.entity.UserEntity;
+import SITE.RECIPICK.RECIPICK_PROJECT.repository.IngredientRepository;
 import SITE.RECIPICK.RECIPICK_PROJECT.repository.PostRepository;
+import SITE.RECIPICK.RECIPICK_PROJECT.repository.RecipeIngredientRepository;
 import SITE.RECIPICK.RECIPICK_PROJECT.repository.UserRepository;
 import SITE.RECIPICK.RECIPICK_PROJECT.util.CurrentUser;
 import java.util.Arrays;
@@ -24,6 +28,8 @@ public class PostService {
 
   private final PostRepository postRepository;
   private final UserRepository userRepository;
+  private final IngredientRepository ingredientRepository;
+  private final RecipeIngredientRepository recipeIngredientRepository;
   private final CurrentUser currentUser;
 
   @Transactional
@@ -84,6 +90,10 @@ public class PostService {
 
     // 데이터베이스 저장
     PostEntity savedEntity = postRepository.save(postEntity);
+
+    // 재료 및 RecipeIngredient 저장 (분리된 데이터로 저장)
+    saveIngredients(savedEntity.getPostId(), postDto.getIngredientNames(),
+                   postDto.getIngredientQuantities(), postDto.getIngredientUnits());
 
     log.info("레시피 저장 완료 - ID: {}, 제목: {}, 작성자: {}",
         savedEntity.getPostId(), savedEntity.getTitle(), savedEntity.getUserNickname());
@@ -266,6 +276,249 @@ public class PostService {
 
     log.warn("알 수 없는 요리 종류: {}, OTHER로 설정", kindStr);
     return PostEntity.CookingKind.OTHER;
+  }
+
+
+  // 재료 및 RecipeIngredient 저장 메서드 (분리된 데이터 사용)
+  private void saveIngredients(Integer postId, List<String> ingredientNames,
+                               List<String> quantities, List<String> units) {
+    if (ingredientNames == null || ingredientNames.isEmpty()) {
+      log.warn("재료 목록이 비어있습니다 - postId: {}", postId);
+      return;
+    }
+
+    log.debug("재료 저장 시작 - postId: {}, 재료 수: {}", postId, ingredientNames.size());
+
+    // 목록 크기 검증
+    int ingredientCount = ingredientNames.size();
+    if (quantities != null && quantities.size() != ingredientCount) {
+      log.warn("재료와 수량 목록 크기가 다름 - 재료: {}, 수량: {}", ingredientCount, quantities.size());
+    }
+    if (units != null && units.size() != ingredientCount) {
+      log.warn("재료와 단위 목록 크기가 다름 - 재료: {}, 단위: {}", ingredientCount, units.size());
+    }
+
+    for (int i = 0; i < ingredientCount; i++) {
+      String ingredientName = ingredientNames.get(i);
+      if (ingredientName == null || ingredientName.trim().isEmpty()) {
+        continue;
+      }
+
+      ingredientName = ingredientName.trim();
+
+      // 수량과 단위 조합하여 amount 생성
+      String quantity = (quantities != null && i < quantities.size()) ?
+          quantities.get(i).trim() : "";
+      String unit = (units != null && i < units.size()) ?
+          units.get(i).trim() : "";
+
+      // amount = quantity + unit (예: "2" + "개" = "2개", "300" + "g" = "300g")
+      String amount = "";
+      if (!quantity.isEmpty() && !unit.isEmpty()) {
+        amount = quantity + unit;
+      } else if (!quantity.isEmpty()) {
+        amount = quantity;
+      } else if (!unit.isEmpty()) {
+        amount = unit;
+      }
+
+      // 재료명에 따라 자동으로 카테고리 결정
+      String ingredientSort = getIngredientCategoryByName(ingredientName);
+
+      // Ingredient 찾기 또는 생성 (재료명만 저장)
+      Ingredient ingredient = findOrCreateIngredient(ingredientName, ingredientSort);
+
+      // RecipeIngredient 생성 (수량 정보 저장)
+      RecipeIngredient recipeIngredient = new RecipeIngredient();
+      recipeIngredient.setPostId(postId);
+      recipeIngredient.setIngId(ingredient.getIngId());
+      recipeIngredient.setAmount(amount);
+
+      recipeIngredientRepository.save(recipeIngredient);
+
+      log.debug("RecipeIngredient 저장 완료 - postId: {}, ingId: {}, 재료명: {}, 수량: {}, 단위: {}, amount: {}, 자동분류: {}",
+          postId, ingredient.getIngId(), ingredientName, quantity, unit, amount, ingredientSort);
+    }
+
+    log.info("모든 재료 저장 완료 - postId: {}, 저장된 재료 수: {}", postId, ingredientCount);
+  }
+
+  // 재료명에 따라 자동으로 카테고리 분류하는 메서드 (PostEntity.CookingCategory 기준)
+  private String getIngredientCategoryByName(String ingredientName) {
+    String name = ingredientName.toLowerCase().trim();
+
+    // 소고기 (BEEF) - 가장 구체적인 것부터 먼저 체크
+    if (name.contains("소고기") || name.contains("한우") || name.contains("갈비") ||
+        name.contains("등심") || name.contains("안심") || name.contains("불고기") ||
+        name.contains("소갈비") || name.contains("차돌박이") || name.contains("양지") ||
+        name.contains("사태") || name.contains("우둔") || name.contains("설도")) {
+      return "소고기";
+    }
+
+    // 돼지고기 (PORK)
+    if (name.contains("돼지고기") || name.contains("삼겹살") || name.contains("목살") ||
+        name.contains("앞다리") || name.contains("뒷다리") || name.contains("등갈비") ||
+        name.contains("돼지갈비") || name.contains("베이컨") || name.contains("햄") ||
+        name.contains("소시지") || name.contains("족발") || name.contains("순대") ||
+        name.contains("항정살") || name.contains("가브리살")) {
+      return "돼지고기";
+    }
+
+    // 닭고기 (CHICKEN)
+    if (name.contains("닭고기") || name.contains("닭") || name.contains("닭다리") ||
+        name.contains("닭가슴살") || name.contains("닭날개") || name.contains("닭봉") ||
+        name.contains("치킨") || name.contains("닭안심") || name.contains("닭껍질") ||
+        name.contains("닭발") || name.contains("닭목") || name.contains("영계")) {
+      return "닭고기";
+    }
+
+    // 기타 육류 (MEAT) - 위에서 분류되지 않은 육류들
+    if (name.contains("양고기") || name.contains("오리고기") || name.contains("거위고기") ||
+        name.contains("칠면조") || name.contains("토끼고기") || name.contains("사슴고기") ||
+        name.contains("말고기") || name.contains("염소고기") || name.contains("고기") ||
+        name.contains("육회") || name.contains("간") || name.contains("내장")) {
+      return "육류";
+    }
+
+    // 쌀 (RICE) - 밀가루보다 먼저 체크
+    if (name.contains("쌀") || name.contains("백미") || name.contains("현미") ||
+        name.contains("찹쌀") || name.contains("멥쌀") || name.contains("흑미") ||
+        name.contains("적미") || name.contains("밥") || name.contains("누룽지")) {
+      return "쌀";
+    }
+
+    // 밀가루 (FLOUR)
+    if (name.contains("밀가루") || name.contains("강력분") || name.contains("중력분") ||
+        name.contains("박력분") || name.contains("통밀가루") || name.contains("호밀가루") ||
+        name.contains("글루텐") || name.contains("전분") || name.contains("옥수수전분") ||
+        name.contains("감자전분") || name.contains("타피오카")) {
+      return "밀가루";
+    }
+
+    // 버섯류 (MUSHROOM)
+    if (name.contains("버섯") || name.contains("표고버섯") || name.contains("느타리버섯") ||
+        name.contains("팽이버섯") || name.contains("새송이버섯") || name.contains("양송이버섯") ||
+        name.contains("목이버섯") || name.contains("송이버섯") || name.contains("석이버섯") ||
+        name.contains("만가닥버섯") || name.contains("마른버섯")) {
+      return "버섯류";
+    }
+
+    // 해물류 (SEAFOOD)
+    if (name.contains("생선") || name.contains("물고기") || name.contains("새우") ||
+        name.contains("오징어") || name.contains("문어") || name.contains("조개") ||
+        name.contains("전복") || name.contains("굴") || name.contains("게") ||
+        name.contains("연어") || name.contains("참치") || name.contains("고등어") ||
+        name.contains("명태") || name.contains("갈치") || name.contains("꽁치") ||
+        name.contains("조기") || name.contains("광어") || name.contains("농어") ||
+        name.contains("도미") || name.contains("삼치") || name.contains("방어")) {
+      return "해물류";
+    }
+
+    // 채소류 (VEGETABLES) - 버섯은 이미 분류했으므로 제외
+    if (name.contains("양파") || name.contains("마늘") || name.contains("생강") ||
+        name.contains("당근") || name.contains("감자") || name.contains("고구마") ||
+        name.contains("무") || name.contains("배추") || name.contains("상추") ||
+        name.contains("시금치") || name.contains("브로콜리") || name.contains("오이") ||
+        name.contains("토마토") || name.contains("파프리카") || name.contains("고추") ||
+        name.contains("대파") || name.contains("쪽파") || name.contains("파") ||
+        name.contains("애호박") || name.contains("호박") || name.contains("가지") ||
+        name.contains("콩나물") || name.contains("숙주") || name.contains("미나리") ||
+        name.contains("깻잎") || name.contains("부추") || name.contains("셀러리") ||
+        name.contains("양배추") || name.contains("케일") || name.contains("피망")) {
+      return "채소류";
+    }
+
+    // 곡류 (GRAINS) - 쌀과 밀가루는 이미 분류했으므로 제외
+    if (name.contains("보리") || name.contains("귀리") || name.contains("옥수수") ||
+        name.contains("수수") || name.contains("메밀") || name.contains("퀴노아") ||
+        name.contains("통밀") || name.contains("율무") || name.contains("조") ||
+        name.contains("기장") || name.contains("쌀알") || name.contains("곡물")) {
+      return "곡류";
+    }
+
+    // 달걀/유제품 (EGG_DAIRY)
+    if (name.contains("계란") || name.contains("달걀") || name.contains("우유") ||
+        name.contains("치즈") || name.contains("버터") || name.contains("요구르트") ||
+        name.contains("요거트") || name.contains("생크림") || name.contains("크림") ||
+        name.contains("모차렐라") || name.contains("파마산") || name.contains("체다") ||
+        name.contains("까망베르") || name.contains("마스카포네") || name.contains("리코타")) {
+      return "달걀/유제품";
+    }
+
+    // 콩/견과류 (BEANS_NUTS)
+    if (name.contains("콩") || name.contains("두부") || name.contains("된장") ||
+        name.contains("간장") || name.contains("고추장") || name.contains("땅콩") ||
+        name.contains("호두") || name.contains("아몬드") || name.contains("잣") ||
+        name.contains("깨") || name.contains("참깨") || name.contains("들깨") ||
+        name.contains("검은깨") || name.contains("피스타치오") || name.contains("캐슈넛") ||
+        name.contains("피칸") || name.contains("밤") || name.contains("은행")) {
+      return "콩/견과류";
+    }
+
+    // 과일류 (FRUITS)
+    if (name.contains("사과") || name.contains("배") || name.contains("바나나") ||
+        name.contains("오렌지") || name.contains("귤") || name.contains("레몬") ||
+        name.contains("라임") || name.contains("포도") || name.contains("딸기") ||
+        name.contains("키위") || name.contains("망고") || name.contains("파인애플") ||
+        name.contains("복숭아") || name.contains("자두") || name.contains("살구") ||
+        name.contains("체리") || name.contains("블루베리") || name.contains("수박") ||
+        name.contains("참외") || name.contains("멜론")) {
+      return "과일류";
+    }
+
+    // 건어물류 (DRIED_SEAFOOD)
+    if (name.contains("멸치") || name.contains("다시마") || name.contains("미역") ||
+        name.contains("김") || name.contains("마른") || name.contains("건") ||
+        name.contains("북어") || name.contains("오징어채") || name.contains("새우젓") ||
+        name.contains("젓갈") || name.contains("액젓") || name.contains("마른오징어") ||
+        name.contains("건새우") || name.contains("마른명태") || name.contains("황태")) {
+      return "건어물류";
+    }
+
+    // 가공식품류 (PROCESSED_FOOD)
+    if (name.contains("라면") || name.contains("국수") || name.contains("파스타") ||
+        name.contains("스파게티") || name.contains("우동") || name.contains("냉면") ||
+        name.contains("소면") || name.contains("당면") || name.contains("떡") ||
+        name.contains("만두") || name.contains("빵") || name.contains("케이크") ||
+        name.contains("쿠키") || name.contains("과자") || name.contains("캔") ||
+        name.contains("통조림") || name.contains("소스") || name.contains("케첩") ||
+        name.contains("마요네즈") || name.contains("드레싱") || name.contains("인스턴트") ||
+        name.contains("냉동") || name.contains("레토르트")) {
+      return "가공식품류";
+    }
+
+    // 기본값 (OTHER)
+    return "기타";
+  }
+
+  // 재료 찾기 또는 생성 메서드
+  private Ingredient findOrCreateIngredient(String name, String sort) {
+    // 이름으로 기존 재료 검색
+    List<Ingredient> existingIngredients = ingredientRepository.findByName(name);
+
+    if (!existingIngredients.isEmpty()) {
+      Ingredient existing = existingIngredients.get(0);
+
+      // 기존 재료의 카테고리가 없거나 다른 경우 업데이트
+      if (existing.getSort() == null || existing.getSort().trim().isEmpty() || !existing.getSort().equals(sort)) {
+        existing.setSort(sort);
+        existing = ingredientRepository.save(existing);
+        log.debug("기존 재료 카테고리 업데이트 - 이름: {}, 카테고리: {}", name, sort);
+      }
+
+      return existing;
+    }
+
+    // 새 재료 생성
+    Ingredient newIngredient = new Ingredient();
+    newIngredient.setName(name);
+    newIngredient.setSort(sort);
+
+    Ingredient savedIngredient = ingredientRepository.save(newIngredient);
+    log.debug("새 재료 생성 - ID: {}, 이름: {}, 카테고리: {}",
+        savedIngredient.getIngId(), name, sort);
+
+    return savedIngredient;
   }
 
   // 사용자 정보를 담는 내부 클래스

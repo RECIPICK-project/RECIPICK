@@ -43,9 +43,18 @@ public class PostDto {
     @NotNull(message = "요리 종류를 선택해주세요")
     private String ckgKnd;
 
-    // ✅ 재료내용 - 필수, 빈 배열 불가
+    // ✅ 재료내용 - 필수, 빈 배열 불가 (수량 포함된 형태: "계란 2개", "양파 1개") - Post 저장용
     @NotEmpty(message = "재료를 최소 1개 이상 입력해주세요")
     private List<String> ckgMtrlCn;
+
+    // ✅ 재료명 목록 - Ingredient 테이블 저장용
+    private List<String> ingredientNames;
+
+    // ✅ 수량 목록 - RecipeIngredient amount 저장용
+    private List<String> ingredientQuantities;
+
+    // ✅ 단위 목록 - RecipeIngredient amount 저장용
+    private List<String> ingredientUnits;
 
     // ✅ 몇 인분 - 필수 (Integer 타입으로 원복)
     @NotNull(message = "몇 인분인지 선택해주세요")

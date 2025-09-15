@@ -8,7 +8,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class ReviewDto {
-  private Integer userId;
-  private Double rating;
-  private String comment;
+    private Integer userId;
+    private Double rating;
+    private String comment;
 }

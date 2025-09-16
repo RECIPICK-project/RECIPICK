@@ -1,15 +1,16 @@
 package SITE.RECIPICK.RECIPICK_PROJECT.service;
 
-
-import SITE.RECIPICK.RECIPICK_PROJECT.entity.UserEntity;
-import SITE.RECIPICK.RECIPICK_PROJECT.repository.UserRepository;
 import java.util.List;
 import java.util.Optional;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import SITE.RECIPICK.RECIPICK_PROJECT.entity.UserEntity;
+import SITE.RECIPICK.RECIPICK_PROJECT.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
@@ -42,14 +43,15 @@ public class UserService {
             return "이미 존재하는 닉네임입니다.";
         }
 
-        UserEntity userEntity = UserEntity.builder()
-            .email(email)
-            .password(encoder.encode(password))
-            .nickname(nickname)
-            .active(true)     // 가입 즉시 활성 (정책에 따라 false로 시작해도 됨)
-            .stop(0)
-            .role("ROLE_USER")
-            .build();
+        UserEntity userEntity =
+                UserEntity.builder()
+                        .email(email)
+                        .password(encoder.encode(password))
+                        .nickname(nickname)
+                        .active(true) // 가입 즉시 활성 (정책에 따라 false로 시작해도 됨)
+                        .stop(0)
+                        .role("ROLE_USER")
+                        .build();
 
         userRepository.save(userEntity);
         log.info("회원가입 완료: {}", email);
@@ -129,7 +131,7 @@ public class UserService {
         if (userOpt.isEmpty()) return "사용자를 찾을 수 없습니다.";
 
         UserEntity user = userOpt.get();
-        user.setActive(active);  // true = 1, false = 0
+        user.setActive(active); // true = 1, false = 0
         userRepository.save(user);
 
         return active ? "계정 활성화됨" : "계정 정지됨";
@@ -150,6 +152,5 @@ public class UserService {
             userRepository.save(user);
             log.info("사용자 {} active 상태 변경: {}", email, active);
         }
-
     }
 }

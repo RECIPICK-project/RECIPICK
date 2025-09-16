@@ -183,15 +183,26 @@ document.getElementById("uploadForm").addEventListener("submit", async (e) => {
             submitBtn.textContent = "레시피 저장 중...";
         }
 
-        // 재료 데이터 수집
-        const ingredients = [];
+        // 재료 데이터 수집 - 3개 배열로 분리
+        const ingredients = [];           // Post 저장용 (기존 유지)
+        const ingredientNames = [];       // Ingredient 테이블용
+        const ingredientQuantities = [];  // RecipeIngredient amount용
+        const ingredientUnits = [];       // RecipeIngredient amount용
+
         const rows = document.querySelectorAll("[data-row]");
         rows.forEach((row) => {
             const name = row.querySelector("[data-name]").value.trim();
             const quantity = row.querySelector("[data-quantity]").value.trim();
             const unit = row.querySelector("[data-unit]").value.trim();
-            if (name && quantity && unit) {
+
+            if (name) { // 재료명만 있으면 추가
+                // Post용 - 기존 형태 유지 (레시피 표시용)
                 ingredients.push(`${name} ${quantity}${unit}`);
+
+                // 분리된 데이터 - Ingredient, RecipeIngredient용
+                ingredientNames.push(name);
+                ingredientQuantities.push(quantity);
+                ingredientUnits.push(unit);
             }
         });
 
@@ -257,9 +268,20 @@ document.getElementById("uploadForm").addEventListener("submit", async (e) => {
         formData.append("ckgLevel", levelSelect?.value || "1"); // 기본: 1 (★)
         formData.append("ckgTime", timeSelect?.value || "30"); // 기본: 30분이내
 
-        // 재료 (List<String> 형태로)
+        // 재료 (List<String> 형태로) - Post 표시용
         ingredients.forEach((ingredient) => {
             formData.append("ckgMtrlCn", ingredient);
+        });
+
+        // 분리된 재료 데이터 - Ingredient, RecipeIngredient용
+        ingredientNames.forEach((name) => {
+            formData.append("ingredientNames", name);
+        });
+        ingredientQuantities.forEach((quantity) => {
+            formData.append("ingredientQuantities", quantity);
+        });
+        ingredientUnits.forEach((unit) => {
+            formData.append("ingredientUnits", unit);
         });
 
         // 썸네일 이미지 URL (빈 문자열이면 기본 이미지로 대체)
@@ -277,6 +299,13 @@ document.getElementById("uploadForm").addEventListener("submit", async (e) => {
         stepImageUrls.forEach((imageUrl) => {
             formData.append("rcpStepsImg", imageUrl);
         });
+
+        // 디버깅을 위한 로그
+        console.log("수집된 재료 데이터:");
+        console.log("- Post용 ingredients:", ingredients);
+        console.log("- 재료명 배열:", ingredientNames);
+        console.log("- 수량 배열:", ingredientQuantities);
+        console.log("- 단위 배열:", ingredientUnits);
 
         console.log("저장할 레시피 데이터:", Object.fromEntries(formData));
 

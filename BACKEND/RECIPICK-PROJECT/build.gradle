@@ -118,8 +118,10 @@ task copyFrontend(type: Copy) {
 // 빌드 과정에서 리소스 처리 전에 프론트엔드 파일 복사 실행
 // 이 설정으로  ./gradlew build 시 JAR 파일에 프론트엔드 파일이 포함됨
 processResources.dependsOn copyFrontend
-// 개발 서버 실행 전에 프론트엔드 파일 복사 실행  
+// 개발 서버 실행 전에 프론트엔드 파일 복사 실행
 // 이 설정으로  ./gradlew bootRun 시 최신 프론트엔드 파일이 자동 반영됨
 bootRun.dependsOn copyFrontend
 //서버 실행시  ./gradlew bootRun 으로 실행 필요
 //  http://localhost:8080/pages/post_upload.html 레시피 저장 테스트
+//        ./gradlew clean build         풀받으면 이거 한번해서 빌드 초기화(선택)
+// http://localhost:8080/swagger-ui.html 스웨거

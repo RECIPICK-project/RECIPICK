@@ -1,15 +1,10 @@
 package SITE.RECIPICK.RECIPICK_PROJECT.controller;
 
-
-import SITE.RECIPICK.RECIPICK_PROJECT.entity.UserEntity;
-import SITE.RECIPICK.RECIPICK_PROJECT.service.UserService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
+import jakarta.servlet.http.HttpServletRequest;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,6 +14,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import SITE.RECIPICK.RECIPICK_PROJECT.entity.UserEntity;
+import SITE.RECIPICK.RECIPICK_PROJECT.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestController
@@ -54,8 +56,7 @@ public class UserController {
 
     @Operation(summary = "계정 활성화/비활성화", description = "관리자용: 유저 계정을 활성화하거나 비활성화합니다")
     @PostMapping("/set-active")
-    public String setActive(@RequestParam Integer userId,
-        @RequestParam boolean active) {
+    public String setActive(@RequestParam Integer userId, @RequestParam boolean active) {
         return userService.setActive(userId, active);
     }
 
@@ -70,10 +71,11 @@ public class UserController {
         String username = auth.getName();
 
         // role
-        String role = auth.getAuthorities().stream()
-            .map(GrantedAuthority::getAuthority)
-            .findFirst()
-            .orElse("");
+        String role =
+                auth.getAuthorities().stream()
+                        .map(GrantedAuthority::getAuthority)
+                        .findFirst()
+                        .orElse("");
 
         return Map.of("username", username, "role", role);
     }
@@ -84,17 +86,12 @@ public class UserController {
 
         // 닉네임 형식 검증 (예: 한글만)
         if (!nn.matches("^[가-힣]+$")) {
-            return ResponseEntity.badRequest().body(Map.of(
-                "ok", false,
-                "message", "닉네임은 한글만 가능합니다."
-            ));
+            return ResponseEntity.badRequest()
+                    .body(Map.of("ok", false, "message", "닉네임은 한글만 가능합니다."));
         }
 
         boolean exists = userService.isNicknameExists(nn);
-        return ResponseEntity.ok(Map.of(
-            "ok", true,
-            "exists", exists
-        ));
+        return ResponseEntity.ok(Map.of("ok", true, "exists", exists));
     }
 
     @GetMapping("/check-email")
@@ -103,16 +100,11 @@ public class UserController {
 
         // 아주 간단한 이메일 형식 체크 (정교한 @Email 사용도 가능)
         if (!em.matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")) {
-            return ResponseEntity.badRequest().body(Map.of(
-                "ok", false,
-                "message", "올바른 이메일 형식이 아닙니다."
-            ));
+            return ResponseEntity.badRequest()
+                    .body(Map.of("ok", false, "message", "올바른 이메일 형식이 아닙니다."));
         }
 
         boolean exists = userService.isEmailExists(em);
-        return ResponseEntity.ok(Map.of(
-            "ok", true,
-            "exists", exists
-        ));
+        return ResponseEntity.ok(Map.of("ok", true, "exists", exists));
     }
 }

@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="ko">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
@@ -12,197 +13,221 @@
 
   <!-- 메인 전용 오버라이드: 오늘의 추천(히어로) 세로 1.7배 & 기본 슬라이더 레이아웃 -->
   <style>
-    .hero.is-17x { height:auto !important; }
-    .hero.is-17x .hero-thumb{
-      height: 374px;                 /* 220px × 1.7 */
+    .hero.is-17x {
+      height: auto !important;
+    }
+
+    .hero.is-17x .hero-thumb {
+      height: 374px;
+      /* 220px × 1.7 */
       background-size: cover;
       background-position: center;
       border-radius: 18px;
     }
-    .hero .slides{ display:flex; transition:transform .45s ease; will-change:transform; }
-    .hero .slide{ min-width:100%; display:grid; grid-template-rows: 1fr auto; gap:10px; }
-    .hero .hero-meta{ padding:0 2px; } /* 텍스트는 이미지 아래에 깔끔하게 */
+
+    .hero .slides {
+      display: flex;
+      transition: transform .45s ease;
+      will-change: transform;
+    }
+
+    .hero .slide {
+      min-width: 100%;
+      display: grid;
+      grid-template-rows: 1fr auto;
+      gap: 10px;
+    }
+
+    .hero .hero-meta {
+      padding: 0 2px;
+    }
+
+    /* 텍스트는 이미지 아래에 깔끔하게 */
   </style>
 </head>
+
 <body>
-<main class="phone" role="main" aria-label="메인 화면">
+  <main class="phone" role="main" aria-label="메인 화면">
 
-  <!-- 헤더 -->
-  <header class="top">
-    <h1 class="logo">RECIPICK</h1>
-    <button class="notif" aria-label="알림">
-      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 0 0-12 0v3.2c0 .5-.2 1-.6 1.4L4 17h5" />
-        <path d="M10 21a2 2 0 0 0 4 0" />
-      </svg>
-    </button>
-  </header>
+    <!-- 헤더 -->
+    <header class="top">
+      <h1 class="logo">RECIPICK</h1>
+      <button class="notif" aria-label="알림">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 0 0-12 0v3.2c0 .5-.2 1-.6 1.4L4 17h5" />
+          <path d="M10 21a2 2 0 0 0 4 0" />
+        </svg>
+      </button>
+    </header>
 
-  <!-- 검색 -->
-  <section class="search">
-    <form class="search-row" action="search.html" method="get">
-      <svg class="icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#6b7280" stroke-width="2">
-        <circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path>
-      </svg>
-      <input class="search-input" type="search" name="q" placeholder="레시피, 재료, 태그 검색" autocomplete="off" />
-      <button class="filter" type="button" onclick="location.href='filter.html'">필터</button>
-    </form>
-  </section>
+    <!-- 검색 -->
+    <section class="search">
+      <form class="search-row" action="search.html" method="get">
+        <svg class="icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#6b7280" stroke-width="2">
+          <circle cx="11" cy="11" r="7"></circle>
+          <path d="M20 20l-3.5-3.5"></path>
+        </svg>
+        <input class="search-input" type="search" name="q" placeholder="레시피, 재료, 태그 검색" autocomplete="off" />
+        <button class="filter" type="button" onclick="location.href='filter.html'">필터</button>
+      </form>
+    </section>
 
-  <!-- 오늘의 추천 -->
-  <section class="section" id="featuredSection">
-    <div class="sec-head">
-      <h2>오늘의 추천</h2>
-      <a class="more" href="search.html?sort=hot">더보기</a>
-    </div>
-
-    <div class="hero is-17x" id="hero">
-      <div class="slides" id="slides" aria-live="polite"></div>
-      <div class="dots" role="tablist" aria-label="추천 슬라이드"></div>
-    </div>
-  </section>
-
-  <!-- 재료 -->
-  <section class="category-section">
-    <div class="sec-head"><h2>재료</h2></div>
-    <div class="category-grid" id="categoryGrid"></div>
-  </section>
-
-  <!-- 인기 -->
-  <section class="section">
-    <div class="sec-head">
-      <h2>인기 레시피</h2>
-      <div class="sort">
-        <button class="pill is-active">인기</button>
-        <button class="pill">최신</button>
-        <button class="pill">별점</button>
+    <!-- 오늘의 추천 -->
+    <section class="section" id="featuredSection">
+      <div class="sec-head">
+        <h2>오늘의 추천</h2>
+        <a class="more" href="search.html?sort=hot">더보기</a>
       </div>
-    </div>
-    <div class="grid" id="grid"></div>
-  </section>
 
-  <!-- 탭바 -->
-  <nav class="tabbar" aria-label="하단 탭바">
-    <a class="tab" href="menu.html" aria-label="메뉴">
-      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#6b7280" stroke-width="2">
-        <path d="M4 6h16M4 12h16M4 18h16"/>
-      </svg>
-    </a>
-    <a class="tab is-active" href="liked.html" aria-label="좋아요">
-      <svg viewBox="0 0 24 24" width="24" height="24" fill="#2E7D32">
-        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5
+      <div class="hero is-17x" id="hero">
+        <div class="slides" id="slides" aria-live="polite"></div>
+        <div class="dots" role="tablist" aria-label="추천 슬라이드"></div>
+      </div>
+    </section>
+
+    <!-- 재료 -->
+    <section class="category-section">
+      <div class="sec-head">
+        <h2>재료</h2>
+      </div>
+      <div class="category-grid" id="categoryGrid"></div>
+    </section>
+
+    <!-- 인기 -->
+    <section class="section">
+      <div class="sec-head">
+        <h2>인기 레시피</h2>
+        <div class="sort">
+          <button class="pill is-active">인기</button>
+          <button class="pill">최신</button>
+          <button class="pill">별점</button>
+        </div>
+      </div>
+      <div class="grid" id="grid"></div>
+    </section>
+
+    <!-- 탭바 -->
+    <nav class="tabbar" aria-label="하단 탭바">
+      <a class="tab" href="menu.html" aria-label="메뉴">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#6b7280" stroke-width="2">
+          <path d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </a>
+      <a class="tab is-active" href="liked.html" aria-label="좋아요">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="#2E7D32">
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5
                2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09
                C13.09 3.81 14.76 3 16.5 3
                19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55
-               11.54L12 21.35z"/>
-      </svg>
-    </a>
-    <a class="tab" href="search.html" aria-label="검색">
-      <div class="ring">
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#6b7280" stroke-width="2">
-          <circle cx="11" cy="11" r="7"/>
-          <path d="M20 20l-3.5-3.5"/>
+               11.54L12 21.35z" />
         </svg>
-      </div>
-    </a>
-    <a class="tab" href="post-upload.html" aria-label="추가">
-      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#6b7280" stroke-width="2">
-        <path d="M12 5v14M5 12h14"/>
-      </svg>
-    </a>
-    <a class="tab" href="profile.html" aria-label="프로필">
-      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#6b7280" stroke-width="2">
-        <circle cx="12" cy="8" r="4"/>
-        <path d="M4 20c2-4 14-4 16 0"/>
-      </svg>
-    </a>
-  </nav>
+      </a>
+      <a class="tab" href="search.html" aria-label="검색">
+        <div class="ring">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#6b7280" stroke-width="2">
+            <circle cx="11" cy="11" r="7" />
+            <path d="M20 20l-3.5-3.5" />
+          </svg>
+        </div>
+      </a>
+      <a class="tab" href="post_upload.html" aria-label="추가">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#6b7280" stroke-width="2">
+          <path d="M12 5v14M5 12h14" />
+        </svg>
+      </a>
+      <a class="tab" href="profile.html" aria-label="프로필">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#6b7280" stroke-width="2">
+          <circle cx="12" cy="8" r="4" />
+          <path d="M4 20c2-4 14-4 16 0" />
+        </svg>
+      </a>
+    </nav>
 
-</main>
+  </main>
 
-<!-- ===== 스크립트 (중복 선언 없음) ===== -->
-<script>
-const BASE  = 'http://localhost:9999';
-const PAGES = BASE + '/pages';
-const PLACEHOLDER = 'https://placehold.co/1200x800?text=RECIPICK';
+  <!-- ===== 스크립트 (중복 선언 없음) ===== -->
+  <script>
+    const BASE = 'http://localhost:9999';
+    const PAGES = BASE + '/pages';
+    const PLACEHOLDER = 'https://placehold.co/1200x800?text=RECIPICK';
 
-/* URL 유틸 */
-function toAbs(u){
-  if (!u) return null;
-  if (/^https?:\/\//i.test(u)) return u;
-  if (u.startsWith('/')) return BASE + u;
-  return `${BASE}/uploads/${u}`;
-}
-function safeEncode(raw){ return encodeURIComponent(String(raw).trim()).replace(/%5C/gi, ''); }
-function proxyUrl(abs){ return abs ? `${BASE}/img-proxy?u=${safeEncode(abs)}` : null; }
+    /* URL 유틸 */
+    function toAbs(u) {
+      if (!u) return null;
+      if (/^https?:\/\//i.test(u)) return u;
+      if (u.startsWith('/')) return BASE + u;
+      return `${BASE}/uploads/${u}`;
+    }
+    function safeEncode(raw) { return encodeURIComponent(String(raw).trim()).replace(/%5C/gi, ''); }
+    function proxyUrl(abs) { return abs ? `${BASE}/img-proxy?u=${safeEncode(abs)}` : null; }
 
-/* 이미지 프리로드 */
-function testImage(url){
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.onload  = () => resolve(true);
-    img.onerror = () => resolve(false);
-    img.referrerPolicy = 'no-referrer';
-    img.src = url;
-  });
-}
-async function pickWorkingImage(raw){
-  const direct = toAbs(raw);
-  const candidates = [ proxyUrl(direct), direct, PLACEHOLDER ].filter(Boolean);
-  for (const u of candidates) if (await testImage(u)) return u;
-  return PLACEHOLDER;
-}
+    /* 이미지 프리로드 */
+    function testImage(url) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => resolve(true);
+        img.onerror = () => resolve(false);
+        img.referrerPolicy = 'no-referrer';
+        img.src = url;
+      });
+    }
+    async function pickWorkingImage(raw) {
+      const direct = toAbs(raw);
+      const candidates = [proxyUrl(direct), direct, PLACEHOLDER].filter(Boolean);
+      for (const u of candidates) if (await testImage(u)) return u;
+      return PLACEHOLDER;
+    }
 
-/* 재료 카테고리 렌더 */
-(function renderCategories(){
-  const categories = [
-    { name:'소고기', icon:'🥩' }, { name:'돼지고기', icon:'🍖' }, { name:'닭고기', icon:'🍗' },
-    { name:'달걀/유제품류', icon:'🥚' }, { name:'곡류', icon:'🌾' },
-    { name:'과일류', icon:'🍎' }, { name:'가공식품류', icon:'🥫' }, { name:'건어물류', icon:'🐟' },
-    { name:'버섯류', icon:'🍄' }, { name:'밀가루', icon:'🧂' }, { name:'곡류', icon:'🍚' },
-    { name:'채소류', icon:'🥦' }, { name:'콩/견과류', icon:'🥜' }, { name:'해물류', icon:'🦐' },
-  ];
-  const grid = document.getElementById('categoryGrid');
-  if (!grid) return;
-  grid.innerHTML = categories.map(c => `
+    /* 재료 카테고리 렌더 */
+    (function renderCategories() {
+      const categories = [
+        { name: '소고기', icon: '🥩' }, { name: '돼지고기', icon: '🍖' }, { name: '닭고기', icon: '🍗' },
+        { name: '달걀/유제품류', icon: '🥚' }, { name: '곡류', icon: '🌾' },
+        { name: '과일류', icon: '🍎' }, { name: '가공식품류', icon: '🥫' }, { name: '건어물류', icon: '🐟' },
+        { name: '버섯류', icon: '🍄' }, { name: '밀가루', icon: '🧂' }, { name: '곡류', icon: '🍚' },
+        { name: '채소류', icon: '🥦' }, { name: '콩/견과류', icon: '🥜' }, { name: '해물류', icon: '🦐' },
+      ];
+      const grid = document.getElementById('categoryGrid');
+      if (!grid) return;
+      grid.innerHTML = categories.map(c => `
     <a class="category-item" href="${PAGES}/search.html?category=${encodeURIComponent(c.name)}" aria-label="${c.name}">
       <div class="cat-badge" aria-hidden="true">${c.icon}</div>
       <div class="category-name">${c.name}</div>
     </a>
   `).join('');
-})();
+    })();
 
-/* 정렬 토글 */
-document.querySelectorAll('.pill').forEach(p=>{
-  p.addEventListener('click',()=>{
-    document.querySelectorAll('.pill').forEach(x=>x.classList.remove('is-active'));
-    p.classList.add('is-active');
-  });
-});
+    /* 정렬 토글 */
+    document.querySelectorAll('.pill').forEach(p => {
+      p.addEventListener('click', () => {
+        document.querySelectorAll('.pill').forEach(x => x.classList.remove('is-active'));
+        p.classList.add('is-active');
+      });
+    });
 
-/* 캐러셀 제어 */
-let currentSlide = 0, totalSlides = 0, autoSlideInterval;
-function updateSlide(){
-  const slides = document.getElementById('slides');
-  const dots = document.querySelectorAll('.dot');
-  slides.style.transform = `translateX(-${currentSlide*100}%)`;
-  dots.forEach((d,i)=>d.classList.toggle('is-active', i===currentSlide));
-}
-function nextSlide(){ if(totalSlides>0){ currentSlide = (currentSlide+1)%totalSlides; updateSlide(); } }
-function goToSlide(i){ currentSlide = i; updateSlide(); resetAutoSlide(); }
-function resetAutoSlide(){ clearInterval(autoSlideInterval); if(totalSlides>1){ autoSlideInterval = setInterval(nextSlide, 4000); }}
-
-/* 오늘의 추천 */
-(async () => {
-  try {
-    const r = await fetch(`${BASE}/api/home/featured`, { cache: 'no-store' });
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    let list = await r.json();
-    if (!Array.isArray(list) || !list.length) {
-      list = [{ title:'추천 레시피가 없습니다', imageUrl:null, minutes:20, level:'보통', rating:'4.5' }];
+    /* 캐러셀 제어 */
+    let currentSlide = 0, totalSlides = 0, autoSlideInterval;
+    function updateSlide() {
+      const slides = document.getElementById('slides');
+      const dots = document.querySelectorAll('.dot');
+      slides.style.transform = `translateX(-${currentSlide * 100}%)`;
+      dots.forEach((d, i) => d.classList.toggle('is-active', i === currentSlide));
     }
-    const slidesEl = document.getElementById('slides');
-    slidesEl.innerHTML = list.map((it, i) => `
+    function nextSlide() { if (totalSlides > 0) { currentSlide = (currentSlide + 1) % totalSlides; updateSlide(); } }
+    function goToSlide(i) { currentSlide = i; updateSlide(); resetAutoSlide(); }
+    function resetAutoSlide() { clearInterval(autoSlideInterval); if (totalSlides > 1) { autoSlideInterval = setInterval(nextSlide, 4000); } }
+
+    /* 오늘의 추천 */
+    (async () => {
+      try {
+        const r = await fetch(`${BASE}/api/home/featured`, { cache: 'no-store' });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        let list = await r.json();
+        if (!Array.isArray(list) || !list.length) {
+          list = [{ title: '추천 레시피가 없습니다', imageUrl: null, minutes: 20, level: '보통', rating: '4.5' }];
+        }
+        const slidesEl = document.getElementById('slides');
+        slidesEl.innerHTML = list.map((it, i) => `
       <article class="slide" data-i="${i}">
         <div class="hero-thumb"></div>
         <div class="hero-meta">
@@ -211,24 +236,24 @@ function resetAutoSlide(){ clearInterval(autoSlideInterval); if(totalSlides>1){ 
         </div>
       </article>
     `).join('');
-    await Promise.all(list.map(async (it, idx) => {
-      const imgKey = it.imageUrl ?? it.rcp_img_url ?? it.rcpImgUrl ?? it.imgUrl ?? it.thumbnail;
-      const good = await pickWorkingImage(imgKey);
-      slidesEl.querySelector(`.slide[data-i="${idx}"] .hero-thumb`).style.backgroundImage = `url('${good}')`;
-    }));
-    const dotsWrap = document.querySelector('.dots');
-    dotsWrap.innerHTML = list.map((_, i) =>
-      `<button class="dot ${i===0?'is-active':''}" data-i="${i}" aria-label="${i+1}번"></button>`
-    ).join('');
-    document.querySelectorAll('.dot').forEach((d,i)=> d.addEventListener('click', ()=>goToSlide(i)));
-    totalSlides = list.length;
-    currentSlide = 0;
-    updateSlide();
-    resetAutoSlide();
-  } catch (err) {
-    console.error('[featured] load failed:', err);
-    const slides = document.getElementById('slides');
-    slides.innerHTML = `
+        await Promise.all(list.map(async (it, idx) => {
+          const imgKey = it.imageUrl ?? it.rcp_img_url ?? it.rcpImgUrl ?? it.imgUrl ?? it.thumbnail;
+          const good = await pickWorkingImage(imgKey);
+          slidesEl.querySelector(`.slide[data-i="${idx}"] .hero-thumb`).style.backgroundImage = `url('${good}')`;
+        }));
+        const dotsWrap = document.querySelector('.dots');
+        dotsWrap.innerHTML = list.map((_, i) =>
+          `<button class="dot ${i === 0 ? 'is-active' : ''}" data-i="${i}" aria-label="${i + 1}번"></button>`
+        ).join('');
+        document.querySelectorAll('.dot').forEach((d, i) => d.addEventListener('click', () => goToSlide(i)));
+        totalSlides = list.length;
+        currentSlide = 0;
+        updateSlide();
+        resetAutoSlide();
+      } catch (err) {
+        console.error('[featured] load failed:', err);
+        const slides = document.getElementById('slides');
+        slides.innerHTML = `
       <article class="slide">
         <div class="hero-thumb" style="background-image:url('${PLACEHOLDER}')"></div>
         <div class="hero-meta">
@@ -236,25 +261,25 @@ function resetAutoSlide(){ clearInterval(autoSlideInterval); if(totalSlides>1){ 
           <div class="hero-sub">네트워크 또는 데이터 문제일 수 있어요</div>
         </div>
       </article>`;
-    document.querySelector('.dots').innerHTML = `<button class="dot is-active" data-i="0" aria-label="1번"></button>`;
-    totalSlides = 1; currentSlide = 0; updateSlide();
-  }
-})();
+        document.querySelector('.dots').innerHTML = `<button class="dot is-active" data-i="0" aria-label="1번"></button>`;
+        totalSlides = 1; currentSlide = 0; updateSlide();
+      }
+    })();
 
-/* 인기 레시피 */
-(async () => {
-  try {
-    const r = await fetch(`${BASE}/api/recipes/popular?limit=8`, { cache: 'no-store' });
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    const items = await r.json();
-    const list = Array.isArray(items) && items.length ? items : [{
-      title:'샘플 레시피', imageUrl:null, likes:0, minutes:20, id:''
-    }];
-    const grid = document.getElementById('grid');
-    grid.innerHTML = list.map((it, i) => {
-      const id  = it.id ?? it.post_id ?? it.postId ?? '';
-      const href = `${PAGES}/recipe-detail.html${id ? `?id=${id}` : ''}`;
-      return `
+    /* 인기 레시피 */
+    (async () => {
+      try {
+        const r = await fetch(`${BASE}/api/recipes/popular?limit=8`, { cache: 'no-store' });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const items = await r.json();
+        const list = Array.isArray(items) && items.length ? items : [{
+          title: '샘플 레시피', imageUrl: null, likes: 0, minutes: 20, id: ''
+        }];
+        const grid = document.getElementById('grid');
+        grid.innerHTML = list.map((it, i) => {
+          const id = it.id ?? it.post_id ?? it.postId ?? '';
+          const href = `${PAGES}/recipe-detail.html${id ? `?id=${id}` : ''}`;
+          return `
         <a class="card" href="${href}" data-i="${i}">
           <div class="thumb"></div>
           <div class="meta">
@@ -262,17 +287,18 @@ function resetAutoSlide(){ clearInterval(autoSlideInterval); if(totalSlides>1){ 
             <div class="sub">❤️ ${it.likes ?? it.like_count ?? it.likeCount ?? 0} · ${(it.minutes ?? it.ckg_time ?? '20')}분</div>
           </div>
         </a>`;
-    }).join('');
-    await Promise.all(list.map(async (it, idx) => {
-      const imgKey = it.imageUrl ?? it.rcp_img_url ?? it.rcpImgUrl ?? it.imgUrl ?? it.thumbnail;
-      const good = await pickWorkingImage(imgKey);
-      grid.querySelector(`.card[data-i="${idx}"] .thumb`).style.backgroundImage = `url('${good}')`;
-    }));
-  } catch (err) {
-    console.error('[popular] load failed:', err);
-  }
-})();
-</script>
+        }).join('');
+        await Promise.all(list.map(async (it, idx) => {
+          const imgKey = it.imageUrl ?? it.rcp_img_url ?? it.rcpImgUrl ?? it.imgUrl ?? it.thumbnail;
+          const good = await pickWorkingImage(imgKey);
+          grid.querySelector(`.card[data-i="${idx}"] .thumb`).style.backgroundImage = `url('${good}')`;
+        }));
+      } catch (err) {
+        console.error('[popular] load failed:', err);
+      }
+    })();
+  </script>
 
 </body>
+
 </html>

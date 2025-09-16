@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="_csrf" content="${_csrf.token}">
+  <meta name="_csrf_header" content="${_csrf.headerName}">
+
+  <title>마이페이지</title>
+
+  <!-- 페이지 전용 스타일 -->
+  <link rel="stylesheet" href="../css/profile.css" />
+
+  <!-- 기존 동작(JS 렌더/모달/탭 전환 등)은 외부 스크립트에서 처리 -->
+  <script src="../js/profile.js" defer></script>
+</head>
+<body class="detail">
+<main class="frame" role="main" aria-label="마이페이지">
+  <!-- ========== 헤더 ========== -->
+  <header class="head">
+    <!-- 브라우저 히스토리 기반 뒤로가기 -->
+    <button class="back" aria-label="뒤로 가기" type="button" onclick="history.back()">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M15 6l-6 6 6 6"/>
+      </svg>
+    </button>
+    <h1>마이페이지</h1>
+    <div class="spacer" aria-hidden="true"></div>
+  </header>
+
+  <!-- ========== 프로필 상단(아바타/닉네임/등급) ========== -->
+  <section class="profile-box" aria-labelledby="my-profile-title">
+    <h2 id="my-profile-title" class="sr-only"></h2>
+    <!-- 아바타(라벨 클릭으로 파일 인풋 트리거) -->
+    <label class="avatar">
+      <input id="avatarInput" type="file" accept="image/*" hidden />
+      <img id="avatarImg" alt="프로필 이미지" />
+      <span class="avatar-ring" aria-hidden="true">＋</span>
+    </label>
+
+    <!-- 닉네임/등급 -->
+    <div class="info">
+      <div id="userName" class="name">유저 닉네임</div>
+      <!-- enum: BRONZE | SILVER | GOLD | PLATINUM | DIAMOND -->
+      <div id="userTier" class="badge tier" data-tier="BRONZE" aria-live="polite">Bronze</div>
+    </div>
+
+    <!-- 프로필 편집(모달 열기) -->
+    <button class="edit-btn" id="openEdit" type="button">프로필 편집</button>
+  </section>
+
+  <!-- ========== 상단 탭: 페이지 이동 없이 섹션만 전환 ========== -->
+  <!-- role=tablist/role=tab/role=tabpanel 구조 + aria-selected/aria-controls/aria-labelledby/hidden 관리 -->
+  <nav class="tabs" role="tablist" aria-label="프로필 탭">
+    <a class="tab-btn active"
+            id="tabbtn-my"
+            href="#my"
+            data-target="my"
+            role="tab"
+            aria-selected="true"
+            aria-controls="tab-my">나의 레시피</a>
+
+    <a class="tab-btn"
+            id="tabbtn-saved"
+            href="#saved"
+            data-target="saved"
+            role="tab"
+            aria-selected="false"
+            aria-controls="tab-saved">저장한 레시피</a>
+
+    <a class="tab-btn"
+            id="tabbtn-activity"
+            href="#activity"
+            data-target="activity"
+            role="tab"
+            aria-selected="false"
+            aria-controls="tab-activity">댓글/활동</a>
+  </nav>
+
+  <!-- ========== 탭 패널: 기본은 '나의 레시피' 표시 ========== -->
+  <section class="tab-content">
+    <!-- 나의 레시피(임시/내 게시물) -->
+    <div id="tab-my" class="tab-panel active" role="tabpanel" aria-labelledby="tabbtn-my">
+      <ul id="listMine" class="cards"></ul>
+      <div class="empty" data-empty-mine hidden>아직 임시 레시피가 없어요.</div>
+    </div>
+
+    <!-- 저장한 레시피(좋아요/저장 목록) -->
+    <div id="tab-saved" class="tab-panel" role="tabpanel" aria-labelledby="tabbtn-saved" hidden>
+      <ul id="listSaved" class="cards linkable"></ul>
+      <div class="empty" data-empty-saved hidden>저장한 레시피가 없어요.</div>
+    </div>
+
+    <!-- 댓글/활동 -->
+    <div id="tab-activity" class="tab-panel" role="tabpanel" aria-labelledby="tabbtn-activity" hidden>
+      <ul id="listActivity" class="cards linkable"></ul>
+      <div class="empty" data-empty-activity hidden>활동 내역이 없어요.</div>
+    </div>
+  </section>
+</main>
+
+<!-- ========== 하단 탭바(고정 내비게이션) ========== -->
+<!-- 하트는 profile.html#saved 로 오도록 하여 '저장한 레시피' 탭을 즉시 활성화 -->
+<nav class="tabbar" aria-label="하단 탭">
+  <!-- 메뉴(바텀 시트 오픈) -->
+  <button class="tab menu" id="openMenu" aria-label="메뉴 열기" type="button">
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M4 6h16M4 12h16M4 18h16"/>
+    </svg>
+  </button>
+
+  <!-- 좋아요/저장: 프로필(#saved)로 유도 -->
+  <a class="tab heart" href="profile.html#saved" aria-label="저장한 레시피">
+    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+      <path class="heart-outline" d="M12 21l-7.5-7.5a5.25 5.25 0 017.42-7.42L12 6.66l.08-.08a5.25 5.25 0 017.42 7.42L12 21z" fill="none" stroke="#6b7280" stroke-width="1.8" stroke-linejoin="round"/>
+      <path class="heart-fill"   d="M12 21l-7.5-7.5a5.25 5.25 0 017.42-7.42L12 6.66l.08-.08a5.25 5.25 0 017.42 7.42L12 21z" fill="#E53935" opacity="0"/>
+    </svg>
+  </a>
+
+  <!-- 검색 -->
+  <a class="tab" href="search_home.html" aria-label="검색">
+    <div class="ring" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>
+      </svg>
+    </div>
+  </a>
+
+  <!-- 업로드 -->
+  <a class="tab" href="post_upload.html" aria-label="업로드">
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M12 5v14M5 12h14"/>
+    </svg>
+  </a>
+
+  <!-- 프로필(현재 위치 강조) -->
+  <a class="tab is-active" href="profile.html" aria-label="프로필">
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="8" r="4"/><path d="M4 20c2-4 14-4 16 0"/>
+    </svg>
+  </a>
+</nav>
+
+<!-- ========== 바텀 시트(메뉴) ========== -->
+<div id="menuSheet" class="sheet" aria-hidden="true">
+  <div class="sheet-handle" aria-hidden="true"></div>
+  <nav class="sheet-list" aria-label="메뉴 목록">
+    <a href="faq.html" class="item">자주 묻는 질문</a>
+    <a href="reviews.html" class="item">내 리뷰</a>
+    <a href="official_recipes.html" class="item">정식 레시피</a>
+    <a href="setting.html" class="item">설정</a>
+    <!-- 버튼을 링크처럼 스타일링 -->
+    <button id="logoutBtn" class="item danger" type="button">로그아웃</button>
+  </nav>
+</div>
+
+<!-- ========== 해시(#saved 등)로 진입 시 초기 탭 자동 선택 ========== -->
+<!-- profile.js의 탭 토글과 충돌 없이 '최초 진입'과 '해시 변경'만 처리 -->
+<script>
+  (function(){
+    function selectTab(target){
+      // 버튼 상태
+      document.querySelectorAll(".tab-btn").forEach(b=>{
+        const on = b.dataset.target === target;
+        b.classList.toggle("active", on);
+        b.setAttribute("aria-selected", on ? "true" : "false");
+      });
+      // 패널 상태
+      document.querySelectorAll(".tab-panel").forEach(p=>{
+        const on = p.id === `tab-${target}`;
+        p.classList.toggle("active", on);
+        p.hidden = !on;
+      });
+    }
+    // 초기 해시 파싱 → 유효하면 즉시 적용
+    const initial = (location.hash || "").replace("#","");
+    if (["my","saved","activity"].includes(initial)) {
+      // DOM이 이미 존재하는 시점(이 스크립트는 바디 하단에 있으므로 안전)
+      selectTab(initial);
+    }
+    // 같은 페이지 내에서 하트 누를 때도 해시 변경을 반영
+    window.addEventListener("hashchange", ()=>{
+      const t = (location.hash || "").replace("#","");
+      if (["my","saved","activity"].includes(t)) selectTab(t);
+    });
+  })();
+</script>
+</body>
+</html>

@@ -36,6 +36,12 @@ public class PostEntity {
   @Column(name = "user_id", nullable = false)
   private Integer userId;
 
+  @Column(name = "email", length = 255)  // user_email → email
+  private String userEmail;
+
+  @Column(name = "nickname", length = 100)  // user_nickname → nickname
+  private String userNickname;
+
   @Column(name = "title", nullable = false, length = 200)
   private String title;
 
@@ -83,6 +89,7 @@ public class PostEntity {
   // ✅ 조리 난이도 - 숫자로 저장 (1, 2, 3, 4, 5) - 원래대로 Integer
   @Column(name = "ckg_level", nullable = false)
   private Integer ckgLevel;
+
 
   // ✅ 조리시간 - 숫자로 저장 (5, 10, 15, 30, 60, 90, 120, 121) - 원래대로 Integer
   @Column(name = "ckg_time", nullable = false)

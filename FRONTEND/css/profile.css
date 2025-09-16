@@ -1,58 +1,283 @@
+/* -----------------------------------------------------------
+ * RECIPICK · Profile Page (FULL CSS)
+ * - 상단 탭: 한 화면 내 전환 (a 태그를 버튼처럼)
+ * - 하단 탭바: 페이지 내비 (링크)
+ * - 접근성(포커스/hidden)과 공통 톤 유지
+ * --------------------------------------------------------- */
+
+/* ===== 컬러 토큰 & 기본 ===== */
 :root{
-  --bg:#F1F8E9; --text:#111827; --muted:#6B7280;
-  --border:#4CAF50; --field:#ffffff;
-  --btn:#2E7D32;
-}
-body{margin:0; background:var(--bg); font-family:"Noto Sans KR",sans-serif; color:var(--text); display:flex; justify-content:center; align-items:center}
-.phone{width:375px; height:812px; position:relative; padding:16px; overflow:hidden; background:var(--bg)}
+  --green-700:#2E7D32; --green-600:#388E3C; --green-500:#4CAF50;
+  --mint-200:#C8E6C9; --bg:#F1F8E9; --soft:#F9FBE7; --amber:#F4B942;
+  --text:#111827; --muted:#6B7280; --line:#E5E7EB; --white:#fff;
 
-.back{position:absolute; left:16px; top:16px; width:40px; height:40px; background:#fff; border:1px solid #ececec; border-radius:50%; display:grid; place-items:center}
-.header{text-align:center; font-weight:800; font-size:18px; margin-top:12px}
-
-.profile-box{margin-top:60px; display:flex; align-items:center; gap:16px}
-.avatar{width:72px; height:72px; border-radius:50%; background:#f5b5a1}
-.info .name{font-size:18px; font-weight:700}
-.badge{font-size:13px; margin-top:4px; background:#FFF8E1; color:#FBC02D; padding:2px 8px; border-radius:12px; border:1px solid #FBC02D}
-.edit-btn{margin-left:auto; padding:6px 12px; font-size:13px; border:1px solid #ccc; border-radius:12px; background:#fff}
-
-.stats{margin-top:20px; display:flex; justify-content:space-around}
-.stat{text-align:center; font-size:13px; color:var(--muted)}
-.stat strong{display:block; font-size:16px; color:var(--text)}
-
-.tabs{margin-top:20px; display:flex; border-bottom:1px solid #e5e7eb}
-.tab-btn{flex:1; padding:10px; background:none; border:none; font-weight:600; color:var(--muted); cursor:pointer}
-.tab-btn.active{color:var(--btn); border-bottom:2px solid var(--btn)}
-
-.tab-content{margin-top:12px}
-.tab-panel{display:none}
-.tab-panel.active{display:block}
-
-.card{display:flex; align-items:center; background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:10px; gap:10px; margin-bottom:10px}
-.card .thumb{width:40px; height:40px; border-radius:8px; background:#ddd}
-.meta{flex:1}
-.meta .title{font-size:14px; font-weight:600}
-.meta .sub{font-size:12px; color:var(--muted)}
-.rating{font-size:13px; color:#F4B942}
-.actions{display:flex; gap:6px}
-
-.menu{margin-top:20px; background:#fff; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden}
-.item{display:flex; justify-content:space-between; align-items:center; padding:16px 20px; font-size:15px; color:var(--text); text-decoration:none; border-bottom:1px solid #e5e7eb}
-.item:last-child{border-bottom:none}
-.item.logout{color:#E53935; font-weight:600}
-.arrow{color:#9ca3af}
-a {
-  text-decoration: none;  /* 밑줄 제거 */
-  color: inherit;         /* 기본 텍스트 색 상속 */
+  --tabbar-h:72px;  /* 하단 탭바 높이 */
 }
 
+*{ box-sizing:border-box; }
+html,body{
+  height:100%; margin:0;
+  background:var(--bg); color:var(--text);
+  font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR",sans-serif;
+}
 
-/* 탭바 (고정 디자인) */
-.tabbar{position:absolute; bottom:0; left:0; right:0; height:72px; background:#fff; border-top-left-radius:20px; border-top-right-radius:20px; box-shadow:0 -4px 12px rgba(0,0,0,.06); display:flex; align-items:center; justify-content:space-around}
-.tab{display:grid; place-items:center}
-.tab svg{width:22px; height:22px}
-.tab .ring{width:44px; height:44px; border-radius:9999px; background:var(--bg); border:2px solid var(--border); display:grid; place-items:center}
-.tab.is-active svg{stroke:var(--btn)}
+/* ===== 프레임 ===== */
+body.detail{
+  min-height:100vh;
+  display:flex; justify-content:center; align-items:flex-start;
+  padding:20px 0;
+}
+.frame{
+  width:800px; min-height:100vh;
+  background:var(--soft);
+  border:1px solid var(--line); border-radius:20px; overflow:hidden;
+  padding:0 0 var(--tabbar-h); /* 하단 탭바만큼 여백 확보 */
+}
 
-/* 카드 전체를 링크로 쓸 때 밑줄 제거 + 색 유지 */
-.tab-panel a.card { text-decoration:none; color:inherit; }
+/* ===== 헤더 ===== */
+.head{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:18px 20px; background:#fff; border-bottom:1px solid var(--line);
+}
+.head h1{ margin:0; font-size:22px; font-weight:800; flex:1; text-align:center; }
+.back,.spacer{ width:40px; height:40px; flex-shrink:0; }
+.back{
+  border-radius:50%; border:1px solid var(--line);
+  background:#fff; display:grid; place-items:center; cursor:pointer;
+}
 
+/* ===== 프로필 상단(아바타/닉네임/등급) ===== */
+.profile-box{ padding:16px 20px; display:flex; align-items:center; gap:16px; }
+
+.avatar{
+  position:relative; width:72px; height:72px; border-radius:50%; overflow:hidden;
+  background:#f5b5a1; display:block; cursor:pointer;
+}
+.avatar img{ width:100%; height:100%; object-fit:cover; display:block; }
+.avatar-ring{
+  position:absolute; right:-6px; bottom:-6px; width:26px; height:26px;
+  border-radius:50%; background:#fff; border:2px solid var(--mint-200);
+  color:var(--green-700); display:grid; place-items:center; font-weight:700;
+}
+.info .name{ font-size:18px; font-weight:700; }
+.badge.tier{
+  display:inline-block; font-size:13px; margin-top:4px;
+  padding:2px 10px; border-radius:999px; border:1px solid var(--line);
+  background:#fff; font-weight:700;
+}
+.edit-btn{
+  margin-left:auto; padding:8px 12px; font-size:13px;
+  border:1px solid var(--line); border-radius:10px; background:#fff; cursor:pointer;
+}
+
+/* 등급 색상 매핑(enum) */
+.badge.tier[data-tier="BRONZE"]   { color:#B87333; border-color:#e1c3a9; background:#fffaf4; }
+.badge.tier[data-tier="SILVER"]   { color:#888;    border-color:#d7d7d7; background:#fafafa; }
+.badge.tier[data-tier="GOLD"]     { color:#FBC02D; border-color:#ffe08a; background:#fff8db; }
+.badge.tier[data-tier="PLATINUM"] { color:#2E7D32; border-color:#C8E6C9; background:#F1F8E9; }
+.badge.tier[data-tier="DIAMOND"]  { color:#1E88E5; border-color:#BBDEFB; background:#E3F2FD; }
+
+/* ===== 상단 탭 ===== */
+.tabs{
+  display:flex; align-items:stretch;
+  padding:0 20px; border-bottom:2px solid #e7eadf;
+}
+
+/* 탭을 <a>로 쓰되 버튼처럼 보이도록 리셋/정렬 */
+.tabs .tab-btn{
+  /* 링크 기본값 제거 + 버튼 레이아웃 */
+  display:flex; align-items:center; justify-content:center;
+  flex:1 1 0%; min-width:0;
+  text-decoration:none; color:inherit;
+  -webkit-appearance:none; appearance:none;
+
+  /* 기존 버튼과 동일한 톤 */
+  padding:12px 8px; line-height:1; text-align:center;
+  font-weight:800; background:none; border:none; cursor:pointer;
+  color:var(--muted);
+}
+
+/* 링크 상태에서도 스타일 고정 */
+.tabs .tab-btn:link,
+.tabs .tab-btn:visited,
+.tabs .tab-btn:hover,
+.tabs .tab-btn:active{
+  text-decoration:none; color:inherit;
+}
+
+/* 활성 탭 */
+.tabs .tab-btn.active{
+  color:var(--green-700);
+  border-bottom:3px solid var(--green-700);
+}
+
+/* 키보드 포커스 */
+.tabs .tab-btn:focus-visible{
+  outline:2px solid var(--green-500);
+  border-radius:4px;
+}
+
+/* 탭 패널 */
+.tab-content{ padding:12px 20px 20px; }
+.tab-panel{ display:none; }
+.tab-panel.active{ display:block; }   /* JS가 active/hidden 동기화 */
+
+/* ===== 카드 리스트 ===== */
+.cards{
+  list-style:none; margin:0; padding:0;
+  display:grid; gap:8px;
+}
+.card{
+  display:grid;
+  grid-template-columns:48px 1fr auto auto;
+  gap:10px; align-items:center;
+  background:#fff; border:1px solid var(--line); border-radius:12px; padding:12px;
+}
+
+/* ===== [FIX] 링크 카드 한 글자씩 내려가던 문제 ===== */
+/* 부모 그리드를 해제하고 a.link가 레이아웃을 담당 */
+.cards.linkable .card{ display:block; }              /* ✅ 부모 grid 해제 */
+.cards.linkable .card a.link{
+  display:grid;
+  grid-template-columns:48px 1fr auto;               /* 썸네일 | 제목/서브 | 별점 */
+  align-items:center; gap:10px;
+  width:100%; min-width:0;                           /* ✅ 텍스트 말줄임 안정화 */
+  text-decoration:none; color:inherit;
+}
+.cards.linkable .card .meta{ min-width:0; }          /* ✅ 텍스트 컨테이너 폭 보장 */
+.cards.linkable .card .meta .title{
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.cards.linkable .card .meta .sub{
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.cards.linkable .card .rating{ justify-self:end; }   /* ✅ 별점 오른쪽 정렬 */
+
+/* ===== 공통 카드 파트 ===== */
+.card .thumb{
+  width:48px; height:48px; border-radius:8px;
+  background:#ddd; background-size:cover; background-position:center;
+}
+.meta .title{ font-size:14px; font-weight:700; }
+.meta .sub{ font-size:12px; color:var(--muted); }
+.rating{ font-size:13px; color:var(--amber); }
+
+.actions{ display:flex; gap:6px; }
+.icon{
+  border:none; background:#fff; border-radius:8px; padding:6px; cursor:pointer;
+}
+.icon:hover{ background:rgba(0,0,0,0.05); border-radius:6px; }
+
+.empty{
+  margin:24px 0; text-align:center; color:var(--muted); font-size:14px;
+}
+
+/* ===== 하단 탭바(고정) ===== */
+.tabbar{
+  position:fixed; left:50%; transform:translateX(-50%);
+  bottom:0; width:800px; height:var(--tabbar-h);
+  background:#fff; border-top:1px solid var(--line);
+  border-top-left-radius:20px; border-top-right-radius:20px;
+  box-shadow:none;
+  display:flex; align-items:center; justify-content:space-around;
+  padding:0 14px; z-index:10;
+}
+
+/* 하단 탭도 링크 리셋 */
+.tabbar .tab{
+  display:grid; place-items:center;
+  text-decoration:none; color:inherit;
+}
+.tabbar .tab:link,
+.tabbar .tab:visited,
+.tabbar .tab:hover,
+.tabbar .tab:active{
+  text-decoration:none; color:inherit;
+}
+
+.tabbar .tab svg{ width:22px; height:22px; fill:none; stroke:#6b7280; }
+.tabbar .tab .ring{
+  width:44px; height:44px; border-radius:9999px;
+  background:transparent; border:2px solid var(--green-500);
+  display:grid; place-items:center;
+}
+.tabbar .tab.is-active svg{ stroke:#2E7D32; }
+
+/* 하트 인터랙션(호버 시 채움) */
+.heart .heart-outline{ opacity:1; transition:opacity .15s ease, stroke .15s ease; }
+.heart .heart-fill{ opacity:0; transition:opacity .15s ease; }
+.heart:hover .heart-outline,
+.heart:focus-visible .heart-outline{ opacity:0; }
+.heart:hover .heart-fill,
+.heart:focus-visible .heart-fill{ opacity:1; }
+
+/* ===== 바텀 시트 ===== */
+.sheet[aria-hidden="true"]{ display:none; }
+.sheet{
+  position:fixed; left:50%; transform:translateX(-50%);
+  bottom:var(--tabbar-h);
+  width:800px; max-width:calc(100vw - 20px);
+  background:#fff; border:1px solid var(--line); border-radius:12px;
+  box-shadow:none; padding:8px 12px 12px; z-index:11;
+}
+.sheet-handle{
+  width:40px; height:4px; background:#e5e7eb; border-radius:999px; margin:6px auto 10px;
+}
+.sheet-list .item{
+  display:block; padding:14px 8px; border-bottom:1px solid var(--line);
+  color:var(--text); text-decoration:none; background:transparent;
+}
+.sheet-list .item:last-child{ border-bottom:none; }
+.sheet-list .item.danger{ color:#E53935; font-weight:800; }
+
+/* 버튼을 링크처럼 리셋 */
+.sheet-list button.item{
+  all:unset; display:block; width:100%; padding:14px 8px; box-sizing:border-box;
+  cursor:pointer; color:inherit;
+}
+
+/* 키보드 포커스(접근성) */
+.sheet-list button.item:focus-visible{
+  outline:2px solid var(--green-500); border-radius:8px;
+}
+
+/* ===== 모달(프로필 편집) ===== */
+.modal[aria-hidden="true"]{ display:none; }
+.modal{
+  position:fixed; inset:0; z-index:2000;
+  display:flex; align-items:center; justify-content:center; padding:24px;
+}
+.modal .overlay{ position:absolute; inset:0; background:rgba(0,0,0,.25); }
+.modal .dialog{
+  position:relative; width:min(520px,92vw);
+  max-height:min(80vh,720px); overflow:auto;
+  background:#fff; border:1px solid var(--line); border-radius:12px;
+}
+.dialog-head{
+  padding:12px 16px; border-bottom:1px solid var(--line);
+  display:flex; justify-content:space-between; align-items:center; background:#fff;
+}
+.dialog-body{ padding:16px; display:grid; gap:12px; }
+.dialog-foot{
+  padding:10px 16px; border-top:1px solid var(--line);
+  display:flex; gap:8px; justify-content:flex-end; background:#fff;
+}
+
+.row{ display:flex; align-items:center; gap:10px; }
+.row > span{ min-width:88px; color:var(--muted); font-size:13px; }
+.input{
+  width:100%; border:2px solid var(--green-500); border-radius:10px; padding:10px 12px; outline:none;
+}
+.input:focus{ border-color:var(--green-700); box-shadow:0 0 0 3px rgba(46,125,50,.1); }
+.btn-ghost{
+  background:#fff; border:1px solid var(--line); border-radius:10px; padding:10px 14px; font-weight:700; cursor:pointer;
+}
+.btn.success{
+  background:var(--green-700); color:#fff; border:none; border-radius:10px; padding:10px 14px; font-weight:700; cursor:pointer;
+}
+
+/* ===== 스크린리더 전용 유틸 ===== */
+.sr-only{
+  position:absolute !important; width:1px; height:1px; padding:0; margin:-1px;
+  overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+}

@@ -2,8 +2,10 @@ package SITE.RECIPICK.RECIPICK_PROJECT.service;
 
 import java.time.Duration;
 import java.util.UUID;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
@@ -70,14 +72,13 @@ public class S3Service {
         PresignedPutObjectRequest presignedRequest = s3Presigner.presignPutObject(presignRequest);
 
         // 최종 파일 URL (업로드 완료 후 접근 가능한 URL)
-        String fileUrl = String.format("https://%s.s3.%s.amazonaws.com/%s", bucketName, region, key);
+        String fileUrl =
+                String.format("https://%s.s3.%s.amazonaws.com/%s", bucketName, region, key);
 
         return new PresignedUrlResponse(presignedRequest.url().toString(), fileUrl, key);
     }
 
-    /**
-     * 고유한 파일명 생성 (UUID + 원본 파일명)
-     */
+    /** 고유한 파일명 생성 (UUID + 원본 파일명) */
     private String generateUniqueFileName(String originalFileName) {
         String uuid = UUID.randomUUID().toString().substring(0, 8);
         String extension = "";
@@ -90,9 +91,7 @@ public class S3Service {
         return uuid + "_" + originalFileName + extension;
     }
 
-    /**
-     * Presigned URL 응답 DTO
-     */
+    /** Presigned URL 응답 DTO */
     public static class PresignedUrlResponse {
         private final String uploadUrl;
         private final String fileUrl;

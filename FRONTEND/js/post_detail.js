@@ -73,6 +73,9 @@ let commentsData = [
 let hasUserCommented = false;
 let currentUserRating = 0;
 
+// 좋아요 상태 (실제로는 서버에서 확인)
+let isLiked = false;
+
 // 페이지 로드시 실행
 document.addEventListener("DOMContentLoaded", function () {
     // URL에서 레시피 ID 추출 (예: /recipe/123)
@@ -86,9 +89,12 @@ document.addEventListener("DOMContentLoaded", function () {
     renderRecipeData(sampleRecipeData);
     initializeCommentSystem();
     renderComments();
-    
+
     // 슬라이드 메뉴 이벤트 리스너 추가
     initializeSlideMenu();
+
+    // 좋아요 상태 초기화
+    initializeLikeButton();
 });
 
 // 슬라이드 메뉴 초기화
@@ -102,242 +108,6 @@ function initializeSlideMenu() {
         }
     });
 }
-
-// 댓글 시스템 초기화
-function initializeCommentSystem() {
-    const stars = document.querySelectorAll(".star");
-    const ratingText = document.getElementById("ratingText");
-    const submitButton = document.getElementById("submitComment");
-
-    // 별점 클릭 이벤트
-    stars.forEach((star, index) => {
-        star.addEventListener("click", function (e) {
-            const rect = star.getBoundingClientRect();
-            const clickX = e.clientX - rect.left;
-            const starWidth = rect.width;
-
-            // 클릭 위치에 따라 0.5 또는 1점 결정
-            const isHalf = clickX < starWidth / 2;
-            const rating = index + (isHalf ? 0.5 : 1);
-
-            setRating(rating);
-            updateRatingText(rating);
-        });
-
-        // 호버 효과
-        star.addEventListener("mouseenter", function (e) {
-            const rect = star.getBoundingClientRect();
-            const mouseX = e.clientX - rect.left;
-            const starWidth = rect.width;
-            const isHalf = mouseX < starWidth / 2;
-            const hoverRating = index + (isHalf ? 0.5 : 1);
-
-            previewRating(hoverRating);
-        });
-
-        star.addEventListener("mousemove", function (e) {
-            const rect = star.getBoundingClientRect();
-            const mouseX = e.clientX - rect.left;
-            const starWidth = rect.width;
-            const isHalf = mouseX < starWidth / 2;
-            const hoverRating = index + (isHalf ? 0.5 : 1);
-
-            previewRating(hoverRating);
-        });
-    });
-
-    // 별점 영역을 벗어날 때 원래 상태로 복원
-    document.getElementById("starRating").addEventListener("mouseleave", function () {
-        setRating(currentUserRating);
-    });
-
-    // 댓글 제출
-    submitButton.addEventListener("click", function () {
-        submitComment();
-    });
-
-    // 이미 댓글을 작성했는지 확인 (실제로는 서버에서)
-    checkUserCommentStatus();
-}
-
-// 별점 설정
-function setRating(rating) {
-    const stars = document.querySelectorAll(".star");
-
-    stars.forEach((star, index) => {
-        const starRating = index + 1;
-        star.classList.remove("filled", "half-filled");
-
-        if (rating >= starRating) {
-            star.classList.add("filled");
-        } else if (rating >= starRating - 0.5) {
-            star.classList.add("half-filled");
-        }
-    });
-}
-
-// 별점 미리보기
-function previewRating(rating) {
-    setRating(rating);
-    updateRatingText(rating);
-}
-
-// 별점 텍스트 업데이트
-function updateRatingText(rating) {
-    const ratingText = document.getElementById("ratingText");
-    if (rating === 0) {
-        ratingText.textContent = "별점을 선택해주세요";
-    } else {
-        const ratingTexts = {
-            0.5: "별로예요",
-            1: "별로예요",
-            1.5: "그저 그래요",
-            2: "그저 그래요",
-            2.5: "괜찮아요",
-            3: "괜찮아요",
-            3.5: "좋아요",
-            4: "좋아요",
-            4.5: "훌륭해요",
-            5: "최고예요!",
-        };
-        ratingText.textContent = `${rating}점 - ${ratingTexts[rating]}`;
-    }
-}
-
-// 사용자 댓글 작성 여부 확인
-function checkUserCommentStatus() {
-    // 실제로는 서버 API 호출
-    // 여기서는 데모용으로 localStorage 사용
-    const recipeId = "sample-recipe"; // 실제로는 현재 레시피 ID
-    const userComment = localStorage.getItem(`comment_${recipeId}`);
-
-    if (userComment) {
-        hasUserCommented = true;
-        showAlreadyCommentedMessage();
-    }
-}
-
-// 이미 댓글 작성 완료 메시지 표시
-function showAlreadyCommentedMessage() {
-    const commentForm = document.getElementById("commentForm");
-    commentForm.innerHTML = `
-    <div class="already-commented">
-      이미 이 레시피에 댓글을 작성하셨습니다.
-    </div>
-  `;
-    commentForm.classList.add("disabled");
-}
-
-// 댓글 제출
-function submitComment() {
-    if (hasUserCommented) {
-        alert("이미 댓글을 작성하셨습니다.");
-        return;
-    }
-
-    const rating = currentUserRating;
-    const commentText = document.getElementById("commentText").value.trim();
-
-    if (rating === 0) {
-        alert("별점을 선택해주세요.");
-        return;
-    }
-
-    if (commentText === "") {
-        alert("댓글을 입력해주세요.");
-        return;
-    }
-
-    // 실제로는 서버에 전송
-    const newComment = {
-        id: Date.now(),
-        user: "현재사용자", // 실제로는 로그인된 사용자 정보
-        rating: rating,
-        text: commentText,
-        date: new Date().toISOString().split("T")[0],
-    };
-
-    // 댓글 추가
-    commentsData.unshift(newComment);
-
-    // localStorage에 저장 (실제로는 서버 처리)
-    const recipeId = "sample-recipe";
-    localStorage.setItem(`comment_${recipeId}`, JSON.stringify(newComment));
-
-    // 댓글 작성 완료 처리
-    hasUserCommented = true;
-    showAlreadyCommentedMessage();
-    renderComments();
-
-    alert("댓글이 등록되었습니다!");
-}
-
-// 댓글 목록 렌더링
-function renderComments() {
-    const container = document.getElementById("commentsList");
-
-    if (commentsData.length === 0) {
-        container.innerHTML = '<div class="no-comments">첫 댓글을 작성해보세요!</div>';
-        return;
-    }
-
-    container.innerHTML = "";
-
-    commentsData.forEach((comment) => {
-        const commentItem = document.createElement("div");
-        commentItem.className = "comment-item";
-        commentItem.innerHTML = `
-      <div class="comment-header">
-        <span class="comment-user">${comment.user}</span>
-        <div class="comment-rating">${renderCommentStars(comment.rating)}</div>
-        <span class="comment-date">${comment.date}</span>
-      </div>
-      <div class="comment-text">${comment.text}</div>
-    `;
-        container.appendChild(commentItem);
-    });
-}
-
-// 댓글의 별점 렌더링
-function renderCommentStars(rating) {
-    let starsHtml = "";
-
-    for (let i = 1; i <= 5; i++) {
-        let starClass = "comment-star";
-        if (rating >= i) {
-            starClass += " filled";
-        } else if (rating >= i - 0.5) {
-            starClass += " half-filled";
-        }
-
-        starsHtml += `
-      <div class="${starClass}">
-        <svg viewBox="0 0 24 24">
-          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-        </svg>
-      </div>
-    `;
-    }
-
-    return starsHtml;
-}
-
-// 별점 클릭 시 현재 선택값 저장
-document.addEventListener("click", function (e) {
-    if (e.target.closest(".star")) {
-        const star = e.target.closest(".star");
-        const stars = document.querySelectorAll(".star");
-        const index = Array.from(stars).indexOf(star);
-
-        const rect = star.getBoundingClientRect();
-        const clickX = e.clientX - rect.left;
-        const starWidth = rect.width;
-        const isHalf = clickX < starWidth / 2;
-
-        currentUserRating = index + (isHalf ? 0.5 : 1);
-    }
-});
-
 // 실제 레시피 데이터 로드 함수
 async function loadRecipeData(recipeId) {
     try {
@@ -536,3 +306,80 @@ document.addEventListener('keydown', function(e) {
         closeSlideMenu();
     }
 });
+
+// 좋아요 버튼 초기화
+function initializeLikeButton() {
+    // 현재 레시피의 좋아요 상태를 로컬스토리지에서 확인 (실제로는 서버 API 호출)
+    const recipeId = "sample-recipe"; // 실제로는 현재 레시피 ID
+    const likedRecipes = JSON.parse(localStorage.getItem('likedRecipes') || '[]');
+
+    isLiked = likedRecipes.includes(recipeId);
+    updateLikeButtonState();
+}
+
+// 좋아요 토글 함수
+function toggleLike() {
+    const recipeId = "sample-recipe"; // 실제로는 현재 레시피 ID
+
+    // 좋아요 상태 토글
+    isLiked = !isLiked;
+
+    // 로컬스토리지 업데이트 (실제로는 서버 API 호출)
+    let likedRecipes = JSON.parse(localStorage.getItem('likedRecipes') || '[]');
+
+    if (isLiked) {
+        // 좋아요 추가
+        if (!likedRecipes.includes(recipeId)) {
+            likedRecipes.push(recipeId);
+        }
+        console.log('레시피 좋아요 추가');
+    } else {
+        // 좋아요 제거
+        likedRecipes = likedRecipes.filter(id => id !== recipeId);
+        console.log('레시피 좋아요 제거');
+    }
+
+    localStorage.setItem('likedRecipes', JSON.stringify(likedRecipes));
+
+    // UI 업데이트
+    updateLikeButtonState();
+
+    // 실제 환경에서는 서버에 좋아요 상태 전송
+    // await updateLikeStatus(recipeId, isLiked);
+}
+
+// 좋아요 버튼 상태 업데이트
+function updateLikeButtonState() {
+    const likeButton = document.getElementById('likeButton');
+
+    if (isLiked) {
+        likeButton.classList.add('liked');
+    } else {
+        likeButton.classList.remove('liked');
+    }
+}
+
+// 서버에 좋아요 상태 업데이트 (실제 구현 시 사용)
+async function updateLikeStatus(recipeId, liked) {
+    try {
+        const response = await fetch(`/api/recipes/${recipeId}/like`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ liked: liked }),
+        });
+
+        if (!response.ok) {
+            throw new Error('좋아요 상태 업데이트 실패');
+        }
+
+        console.log('서버에 좋아요 상태 업데이트 완료');
+    } catch (error) {
+        console.error('좋아요 상태 업데이트 에러:', error);
+        // 에러 발생 시 상태 되돌리기
+        isLiked = !isLiked;
+        updateLikeButtonState();
+        alert('좋아요 처리 중 오류가 발생했습니다.');
+    }
+}

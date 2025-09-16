@@ -1,5 +1,3 @@
 package SITE.RECIPICK.RECIPICK_PROJECT.util;
 
-public class PostUtil {
-
-}
+public class PostUtil {}

@@ -1,51 +1,145 @@
 package SITE.RECIPICK.RECIPICK_PROJECT.controller;
 
-import SITE.RECIPICK.RECIPICK_PROJECT.dto.ReviewDto;
+import SITE.RECIPICK.RECIPICK_PROJECT.dto.ReviewRequestDto;
 import SITE.RECIPICK.RECIPICK_PROJECT.dto.ReviewResponseDto;
+import SITE.RECIPICK.RECIPICK_PROJECT.dto.ReviewStatsDto;
 import SITE.RECIPICK.RECIPICK_PROJECT.service.ReviewService;
+import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@RequestMapping("/api/reviews")
 @RequiredArgsConstructor
-@RequestMapping("/api/posts")
 public class ReviewController {
 
   private final ReviewService reviewService;
 
-  // 1. Create a review for a post
-  @PostMapping("/{postId}/reviews")
+  /**
+   * 리뷰 작성
+   */
+  @PostMapping
   public ResponseEntity<ReviewResponseDto> createReview(
-      @PathVariable Integer postId,
-      @RequestBody ReviewDto requestDto) {
-    ReviewResponseDto createdReview = reviewService.createReview(postId, requestDto);
-    return ResponseEntity.status(HttpStatus.CREATED).body(createdReview);
+      @Valid @RequestBody ReviewRequestDto requestDto,
+      HttpSession session) {
+
+    Integer userId = getUserIdFromSession(session);
+    ReviewResponseDto response = reviewService.createReview(userId, requestDto);
+
+    return ResponseEntity.ok(response);
   }
 
-  // 2. Get all reviews for a post
-  @GetMapping("/{postId}/reviews")
-  public ResponseEntity<List<ReviewResponseDto>> getReviewsByPost(@PathVariable Integer postId) {
-    List<ReviewResponseDto> reviews = reviewService.getReviewsByPostId(postId);
+  /**
+   * 특정 게시글의 리뷰 목록 조회
+   */
+  @GetMapping("/post/{postId}")
+  public ResponseEntity<Page<ReviewResponseDto>> getReviewsByPostId(
+      @PathVariable Integer postId,
+      @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+
+    Page<ReviewResponseDto> reviews = reviewService.getReviewsByPostId(postId, pageable);
+
     return ResponseEntity.ok(reviews);
   }
 
-  // 3. Update a review
-  @PutMapping("/reviews/{reviewId}")
-  public ResponseEntity<ReviewResponseDto> updateReview(
-      @PathVariable Long reviewId,
-      @RequestBody ReviewDto requestDto) {
-    ReviewResponseDto updatedReview = reviewService.updateReview(reviewId, requestDto);
-    return ResponseEntity.ok(updatedReview);
+  /**
+   * 특정 게시글의 리뷰 통계 조회
+   */
+  @GetMapping("/post/{postId}/stats")
+  public ResponseEntity<ReviewStatsDto> getReviewStats(@PathVariable Integer postId) {
+    ReviewStatsDto stats = reviewService.getReviewStats(postId);
+
+    return ResponseEntity.ok(stats);
   }
 
-  // 4. Delete a review
-  @DeleteMapping("/reviews/{reviewId}")
-  public ResponseEntity<Void> deleteReview(@PathVariable Long reviewId) {
-    reviewService.deleteReview(reviewId);
+  /**
+   * 리뷰 수정
+   */
+  @PatchMapping("/{reviewId}")
+  public ResponseEntity<ReviewResponseDto> updateReview(
+      @PathVariable Integer reviewId,
+      @Valid @RequestBody ReviewRequestDto requestDto,
+      HttpSession session) {
+
+    Integer userId = getUserIdFromSession(session);
+    ReviewResponseDto response = reviewService.updateReview(userId, reviewId, requestDto);
+
+    return ResponseEntity.ok(response);
+  }
+
+  /**
+   * 리뷰 삭제
+   */
+  @DeleteMapping("/{reviewId}")
+  public ResponseEntity<Void> deleteReview(
+      @PathVariable Integer reviewId,
+      HttpSession session) {
+
+    Integer userId = getUserIdFromSession(session);
+    reviewService.deleteReview(userId, reviewId);
+
     return ResponseEntity.noContent().build();
+  }
+
+  /**
+   * 사용자의 리뷰 작성 여부 확인
+   */
+  @GetMapping("/post/{postId}/user-status")
+  public ResponseEntity<Boolean> hasUserReviewedPost(
+      @PathVariable Integer postId,
+      HttpSession session) {
+
+    Integer userId = getUserIdFromSession(session);
+    boolean hasReviewed = reviewService.hasUserReviewedPost(userId, postId);
+
+    return ResponseEntity.ok(hasReviewed);
+  }
+
+  /**
+   * 사용자의 특정 게시글 리뷰 조회
+   */
+  @GetMapping("/post/{postId}/user-review")
+  public ResponseEntity<ReviewResponseDto> getUserReviewForPost(
+      @PathVariable Integer postId,
+      HttpSession session) {
+
+    Integer userId = getUserIdFromSession(session);
+    ReviewResponseDto review = reviewService.getUserReviewForPost(userId, postId);
+
+    return ResponseEntity.ok(review);
+  }
+
+  /**
+   * 리뷰 신고
+   */
+  @PostMapping("/{reviewId}/report")
+  public ResponseEntity<Void> reportReview(@PathVariable Integer reviewId) {
+    reviewService.reportReview(reviewId);
+
+    return ResponseEntity.ok().build();
+  }
+
+  /**
+   * 세션에서 사용자 ID 가져오기
+   */
+  private Integer getUserIdFromSession(HttpSession session) {
+    Integer userId = (Integer) session.getAttribute("userId");
+    if (userId == null) {
+      throw new IllegalArgumentException("로그인이 필요합니다.");
+    }
+    return userId;
   }
 }

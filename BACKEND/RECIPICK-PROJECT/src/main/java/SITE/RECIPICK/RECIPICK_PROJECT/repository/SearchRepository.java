@@ -27,13 +27,13 @@ public interface SearchRepository extends JpaRepository<PostEntity, Long> {
               -- 메인 재료 직접 매칭 점수
               COALESCE(SUM(CASE WHEN i.name IN :mainIngredients THEN 1 ELSE 0 END), 0) AS main_direct_score,
               -- 메인 재료 카테고리 매칭 점수 (post의 ckg_category 기준)
-              CASE WHEN p.ckg_category IN :mainIngredients THEN 0.5 ELSE 0 END AS main_category_score,
+              COALESCE(SUM(CASE WHEN i.sort IN :mainIngredients THEN 0.5 ELSE 0 END), 0) AS main_category_score,
               -- 서브 재료 매칭 점수
               COALESCE(SUM(CASE WHEN i.name IN :subIngredients THEN 1 ELSE 0 END), 0) AS sub_score
           FROM post p
           LEFT JOIN recipe_ingredient ri ON p.post_id = ri.post_id
           LEFT JOIN ingredient i ON ri.ing_id = i.ing_id
-          GROUP BY p.post_id, p.title, p.food_name, p.rcp_img_url, p.view_count, p.like_count, p.created_at, p.ckg_category
+          GROUP BY p.post_id, p.title, p.food_name, p.rcp_img_url, p.view_count, p.like_count, p.created_at
       )
       SELECT 
           post_id AS postId,
@@ -77,7 +77,6 @@ public interface SearchRepository extends JpaRepository<PostEntity, Long> {
       LEFT JOIN recipe_ingredient ri ON p.post_id = ri.post_id
       LEFT JOIN ingredient i ON ri.ing_id = i.ing_id
       WHERE 
-          -- 메인 재료가 직접 매칭되거나 카테고리로 매칭되어야 함
           (i.name IN :mainIngredients OR p.ckg_category IN :mainIngredients)
       """, nativeQuery = true)
   int countSearchByIngredients(@Param("mainIngredients") List<String> mainIngredients);
@@ -119,6 +118,43 @@ public interface SearchRepository extends JpaRepository<PostEntity, Long> {
       """, nativeQuery = true)
   int countSearchByTitle(@Param("title") String title);
 
+  /**
+   * 카테고리로 레시피 검색
+   */
+  @Query(value = """
+          SELECT p.post_id AS postId,
+                 p.title AS title,
+                 p.food_name AS foodName,
+                 p.rcp_img_url AS rcpImgUrl,
+                 p.view_count AS viewCount,
+                 p.like_count AS likeCount,
+                 p.created_at AS createdAt
+          FROM post p
+          WHERE p.ckg_category = :category
+          ORDER BY
+              CASE WHEN :sort = 'views' THEN p.view_count END DESC,
+              CASE WHEN :sort = 'likes' THEN p.like_count END DESC,
+              CASE WHEN :sort = 'latest' THEN p.created_at END DESC,
+              p.created_at DESC
+          LIMIT :limit OFFSET :offset
+      """, nativeQuery = true)
+  List<Object[]> searchByCategory(
+      @Param("category") String category,
+      @Param("sort") String sort,
+      @Param("limit") int limit,
+      @Param("offset") int offset
+  );
+
+  /**
+   * 카테고리로 레시피 개수 조회
+   */
+  @Query(value = """
+          SELECT COUNT(p.post_id)
+          FROM post p
+          WHERE p.ckg_category = :category
+      """, nativeQuery = true)
+  int countSearchByCategory(@Param("category") String category);
+  
   /**
    * 인기/전체 레시피 조회
    */

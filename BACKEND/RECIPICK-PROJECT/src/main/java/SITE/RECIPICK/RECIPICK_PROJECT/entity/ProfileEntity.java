@@ -51,5 +51,4 @@ public class ProfileEntity {
   public void changeGrade(UserGrade grade) {
     this.grade = grade;
   }
-
 }

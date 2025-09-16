@@ -7,5 +7,5 @@ import lombok.Setter;
 @Setter
 public class UpdateUserActiveRequest {
 
-  private boolean active; // true=활성, false=정지
+    private boolean active; // true=활성, false=정지
 }

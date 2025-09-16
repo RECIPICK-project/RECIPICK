@@ -4,9 +4,11 @@ import SITE.RECIPICK.RECIPICK_PROJECT.config.CurrentUserProvider;
 import SITE.RECIPICK.RECIPICK_PROJECT.dto.MyProfileResponse;
 import SITE.RECIPICK.RECIPICK_PROJECT.dto.NicknameUpdateRequest;
 import SITE.RECIPICK.RECIPICK_PROJECT.dto.PostDto;
+import SITE.RECIPICK.RECIPICK_PROJECT.dto.PostUpdateRequest;
 import SITE.RECIPICK.RECIPICK_PROJECT.repository.ProfileRepository;
 import SITE.RECIPICK.RECIPICK_PROJECT.repository.UserRepository;
 import SITE.RECIPICK.RECIPICK_PROJECT.service.MyPageService;
+import SITE.RECIPICK.RECIPICK_PROJECT.service.MyPostCommandService;
 import SITE.RECIPICK.RECIPICK_PROJECT.util.CurrentUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -20,11 +22,14 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -45,6 +50,7 @@ public class MyPageController {
   private final MyPageService myPageService;
   private final CurrentUser currentUser;
   private final CurrentUserProvider currentUserProvider;
+  private final MyPostCommandService svc;
   private final ProfileRepository profileRepository;
   private final UserRepository userRepository;
 
@@ -160,5 +166,53 @@ public class MyPageController {
   ) {
     Integer me = currentUserProvider.getCurrentUserId();
     return myPageService.getMyLikedPosts(me, offset, limit);
+  }
+
+  @PatchMapping("/{postId}")
+  @Operation(
+      summary = "임시 레시피 수정",
+      description =
+          """
+              본인이 작성한 임시 레시피를 수정합니다.
+              - 정식 레시피는 수정 불가
+              - 부분 수정 지원 (넘어온 필드만 업데이트)
+              - 수정 성공 시 최신 상태 DTO 반환
+              """)
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "수정 성공"),
+      @ApiResponse(responseCode = "400", description = "잘못된 요청"),
+      @ApiResponse(responseCode = "403", description = "권한 없음"),
+      @ApiResponse(responseCode = "404", description = "게시글 없음"),
+      @ApiResponse(responseCode = "409", description = "정식 레시피 수정 시도"),
+      @ApiResponse(responseCode = "500", description = "서버 오류")
+  })
+  public PostDto updateTemp(
+      @Parameter(description = "게시글 ID", required = true) @PathVariable Integer postId,
+      @RequestBody PostUpdateRequest req) {
+    Integer userId = currentUser.userId(); // ★ 여기
+    return svc.updateMyTempPost(userId, postId, req); // ★ 서비스 시그니처에 맞게
+  }
+
+  @DeleteMapping("/{postId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+      summary = "임시 레시피 삭제",
+      description =
+          """
+              본인이 작성한 임시 레시피를 삭제합니다.
+              - 정식 레시피는 삭제 불가
+              - 성공 시 204(No Content) 반환
+              """)
+  @ApiResponses({
+      @ApiResponse(responseCode = "204", description = "삭제 성공"),
+      @ApiResponse(responseCode = "403", description = "권한 없음"),
+      @ApiResponse(responseCode = "404", description = "게시글 없음"),
+      @ApiResponse(responseCode = "409", description = "정식 레시피 삭제 시도"),
+      @ApiResponse(responseCode = "500", description = "서버 오류")
+  })
+  public void deleteTemp(
+      @Parameter(description = "게시글 ID", required = true) @PathVariable Integer postId) {
+    Integer userId = currentUser.userId(); // ★ 여기
+    svc.deleteMyTempPost(userId, postId); // ★ 서비스 시그니처에 맞게
   }
 }

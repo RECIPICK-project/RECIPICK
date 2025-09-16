@@ -9,14 +9,14 @@ import lombok.Setter;
 @Setter
 public class GradeUpdateRequest {
 
-  @Schema(example = "GOLD", description = "등급(BRONZE|SILVER|GOLD)")
-  private String grade;
+    @Schema(example = "GOLD", description = "등급(BRONZE|SILVER|GOLD)")
+    private String grade;
 
-  public UserGrade toEnum() {
-    try {
-      return UserGrade.valueOf(grade.toUpperCase());
-    } catch (Exception e) {
-      throw new IllegalArgumentException("INVALID_GRADE");
+    public UserGrade toEnum() {
+        try {
+            return UserGrade.valueOf(grade.toUpperCase());
+        } catch (Exception e) {
+            throw new IllegalArgumentException("INVALID_GRADE");
+        }
     }
-  }
 }

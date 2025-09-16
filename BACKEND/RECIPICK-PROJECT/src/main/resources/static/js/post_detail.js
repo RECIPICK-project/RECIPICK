@@ -73,6 +73,9 @@ let commentsData = [
 let hasUserCommented = false;
 let currentUserRating = 0;
 
+// 좋아요 상태 (실제로는 서버에서 확인)
+let isLiked = false;
+
 // 페이지 로드시 실행
 document.addEventListener("DOMContentLoaded", function () {
     // URL에서 레시피 ID 추출 (예: /recipe/123)
@@ -86,9 +89,12 @@ document.addEventListener("DOMContentLoaded", function () {
     renderRecipeData(sampleRecipeData);
     initializeCommentSystem();
     renderComments();
-    
+
     // 슬라이드 메뉴 이벤트 리스너 추가
     initializeSlideMenu();
+
+    // 좋아요 상태 초기화
+    initializeLikeButton();
 });
 
 // 슬라이드 메뉴 초기화
@@ -300,3 +306,80 @@ document.addEventListener('keydown', function(e) {
         closeSlideMenu();
     }
 });
+
+// 좋아요 버튼 초기화
+function initializeLikeButton() {
+    // 현재 레시피의 좋아요 상태를 로컬스토리지에서 확인 (실제로는 서버 API 호출)
+    const recipeId = "sample-recipe"; // 실제로는 현재 레시피 ID
+    const likedRecipes = JSON.parse(localStorage.getItem('likedRecipes') || '[]');
+
+    isLiked = likedRecipes.includes(recipeId);
+    updateLikeButtonState();
+}
+
+// 좋아요 토글 함수
+function toggleLike() {
+    const recipeId = "sample-recipe"; // 실제로는 현재 레시피 ID
+
+    // 좋아요 상태 토글
+    isLiked = !isLiked;
+
+    // 로컬스토리지 업데이트 (실제로는 서버 API 호출)
+    let likedRecipes = JSON.parse(localStorage.getItem('likedRecipes') || '[]');
+
+    if (isLiked) {
+        // 좋아요 추가
+        if (!likedRecipes.includes(recipeId)) {
+            likedRecipes.push(recipeId);
+        }
+        console.log('레시피 좋아요 추가');
+    } else {
+        // 좋아요 제거
+        likedRecipes = likedRecipes.filter(id => id !== recipeId);
+        console.log('레시피 좋아요 제거');
+    }
+
+    localStorage.setItem('likedRecipes', JSON.stringify(likedRecipes));
+
+    // UI 업데이트
+    updateLikeButtonState();
+
+    // 실제 환경에서는 서버에 좋아요 상태 전송
+    // await updateLikeStatus(recipeId, isLiked);
+}
+
+// 좋아요 버튼 상태 업데이트
+function updateLikeButtonState() {
+    const likeButton = document.getElementById('likeButton');
+
+    if (isLiked) {
+        likeButton.classList.add('liked');
+    } else {
+        likeButton.classList.remove('liked');
+    }
+}
+
+// 서버에 좋아요 상태 업데이트 (실제 구현 시 사용)
+async function updateLikeStatus(recipeId, liked) {
+    try {
+        const response = await fetch(`/api/recipes/${recipeId}/like`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ liked: liked }),
+        });
+
+        if (!response.ok) {
+            throw new Error('좋아요 상태 업데이트 실패');
+        }
+
+        console.log('서버에 좋아요 상태 업데이트 완료');
+    } catch (error) {
+        console.error('좋아요 상태 업데이트 에러:', error);
+        // 에러 발생 시 상태 되돌리기
+        isLiked = !isLiked;
+        updateLikeButtonState();
+        alert('좋아요 처리 중 오류가 발생했습니다.');
+    }
+}

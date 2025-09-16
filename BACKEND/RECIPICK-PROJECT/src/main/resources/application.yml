@@ -3,27 +3,18 @@ spring:
     active: local
 
 ---
-
 spring:
   config:
     activate:
       on-profile: local
 
-  security:
-    oauth2:
-      client:
-        registration:
-          google:
-            client-id: ${GOOGLE_CLIENT_ID}
-            client-secret: ${GOOGLE_CLIENT_SECRET}
-            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
-            authorization-grant-type: authorization_code
-            client-authentication-method: client_secret_basic
-            scope: [openid, profile, email]
-        provider:
-          google:
-            issuer-uri: https://accounts.google.com
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 50MB
+      max-request-size: 50MB
 
+  # ✅ 여기가 맞습니다 (원문은 server.mail 아래에 있었음)
   mail:
     host: smtp.gmail.com
     port: 587
@@ -40,12 +31,29 @@ spring:
           timeout: 5000
           writetimeout: 5000
         debug: true
+    default-encoding: UTF-8
+
+  # ✅ 보안(OAuth2)도 spring.security 아래로
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            authorization-grant-type: authorization_code
+            client-authentication-method: client_secret_basic
+            scope: [openid, profile, email]
+        provider:
+          google:
+            issuer-uri: https://accounts.google.com
 
   datasource:
-    url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
+    url: ${DB_URL}
+    driver-class-name: ${DB_DRIVER}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
 
   jpa:
     hibernate:
@@ -58,3 +66,8 @@ spring:
   h2:
     console:
       enabled: true
+
+server:
+  tomcat:
+    max-http-form-post-size: -1
+

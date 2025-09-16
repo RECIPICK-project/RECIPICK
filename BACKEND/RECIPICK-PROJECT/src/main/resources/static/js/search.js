@@ -232,38 +232,55 @@ function setupPickerLayout() {
   `;
 }
 
+// --- 모달 열기 ---
 function openModal() {
   // 현재 스크롤 위치 저장
   const scrollY = window.scrollY;
-  
+
+  // 모달 열기
   picker.setAttribute('aria-hidden', 'false');
-  document.body.classList.add('modal-open'); // 클래스로 변경
-  
-  // 스크롤 위치 복원을 위해 저장
+  picker.inert = false; // 접근성 활성화
+  document.body.classList.add('modal-open');
+
+  // 스크롤 위치 고정
   document.body.style.top = `-${scrollY}px`;
-  
+
+  // 모달 내 첫 포커스 요소로 이동
+  setTimeout(() => {
+    const firstFocusable = picker.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+    if (firstFocusable) firstFocusable.focus();
+  }, 50);
+
+  // 모달 레이아웃 초기화 및 추천 재료 렌더링
   pickerInput.value = '';
   setupPickerLayout();
   updatePicker('');
-  setTimeout(() => pickerInput.focus(), 100);
 }
 
-/**
- * 모달 닫기 
- */
+// --- 모달 닫기 ---
 function closeModal() {
+  if (!picker) return;
+
+  // 모달 내 포커스 제거
+  if (document.activeElement && picker.contains(document.activeElement)) {
+    document.activeElement.blur();
+  }
+
+  // 모달 숨기기
   picker.setAttribute('aria-hidden', 'true');
-  
-  // 저장된 스크롤 위치 복원
-  const scrollY = document.body.style.top;
+  picker.inert = true; // 접근성 차단
   document.body.classList.remove('modal-open');
+
+  // 스크롤 위치 복원
+  const scrollY = document.body.style.top;
   document.body.style.top = '';
-  
   if (scrollY) {
     window.scrollTo(0, parseInt(scrollY || '0') * -1);
   }
-}
 
+  // 모달 닫힌 후 포커스를 모달 열기 버튼으로 복귀
+  if (openPickerBtn) openPickerBtn.focus();
+}
 // --- 영수증 업로드 관련 함수들 ---
 
 /**
@@ -482,74 +499,87 @@ function openFileDialog() {
  */
 function initializeEventListeners() {
   // 재료 추가 모달 열기
-  openPickerBtn.addEventListener('click', openModal);
+  if (openPickerBtn) {
+    openPickerBtn.addEventListener('click', openModal);
+  }
 
   // 재료 추가 모달 닫기
-  closePickerBtn.addEventListener('click', closeModal);
+  if (closePickerBtn) {
+    closePickerBtn.addEventListener('click', closeModal);
+  }
 
   // 오버레이 클릭으로 모달 닫기
-  picker.addEventListener('click', (e) => {
-    if (e.target.hasAttribute('data-close')) {
-      closeModal();
-    }
-  });
+  if (picker) {
+    picker.addEventListener('click', (e) => {
+      if (e.target.hasAttribute('data-close')) {
+        closeModal();
+      }
+    });
+  }
 
   // ESC 키로 모달 닫기
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && picker.getAttribute('aria-hidden') === 'false') {
+    if (e.key === 'Escape' && picker && picker.getAttribute('aria-hidden') === 'false') {
       closeModal();
     }
   });
 
   // 재료 검색 인풋
-  pickerInput.addEventListener('input', () => {
-    clearTimeout(debounceTimer);
-    const keyword = pickerInput.value.trim();
-    debounceTimer = setTimeout(() => {
-      updatePicker(keyword);
-    }, 300);
-  });
+  if (pickerInput) {
+    pickerInput.addEventListener('input', () => {
+      clearTimeout(debounceTimer);
+      const keyword = pickerInput.value.trim();
+      debounceTimer = setTimeout(() => {
+        updatePicker(keyword);
+      }, 300);
+    });
+  }
 
   // 검색 버튼 클릭
-  searchBtn.addEventListener('click', () => {
-    if (searchBtn.disabled) return;
+  if (searchBtn) {
+    searchBtn.addEventListener('click', () => {
+      if (searchBtn.disabled) return;
 
-    const mainIngredients = selected.filter(x => x.main).map(x => x.name);
-    const subIngredients = selected.filter(x => !x.main).map(x => x.name);
-    const params = new URLSearchParams();
+      const mainIngredients = selected.filter(x => x.main).map(x => x.name);
+      const subIngredients = selected.filter(x => !x.main).map(x => x.name);
+      const params = new URLSearchParams();
 
-    mainIngredients.forEach(ing => params.append('main', ing));
-    subIngredients.forEach(ing => params.append('sub', ing));
-    params.append('searchType', 'ingredients');
+      mainIngredients.forEach(ing => params.append('main', ing));
+      subIngredients.forEach(ing => params.append('sub', ing));
+      params.append('searchType', 'ingredients');
 
-    window.location.href = `search_home.html?${params.toString()}`;
-  });
+      window.location.href = `search_home.html?${params.toString()}`;
+    });
+  }
 
   // 카메라 버튼 (영수증 업로드)
-  cameraBtn.addEventListener('click', openFileDialog);
+  if (cameraBtn) {
+    cameraBtn.addEventListener('click', openFileDialog);
+  }
 
   // 드래그 앤 드롭 지원
   const dropZone = document.querySelector('.phone.search-page');
+  if (dropZone) {
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.style.backgroundColor = '#f0f8f0';
+    });
 
-  dropZone.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    dropZone.style.backgroundColor = '#f0f8f0';
-  });
+    dropZone.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      dropZone.style.backgroundColor = '';
+    });
 
-  dropZone.addEventListener('dragleave', (e) => {
-    e.preventDefault();
-    dropZone.style.backgroundColor = '';
-  });
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.style.backgroundColor = '';
 
-  dropZone.addEventListener('drop', (e) => {
-    e.preventDefault();
-    dropZone.style.backgroundColor = '';
-
-    const files = e.dataTransfer.files;
-    if (files.length > 0) {
-      handleReceiptUpload(files[0]);
-    }
-  });
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        handleReceiptUpload(files[0]);
+      }
+    });
+  }
 }
 
 // --- 초기화 ---

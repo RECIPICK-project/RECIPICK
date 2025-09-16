@@ -34,7 +34,7 @@ public class SearchController {
       @RequestParam(required = false) List<String> sub,
       @RequestParam(defaultValue = "latest") String sort,
       @RequestParam(defaultValue = "0") int page,
-      @RequestParam(defaultValue = "20") int size
+      @RequestParam(defaultValue = "10") int size
   ) {
     try {
       List<String> mainIngredients = main;

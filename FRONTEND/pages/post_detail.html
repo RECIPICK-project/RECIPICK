@@ -49,7 +49,15 @@
 
       <!-- 레시피 기본 정보 -->
       <section class="card">
-        <h1 class="recipe-title" id="recipeTitle">Burger Bistro</h1>
+        <div class="recipe-header">
+          <h1 class="recipe-title" id="recipeTitle">Burger Bistro</h1>
+          <button class="like-button" id="likeButton" onclick="toggleLike()">
+            <svg class="heart-icon" viewBox="0 0 24 24" width="24" height="24">
+              <path class="heart-outline" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" fill="none" stroke="currentColor" stroke-width="2"/>
+              <path class="heart-filled" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" fill="currentColor" style="display: none;"/>
+            </svg>
+          </button>
+        </div>
 
         <div class="author-info">
           <svg class="location-icon" viewBox="0 0 24 24">

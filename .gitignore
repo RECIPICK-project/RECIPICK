@@ -6,46 +6,37 @@ FRONTEND/.env
 # 🛠 BACKEND
 BACKEND/RECIPICK-PROJECT/.gradle/
 BACKEND/RECIPICK-PROJECT/build/
+BACKEND/RECIPICK-PROJECT/bin/
 !BACKEND/RECIPICK-PROJECT/gradle/wrapper/gradle-wrapper.jar
 !BACKEND/RECIPICK-PROJECT/src/main/**/build/
 !BACKEND/RECIPICK-PROJECT/src/test/**/build/
 BACKEND/RECIPICK-PROJECT/.env
 
 # 🧪 IDE 설정
+**/.idea/
+**/.vscode/
 *.iml
 *.ipr
 *.iws
-.idea/
-.vscode/
 .project
 .classpath
 .settings/
 .springBeans
 .sts4-cache
-.apt_generated
-.factorypath
-bin/
-out/
-nbproject/private/
-nbbuild/
-dist/
-nbdist/
-.nb-gradle/
 
-# 🔐 환경 변수
+# 🔐 환경 변수 (루트)
 .env
 
 # ⚙️ 컴파일 결과물
-*.class
-*.jar
-*.war
-*.zip
-*.tar.gz
-*.rar
-*.log
-*.ctxt
+**/*.class
+**/*.log
+**/*.ctxt
 .mtj.tmp/
 hs_err_pid*
 replay_pid*
 recipe/src/main/resources/application-oauth.yml
 recipe/src/main/resources/appllication.yml
+
+# 🗂 시스템 파일
+.DS_Store
+Thumbs.db

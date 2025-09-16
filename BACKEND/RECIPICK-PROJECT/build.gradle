@@ -126,3 +126,5 @@ processResources.dependsOn copyFrontend
 bootRun.dependsOn copyFrontend
 //서버 실행시  ./gradlew bootRun 으로 실행 필요
 //  http://localhost:8080/pages/post_upload.html 레시피 저장 테스트
+//        ./gradlew clean build         풀받으면 이거 한번해서 빌드 초기화(선택)
+// http://localhost:8080/swagger-ui.html 스웨거

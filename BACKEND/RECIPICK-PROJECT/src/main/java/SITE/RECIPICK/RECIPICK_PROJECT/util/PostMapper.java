@@ -43,6 +43,11 @@ public final class PostMapper {
         .rcpImgUrl(p.getRcpImgUrl())
         .rcpSteps(split(p.getRcpSteps()))
         .rcpStepsImg(split(p.getRcpStepsImg()))
+        // ★ 마이페이지 수정/삭제를 위해 추가한 조회용 필드들
+        .postId(p.getPostId())
+        .rcpIsOfficial(p.getRcpIsOfficial())
+        .likeCount(p.getLikeCount())
+        .createdAt(p.getCreatedAt())
         .build();
   }
 

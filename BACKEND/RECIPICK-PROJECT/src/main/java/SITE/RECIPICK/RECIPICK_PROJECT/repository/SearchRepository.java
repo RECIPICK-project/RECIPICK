@@ -11,7 +11,7 @@ import org.springframework.stereotype.Repository;
 public interface SearchRepository extends JpaRepository<PostEntity, Long> {
 
   /**
-   * 재료로 레시피 검색 (메인 재료 필수, 서브 재료 우선순위)
+   * 재료로 레시피 검색 (메인 재료 필수, 서브 재료 우선순위) - 메인 재료 카테고리 매칭을 post 테이블의 ckg_category로 판단
    */
   @Query(value = """
       WITH recipe_scores AS (
@@ -23,16 +23,17 @@ public interface SearchRepository extends JpaRepository<PostEntity, Long> {
               p.view_count,
               p.like_count,
               p.created_at,
+              p.ckg_category,
               -- 메인 재료 직접 매칭 점수
               COALESCE(SUM(CASE WHEN i.name IN :mainIngredients THEN 1 ELSE 0 END), 0) AS main_direct_score,
-              -- 메인 재료 카테고리 매칭 점수
-              COALESCE(SUM(CASE WHEN i.sort IN :mainIngredients THEN 0.5 ELSE 0 END), 0) AS main_category_score,
+              -- 메인 재료 카테고리 매칭 점수 (post의 ckg_category 기준)
+              CASE WHEN p.ckg_category IN :mainIngredients THEN 0.5 ELSE 0 END AS main_category_score,
               -- 서브 재료 매칭 점수
               COALESCE(SUM(CASE WHEN i.name IN :subIngredients THEN 1 ELSE 0 END), 0) AS sub_score
           FROM post p
           LEFT JOIN recipe_ingredient ri ON p.post_id = ri.post_id
           LEFT JOIN ingredient i ON ri.ing_id = i.ing_id
-          GROUP BY p.post_id, p.title, p.food_name, p.rcp_img_url, p.view_count, p.like_count, p.created_at
+          GROUP BY p.post_id, p.title, p.food_name, p.rcp_img_url, p.view_count, p.like_count, p.created_at, p.ckg_category
       )
       SELECT 
           post_id AS postId,
@@ -68,7 +69,7 @@ public interface SearchRepository extends JpaRepository<PostEntity, Long> {
   );
 
   /**
-   * 재료로 레시피 개수 조회 (메인 재료 기준)
+   * 재료로 레시피 개수 조회 (메인 재료 기준) - 메인 재료 카테고리 매칭을 post 테이블의 ckg_category로 판단
    */
   @Query(value = """
       SELECT COUNT(DISTINCT p.post_id) 
@@ -77,7 +78,7 @@ public interface SearchRepository extends JpaRepository<PostEntity, Long> {
       LEFT JOIN ingredient i ON ri.ing_id = i.ing_id
       WHERE 
           -- 메인 재료가 직접 매칭되거나 카테고리로 매칭되어야 함
-          (i.name IN :mainIngredients OR i.sort IN :mainIngredients)
+          (i.name IN :mainIngredients OR p.ckg_category IN :mainIngredients)
       """, nativeQuery = true)
   int countSearchByIngredients(@Param("mainIngredients") List<String> mainIngredients);
 

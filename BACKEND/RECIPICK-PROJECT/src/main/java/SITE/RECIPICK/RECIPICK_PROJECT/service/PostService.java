@@ -11,9 +11,15 @@ import SITE.RECIPICK.RECIPICK_PROJECT.repository.RecipeIngredientRepository;
 import SITE.RECIPICK.RECIPICK_PROJECT.repository.UserRepository;
 import SITE.RECIPICK.RECIPICK_PROJECT.util.CurrentUser;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -519,6 +525,167 @@ public class PostService {
         savedIngredient.getIngId(), name, sort);
 
     return savedIngredient;
+  }
+
+  /**
+   * 전체 레시피 조회 (페이징 지원)
+   *
+   * @param page 페이지 번호 (0부터 시작)
+   * @param size 페이지 크기
+   * @param sortBy 정렬 기준 (createdAt, likeCount, viewCount 등)
+   * @param sortDirection 정렬 방향 (ASC, DESC)
+   * @param official 정식 레시피 여부 (1: 정식, 0: 임시, null: 전체)
+   * @param category 카테고리 필터 (선택적)
+   * @param method 조리방법 필터 (선택적)
+   * @return 페이징된 레시피 목록과 메타데이터
+   */
+  public Map<String, Object> getAllRecipes(
+      int page,
+      int size,
+      String sortBy,
+      String sortDirection,
+      Integer official,
+      String category,
+      String method) {
+
+    log.debug("전체 레시피 조회 - page: {}, size: {}, sortBy: {}, direction: {}, official: {}, category: {}, method: {}",
+        page, size, sortBy, sortDirection, official, category, method);
+
+    // 정렬 설정
+    Sort.Direction direction = "ASC".equalsIgnoreCase(sortDirection) ? Sort.Direction.ASC : Sort.Direction.DESC;
+    Sort sort = Sort.by(direction, sortBy);
+    Pageable pageable = PageRequest.of(page, size, sort);
+
+    // 전체 레시피 조회 (필터링 적용)
+    Page<PostEntity> postPage = getFilteredPosts(pageable, official, category, method);
+
+    // Entity -> DTO 변환
+    List<PostDto> recipeDtos = postPage.getContent().stream()
+        .map(this::convertToDto)
+        .collect(Collectors.toList());
+
+    // 응답 데이터 구성
+    Map<String, Object> response = new HashMap<>();
+    response.put("recipes", recipeDtos);
+    response.put("totalElements", postPage.getTotalElements());
+    response.put("totalPages", postPage.getTotalPages());
+    response.put("currentPage", postPage.getNumber());
+    response.put("pageSize", postPage.getSize());
+    response.put("hasNext", postPage.hasNext());
+    response.put("hasPrevious", postPage.hasPrevious());
+    response.put("isFirst", postPage.isFirst());
+    response.put("isLast", postPage.isLast());
+
+    log.info("전체 레시피 조회 완료 - 총 {}개 중 {}페이지 ({}-{}) 반환",
+        postPage.getTotalElements(), page + 1,
+        page * size + 1, Math.min((page + 1) * size, (int) postPage.getTotalElements()));
+
+    return response;
+  }
+
+  /**
+   * 필터링된 레시피 조회 (내부 메서드)
+   */
+  private Page<PostEntity> getFilteredPosts(Pageable pageable, Integer official, String category, String method) {
+    // 기본적으로 모든 레시피 조회
+    if (official == null && category == null && method == null) {
+      return postRepository.findAll(pageable);
+    }
+
+    // 정식 레시피만 조회하는 경우가 가장 일반적
+    if (official != null && category == null && method == null) {
+      return postRepository.findByRcpIsOfficial(official, pageable);
+    }
+
+    // TODO: 복잡한 필터링의 경우 Repository에 커스텀 쿼리 메서드 추가 필요
+    // 현재는 간단한 필터링만 지원
+    log.warn("복잡한 필터링은 아직 지원하지 않습니다. 기본 조회를 수행합니다.");
+    return postRepository.findAll(pageable);
+  }
+
+  /**
+   * 인기 레시피 조회 (좋아요 순)
+   */
+  public List<PostDto> getPopularRecipes(int limit) {
+    log.debug("인기 레시피 조회 - limit: {}", limit);
+
+    Pageable pageable = PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "likeCount"));
+    List<PostEntity> popularPosts = postRepository.findByRcpIsOfficial(1, pageable).getContent();
+
+    List<PostDto> result = popularPosts.stream()
+        .map(this::convertToDto)
+        .collect(Collectors.toList());
+
+    log.info("인기 레시피 {}개 조회 완료", result.size());
+    return result;
+  }
+
+  /**
+   * 최신 레시피 조회
+   */
+  public List<PostDto> getLatestRecipes(int limit) {
+    log.debug("최신 레시피 조회 - limit: {}", limit);
+
+    Pageable pageable = PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
+    List<PostEntity> latestPosts = postRepository.findByRcpIsOfficial(1, pageable).getContent();
+
+    List<PostDto> result = latestPosts.stream()
+        .map(this::convertToDto)
+        .collect(Collectors.toList());
+
+    log.info("최신 레시피 {}개 조회 완료", result.size());
+    return result;
+  }
+
+  /**
+   * 개별 레시피 상세 조회 (postId로 조회)
+   */
+  public PostDto getRecipeById(Integer postId) {
+    log.debug("개별 레시피 조회 - postId: {}", postId);
+
+    PostEntity postEntity = postRepository.findByPostId(postId)
+        .orElseThrow(() -> new IllegalArgumentException("해당 레시피를 찾을 수 없습니다. ID: " + postId));
+
+    // 조회수 증가
+    postEntity.setViewCount(postEntity.getViewCount() + 1);
+    postRepository.save(postEntity);
+
+    PostDto result = convertToDtoForDetail(postEntity);
+    log.info("레시피 상세 조회 완료 - ID: {}, 제목: {}, 조회수: {}",
+        postId, result.getTitle(), postEntity.getViewCount());
+
+    return result;
+  }
+
+  /**
+   * 상세 페이지용 DTO 변환 (프론트엔드 호환성을 위해 추가 정보 포함)
+   */
+  private PostDto convertToDtoForDetail(PostEntity entity) {
+    // 기본 변환
+    PostDto dto = convertToDto(entity);
+
+    // 프론트엔드 호환성을 위한 추가 설정
+    dto.setPostId(entity.getPostId());
+    dto.setAuthor(entity.getUserNickname()); // author 필드 추가
+    dto.setUserId(entity.getUserId());
+    dto.setUserEmail(entity.getUserEmail());
+    dto.setCreatedAt(entity.getCreatedAt());
+    dto.setViewCount(entity.getViewCount());
+    dto.setLikeCount(entity.getLikeCount());
+
+    // 재료를 파이프 구분자 형태로 변환 (프론트엔드 호환성)
+    if (dto.getCkgMtrlCn() != null && !dto.getCkgMtrlCn().isEmpty()) {
+      String ingredientsForFrontend = String.join("|", dto.getCkgMtrlCn());
+      dto.setIngredientsString(ingredientsForFrontend);
+    }
+
+    // 조리시간을 "XX min" 형태로 변환
+    if (dto.getCkgTime() != null) {
+      dto.setCookingTimeString(dto.getCkgTime() + " min");
+    }
+
+    log.debug("상세 페이지용 DTO 변환 완료 - postId: {}", entity.getPostId());
+    return dto;
   }
 
   // 사용자 정보를 담는 내부 클래스

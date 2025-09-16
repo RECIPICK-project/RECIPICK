@@ -4,6 +4,7 @@ package SITE.RECIPICK.RECIPICK_PROJECT.dto;
 // import SITE.RECIPICK.RECIPICK_PROJECT.entity.PostEntity.CookingCategory;
 // import SITE.RECIPICK.RECIPICK_PROJECT.entity.PostEntity.CookingKind;
 // import SITE.RECIPICK.RECIPICK_PROJECT.entity.PostEntity.CookingMethod;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import jakarta.validation.constraints.NotEmpty;
@@ -77,4 +78,25 @@ public class PostDto {
 
     // 단계별 이미지 URLs (| 구분자로 저장)
     private List<String> rcpStepsImg;
+
+    // === 추가 필드 (상세 조회 및 프론트엔드 호환성용) ===
+
+    // 게시글 ID
+    private Integer postId;
+
+    // 작성자 정보
+    private String author; // userNickname와 동일
+    private Integer userId;
+    private String userEmail;
+
+    // 메타 정보
+    private LocalDateTime createdAt;
+    private Integer viewCount;
+    private Integer likeCount;
+    private Integer reportCount;
+    private Integer rcpIsOfficial;
+
+    // 프론트엔드 호환성을 위한 변환된 필드들
+    private String ingredientsString; // 파이프(|) 구분자로 된 재료 문자열
+    private String cookingTimeString; // "XX min" 형태의 조리시간
 }

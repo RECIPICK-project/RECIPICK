@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -63,6 +64,9 @@ public interface PostRepository extends JpaRepository<PostEntity, Integer> {
 
     // 개별 조회
     Optional<PostEntity> findByPostId(Integer postId);
+
+    // 정식/임시 레시피 페이징 조회 (전체 레시피 조회용)
+    Page<PostEntity> findByRcpIsOfficial(Integer rcpIsOfficial, Pageable pageable);
 
     // Projection 인터페이스 (카테고리별 count)
     interface CategoryCountAgg {

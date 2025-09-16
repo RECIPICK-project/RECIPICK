@@ -6,8 +6,8 @@ import SITE.RECIPICK.RECIPICK_PROJECT.dto.PostDto;
 import SITE.RECIPICK.RECIPICK_PROJECT.repository.PostRepository;
 import SITE.RECIPICK.RECIPICK_PROJECT.repository.ProfileRepository;
 import SITE.RECIPICK.RECIPICK_PROJECT.repository.ReviewRepository;
+import SITE.RECIPICK.RECIPICK_PROJECT.repository.UserRepository;
 import SITE.RECIPICK.RECIPICK_PROJECT.util.PostMapper;
-import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -33,6 +33,7 @@ public class MyPageService {
   private final ProfileRepository profileRepo;   // 프로필 정보 조회/수정
   private final PostRepository postRepo;         // 내가 올린 정식 레시피/좋아요 집계
   private final ReviewRepository reviewRepo;     // 내가 쓴 리뷰 집계
+  private final UserRepository userRepo;
 
   /**
    * ✅ [GET /me/profile]
@@ -86,7 +87,7 @@ public class MyPageService {
    */
   @Transactional
   public void changeNickname(Integer me, NicknameUpdateRequest req) {
-    // 0) 입력값 검증
+    // 0) 입력 검증
     String raw = req.getNewNickname();
     if (raw == null || raw.trim().isEmpty()) {
       throw new IllegalArgumentException("NICKNAME_REQUIRED");
@@ -100,29 +101,34 @@ public class MyPageService {
     var pr = profileRepo.findById(me)
         .orElseThrow(() -> new IllegalArgumentException("PROFILE_NOT_FOUND"));
 
-    // 2) 동일 닉네임이면 변경 없음
+    // 2) 동일 닉이면 조용히 종료(변경 없음)
     if (newNickname.equals(pr.getNickname())) {
       return;
     }
 
-    // 3) 7일 제한 확인
-    LocalDateTime lastUpdated = pr.getUpdatedAt();
-    if (lastUpdated != null) {
-      LocalDateTime allowedAt = lastUpdated.plusDays(7);
-      if (LocalDateTime.now().isBefore(allowedAt)) {
-        throw new IllegalStateException("NICKNAME_CHANGE_COOLDOWN");
-      }
+    // 3) 7일 쿨다운 (updated_at 기준)
+    var lastUpdated = pr.getUpdatedAt();
+    if (lastUpdated != null && lastUpdated.isAfter(java.time.LocalDateTime.now().minusDays(7))) {
+      throw new IllegalStateException("NICKNAME_CHANGE_COOLDOWN");
     }
 
-    // 4) 중복 닉네임 검사
+    // 4) 중복 검사 (profile 기준)
     if (profileRepo.existsByNickname(newNickname)) {
       throw new IllegalStateException("NICKNAME_DUPLICATED");
     }
 
-    // 5) 변경 실행
+    // 5) 변경 및 저장 (profile)
     pr.setNickname(newNickname);
-    pr.setUpdatedAt(LocalDateTime.now());
+    pr.setUpdatedAt(java.time.LocalDateTime.now());
+    profileRepo.save(pr);
+
+    // 6) 동기화 (users)
+    var user = userRepo.findById(me)
+        .orElseThrow(() -> new IllegalArgumentException("USER_NOT_FOUND"));
+    user.setNickname(newNickname);
+    userRepo.save(user);
   }
+
 
   /**
    * 내가 좋아요한 레시피 목록을 조회한다.

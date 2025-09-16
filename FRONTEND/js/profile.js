@@ -114,6 +114,7 @@
   }
 
 
+
   /* ================================
    * 1) 데이터 로더들 (선언을 먼저 해서 navigateTo가 안 꼬이게)
    * ================================ */
@@ -122,6 +123,7 @@
       const res = await fx('/me/profile');
       if (res.status === 401) { location.href = '/pages/login.html'; return; }
       if (res.status === 404) { console.warn('PROFILE_NOT_FOUND'); return; }
+      if (res.status === 405) { console.warn('PROFILE_ENDPOINT_NO_GET'); return; } // ★ 추가: GET 미지원일 때 조용히 스킵
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const p = await res.json();
       window.initProfile?.({
@@ -133,6 +135,7 @@
       console.error('프로필 로드 실패:', err);
     }
   }
+
 
   async function loadMine() {
     try {
@@ -287,7 +290,7 @@
       }
     });
 
-    // 저장
+// 저장
     document.addEventListener('click', async (e) => {
       if (!(e.target && e.target.id === 'saveProfile')) return;
 
@@ -296,6 +299,8 @@
 
       try {
         let avatarUrl;
+
+        // (1) 아바타 업로드 (기존 그대로)
         const file = document.getElementById('editAvatar')?.files?.[0];
         if (file) {
           const form = new FormData();
@@ -307,24 +312,34 @@
           avatarUrl = u.url;
         }
 
-        const body = JSON.stringify({ nickname, ...(avatarUrl ? { profileImg: avatarUrl } : {}) });
-        const res = await fx('/me/profile', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body });
-        if (res.status === 401) { location.href = '/pages/login.html'; return; }
-        if (!res.ok) throw new Error(`PATCH HTTP ${res.status}`);
+// 2) 닉네임은 별도 엔드포인트로 PATCH (반드시 newNickname 키!)
+        const nickRes = await fx('/me/profile/nickname', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ newNickname: nickname }) // ★ 반드시 newNickname
+        });
 
-        const nameEl = document.getElementById('userName');
-        if (nameEl) nameEl.textContent = nickname;
-        if (avatarUrl) {
-          const imgEl = document.getElementById('avatarImg');
-          if (imgEl) imgEl.src = avatarUrl;
-        }
-        wrap.setAttribute('aria-hidden', 'true');
+        const rawText = await nickRes.text().catch(() => '');
+
+        if (nickRes.status === 401) { location.href = '/pages/login.html'; return; }
+        if (nickRes.status === 404) { toast(rawText || '프로필을 찾을 수 없어요.'); return; }
+        if (nickRes.status === 409) { toast(rawText || '닉네임 변경이 제한되었습니다.'); return; }
+        if (nickRes.status === 400) { toast(rawText || '요청 값이 올바르지 않습니다.'); return; }
+        if (!nickRes.ok) { toast(rawText || `닉네임 변경 실패(${nickRes.status})`); return; }
+
+// 성공: 즉시 UI 업데이트 + 재조회
+        document.getElementById('userName').textContent = nickname;
+        document.querySelector('.modal')?.setAttribute('aria-hidden', 'true');
+        loadProfile();
         toast('저장되었습니다.');
+
+
       } catch (err) {
         console.error('프로필 저장 실패:', err);
         toast('프로필 저장에 실패했습니다.');
       }
     });
+
   }
 
   /* ================================

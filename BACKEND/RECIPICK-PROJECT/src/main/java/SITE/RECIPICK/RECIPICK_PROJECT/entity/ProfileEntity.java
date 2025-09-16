@@ -40,6 +40,10 @@ public class ProfileEntity {
   @Column(name = "updated_at")
   private LocalDateTime updatedAt;
 
+  @Column(name = "latest_at")
+  private LocalDateTime latestAt;
+
+
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 20)
   private UserGrade grade = UserGrade.BRONZE;

@@ -4,6 +4,8 @@ import SITE.RECIPICK.RECIPICK_PROJECT.config.CurrentUserProvider;
 import SITE.RECIPICK.RECIPICK_PROJECT.dto.MyProfileResponse;
 import SITE.RECIPICK.RECIPICK_PROJECT.dto.NicknameUpdateRequest;
 import SITE.RECIPICK.RECIPICK_PROJECT.dto.PostDto;
+import SITE.RECIPICK.RECIPICK_PROJECT.repository.ProfileRepository;
+import SITE.RECIPICK.RECIPICK_PROJECT.repository.UserRepository;
 import SITE.RECIPICK.RECIPICK_PROJECT.service.MyPageService;
 import SITE.RECIPICK.RECIPICK_PROJECT.util.CurrentUser;
 import io.swagger.v3.oas.annotations.Operation;
@@ -16,6 +18,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -42,6 +45,8 @@ public class MyPageController {
   private final MyPageService myPageService;
   private final CurrentUser currentUser;
   private final CurrentUserProvider currentUserProvider;
+  private final ProfileRepository profileRepository;
+  private final UserRepository userRepository;
 
   /**
    * 프로필 조회
@@ -88,7 +93,7 @@ public class MyPageController {
    * <p>
    * 성공 시 204(No Content) 반환
    */
-  @PatchMapping("/profile/nickname")
+  @PatchMapping(value = "/profile/nickname", consumes = "application/json")
   @Operation(
       summary = "닉네임 변경(7일 제한)",
       description = """
@@ -100,18 +105,33 @@ public class MyPageController {
   )
   @ApiResponses({
       @ApiResponse(responseCode = "204", description = "변경 성공"),
-      @ApiResponse(responseCode = "400", description = "요청 값 오류(NICKNAME_REQUIRED/NICKNAME_TOO_LONG 등)"),
-      @ApiResponse(responseCode = "409", description = "쿨다운 또는 중복(NICKNAME_CHANGE_COOLDOWN / NICKNAME_DUPLICATED)"),
-      @ApiResponse(responseCode = "404", description = "프로필 없음(PROFILE_NOT_FOUND)"),
+      @ApiResponse(responseCode = "400", description = "요청 값 오류"),
+      @ApiResponse(responseCode = "409", description = "쿨다운 또는 중복"),
+      @ApiResponse(responseCode = "404", description = "프로필 없음"),
       @ApiResponse(responseCode = "500", description = "서버 오류")
   })
-  public ResponseEntity<Void> changeNickname(
+  public ResponseEntity<?> changeNickname(
       @Parameter(description = "변경할 닉네임", required = true)
       @RequestBody NicknameUpdateRequest req
   ) {
-    myPageService.changeNickname(currentUser.userId(), req);
-    return ResponseEntity.noContent().build();
+    try {
+      myPageService.changeNickname(currentUser.userId(), req);
+      return ResponseEntity.noContent().build();
+    } catch (IllegalArgumentException e) {
+      // 예: NICKNAME_REQUIRED_OR_TOO_LONG
+      return ResponseEntity
+          .badRequest()
+          .contentType(org.springframework.http.MediaType.TEXT_PLAIN)
+          .body(e.getMessage() == null ? "BAD_REQUEST" : e.getMessage());
+    } catch (IllegalStateException e) {
+      // 예: NICKNAME_CHANGE_COOLDOWN, NICKNAME_DUPLICATED, PROFILE_NOT_FOUND 등
+      return ResponseEntity
+          .status(HttpStatus.CONFLICT)
+          .contentType(org.springframework.http.MediaType.TEXT_PLAIN)
+          .body(e.getMessage() == null ? "CONFLICT" : e.getMessage());
+    }
   }
+
 
   @GetMapping("/likes")
   @Operation(

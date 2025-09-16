@@ -7,10 +7,13 @@ package SITE.RECIPICK.RECIPICK_PROJECT.dto;
 import java.time.LocalDateTime;
 import java.util.List;
 
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+import java.time.format.DateTimeFormatter;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -99,4 +102,30 @@ public class PostDto {
     // 프론트엔드 호환성을 위한 변환된 필드들
     private String ingredientsString; // 파이프(|) 구분자로 된 재료 문자열
     private String cookingTimeString; // "XX min" 형태의 조리시간
+
+  // ====== (프론트 편의 alias; 읽기 전용) ======
+  @JsonProperty("id")
+  public Integer getId() {
+    return postId;
+  }
+
+  @JsonProperty("official")
+  public boolean isOfficial() {
+    return rcpIsOfficial != null && rcpIsOfficial == 1;
+  }
+
+  @JsonProperty("thumb")
+  public String getThumb() {
+    return rcpImgUrl;
+  }
+
+  @JsonProperty("rating")
+  public Integer getRating() {
+    return likeCount;
+  }
+
+  @JsonProperty("date")
+  public String getDate() {
+    return createdAt == null ? null : createdAt.format(DateTimeFormatter.ISO_LOCAL_DATE);
+  }
 }

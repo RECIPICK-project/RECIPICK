@@ -1,5 +1,6 @@
 package SITE.RECIPICK.RECIPICK_PROJECT.repository;
 
+import SITE.RECIPICK.RECIPICK_PROJECT.entity.PostEntity;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;

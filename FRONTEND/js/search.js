@@ -201,7 +201,6 @@ function setupPickerLayout() {
     <style>
       .picker-section { margin-bottom: 16px; }
       .picker-title { margin: 0 0 10px; font-size: 14px; color: #333; font-weight: 600; }
-      /* [FIX] Layout Shift 방지를 위해 align-items 추가 */
       .chip-container {
         display: flex;
         flex-wrap: wrap;
@@ -209,8 +208,8 @@ function setupPickerLayout() {
         gap: 8px;
         min-height: 38px;
         padding: 4px 0;
+        /* 스크롤 관련 속성 제거 */
       }
-      /* [FIX] Layout Shift 방지를 위해 placeholder 스타일 수정 */
       .placeholder {
         color: #aaa;
         font-size: 14px;
@@ -223,17 +222,26 @@ function setupPickerLayout() {
         height: 100%;
         min-height: 30px;
       }
-      .picker-divider { width: 100%; border: none; border-top: 1px solid #e5e7eb; margin: 16px 0; }
+      .picker-divider { 
+        width: 100%; 
+        border: none; 
+        border-top: 1px solid #e5e7eb; 
+        margin: 16px 0; 
+      }
     </style>
   `;
 }
 
-/**
- * 모달 열기
- */
 function openModal() {
+  // 현재 스크롤 위치 저장
+  const scrollY = window.scrollY;
+  
   picker.setAttribute('aria-hidden', 'false');
-  document.body.style.overflow = 'hidden'; // 배경 스크롤 방지
+  document.body.classList.add('modal-open'); // 클래스로 변경
+  
+  // 스크롤 위치 복원을 위해 저장
+  document.body.style.top = `-${scrollY}px`;
+  
   pickerInput.value = '';
   setupPickerLayout();
   updatePicker('');
@@ -241,11 +249,19 @@ function openModal() {
 }
 
 /**
- * 모달 닫기
+ * 모달 닫기 
  */
 function closeModal() {
   picker.setAttribute('aria-hidden', 'true');
-  document.body.style.overflow = ''; // 배경 스크롤 복원
+  
+  // 저장된 스크롤 위치 복원
+  const scrollY = document.body.style.top;
+  document.body.classList.remove('modal-open');
+  document.body.style.top = '';
+  
+  if (scrollY) {
+    window.scrollTo(0, parseInt(scrollY || '0') * -1);
+  }
 }
 
 // --- 영수증 업로드 관련 함수들 ---

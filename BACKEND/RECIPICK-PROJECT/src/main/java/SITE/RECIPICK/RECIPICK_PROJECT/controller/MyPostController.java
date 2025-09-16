@@ -2,6 +2,7 @@ package SITE.RECIPICK.RECIPICK_PROJECT.controller;
 
 import SITE.RECIPICK.RECIPICK_PROJECT.dto.PostDto;
 import SITE.RECIPICK.RECIPICK_PROJECT.dto.PostUpdateRequest;
+import SITE.RECIPICK.RECIPICK_PROJECT.repository.PostRepository;
 import SITE.RECIPICK.RECIPICK_PROJECT.service.MyPostCommandService;
 import SITE.RECIPICK.RECIPICK_PROJECT.service.MyPostService;
 import SITE.RECIPICK.RECIPICK_PROJECT.util.CurrentUser;
@@ -40,6 +41,7 @@ public class MyPostController {
   private final MyPostService myPostService;
   private final MyPostCommandService svc;
   private final CurrentUser currentUser;
+  private final PostRepository postRepo;
 
   /**
    * 내 레시피 조회 (정식/임시)
@@ -127,4 +129,19 @@ public class MyPostController {
     Integer userId = currentUser.userId();             // ★ 여기
     svc.deleteMyTempPost(userId, postId);              // ★ 서비스 시그니처에 맞게
   }
+
+
+  @GetMapping("/{postId}")
+  @Operation(summary = "임시 레시피 단건 조회",
+      description = "본인이 작성한 임시 레시피를 수정 화면 로딩용으로 단건 조회합니다.")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "조회 성공"),
+      @ApiResponse(responseCode = "403", description = "권한 없음"),
+      @ApiResponse(responseCode = "404", description = "게시글 없음"),
+  })
+  public PostDto getMyTempOne(@PathVariable Integer postId) {
+    Integer userId = currentUser.userId();
+    return svc.getMyTempPost(userId, postId);
+  }
+
 }

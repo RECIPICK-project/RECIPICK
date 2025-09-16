@@ -1,15 +1,19 @@
 package SITE.RECIPICK.RECIPICK_PROJECT.controller;
 
 import SITE.RECIPICK.RECIPICK_PROJECT.dto.ProfileImageUpdateRequest;
+import SITE.RECIPICK.RECIPICK_PROJECT.service.AvatarPresignService;
 import SITE.RECIPICK.RECIPICK_PROJECT.service.ProfileCommandService;
 import SITE.RECIPICK.RECIPICK_PROJECT.util.CurrentUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -27,10 +31,14 @@ public class ProfileCommandController {
 
   private final ProfileCommandService svc; // 프로필 변경 로직 담당 서비스
   private final CurrentUser currentUser;
+  private final AvatarPresignService Presign;
 
-  public ProfileCommandController(ProfileCommandService svc, CurrentUser currentUser) {
+
+  public ProfileCommandController(ProfileCommandService svc, CurrentUser currentUser,
+      AvatarPresignService presign) {
     this.svc = svc;
     this.currentUser = currentUser;
+    this.Presign = presign;
   }
 
   /**
@@ -60,5 +68,30 @@ public class ProfileCommandController {
     Integer userId = currentUser.userId();
 
     svc.changeProfileImage(userId, req);
+  }
+
+  /**
+   * 아바타 URL 저장 Body: { "profileImg": "https://..." }
+   */
+  @PatchMapping(value = "/avatar", consumes = "application/json")
+  @Operation(summary = "프로필 이미지 URL 저장")
+  public ResponseEntity<?> changeProfileImage(@RequestBody ProfileImageUpdateRequest req) {
+    Integer me = currentUser.userId();
+    svc.changeProfileImage(me, req);
+    // 본문 없이 204
+    return ResponseEntity.noContent().build();
+  }
+
+  @PostMapping("/avatar/presign")
+  @Operation(summary = "아바타 업로드용 S3 PUT Presigned URL 발급")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "성공(putUrl, publicUrl 반환)")
+  })
+  public ResponseEntity<?> presignAvatar(
+      @RequestParam String filename,
+      @RequestParam(required = false) String contentType
+  ) {
+    Integer me = currentUser.userId();
+    return ResponseEntity.ok(Presign.createPutUrl(me, filename, contentType));
   }
 }

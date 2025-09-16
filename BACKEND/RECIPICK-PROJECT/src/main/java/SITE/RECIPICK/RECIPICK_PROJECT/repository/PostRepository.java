@@ -8,12 +8,17 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 /**
  * POST 테이블 접근 레포지토리
  */
+@Repository
 public interface PostRepository extends JpaRepository<PostEntity, Integer> {
+  List<PostEntity> findTop5ByRcpImgUrlIsNotNullOrderByLikeCountDescViewCountDescCreatedAtDesc();
 
+  // 인기 그리드: TOP 8
+  List<PostEntity> findTop8ByRcpImgUrlIsNotNullOrderByLikeCountDescViewCountDescCreatedAtDesc();
   // 공식 레시피 개수
   long countByRcpIsOfficial(int official);
 
@@ -71,4 +76,5 @@ public interface PostRepository extends JpaRepository<PostEntity, Integer> {
 
     long getCnt();
   }
+
 }

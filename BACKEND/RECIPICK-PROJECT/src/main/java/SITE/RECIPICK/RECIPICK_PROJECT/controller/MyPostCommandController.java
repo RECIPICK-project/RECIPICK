@@ -1,3 +1,4 @@
+/*
 package SITE.RECIPICK.RECIPICK_PROJECT.controller;
 
 import org.springframework.http.HttpStatus;
@@ -77,3 +78,4 @@ public class MyPostCommandController {
         svc.deleteMyTempPost(userId, postId); // ★ 서비스 시그니처에 맞게
     }
 }
+*/

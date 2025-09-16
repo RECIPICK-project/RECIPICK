@@ -2,30 +2,24 @@ package SITE.RECIPICK.RECIPICK_PROJECT.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import SITE.RECIPICK.RECIPICK_PROJECT.entity.ReviewEntity;
-import lombok.Getter;
-
-@Getter
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class ReviewResponseDto {
 
-    private final Integer reviewId;
-    private final Integer postId;
-    private final Integer userId;
-    private final BigDecimal rating;
-    private final String comment;
-    private final LocalDateTime createdAt;
-    private final LocalDateTime updatedAt;
-
-    public ReviewResponseDto(ReviewEntity review) {
-        this.reviewId = review.getId();
-        this.postId = review.getPost().getPostId();
-        this.userId =
-                review.getUser()
-                        .getUserId(); // Assuming UserTestEntity has a getId() or getUserId() method
-        this.rating = review.getRating();
-        this.comment = review.getComment();
-        this.createdAt = review.getCreatedAt();
-        this.updatedAt = review.getUpdatedAt();
-    }
+  private Integer reviewId;
+  private Integer postId;
+  private Integer userId;
+  private String nickname;
+  private BigDecimal rating;
+  private String comment;
+  private int reportCount;
+  private LocalDateTime createdAt;
+  private LocalDateTime updatedAt;
 }

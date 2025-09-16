@@ -1,15 +1,15 @@
 # 🌐 FRONTEND
-FRONT/node_modules/
-FRONT/dist/
-FRONT/.env
+FRONTEND/node_modules/
+FRONTEND/dist/
+FRONTEND/.env
 
 # 🛠 BACKEND
-BACK/.gradle/
-BACK/build/
-!BACK/gradle/wrapper/gradle-wrapper.jar
-!BACK/src/main/**/build/
-!BACK/src/test/**/build/
-BACK/.env
+BACKEND/RECIPICK-PROJECT/.gradle/
+BACKEND/RECIPICK-PROJECT/build/
+!BACKEND/RECIPICK-PROJECT/gradle/wrapper/gradle-wrapper.jar
+!BACKEND/RECIPICK-PROJECT/src/main/**/build/
+!BACKEND/RECIPICK-PROJECT/src/test/**/build/
+BACKEND/RECIPICK-PROJECT/.env
 
 # 🧪 IDE 설정
 *.iml
@@ -47,5 +47,3 @@ nbdist/
 .mtj.tmp/
 hs_err_pid*
 replay_pid*
-recipe/src/main/resources/application-oauth.yml
-recipe/src/main/resources/appllication.yml

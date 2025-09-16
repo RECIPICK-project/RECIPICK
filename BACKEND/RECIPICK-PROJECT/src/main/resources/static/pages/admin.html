@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>관리자 페이지</title>
+  <link rel="stylesheet" href="../css/admin.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script defer src="../js/admin.js"></script>
+</head>
+<body class="admin">
+<div class="admin-layout">
+  <!-- 좌측 사이드 -->
+  <aside class="side">
+    <div class="logo">LOGO</div>
+    <nav class="sidemenu">
+      <a class="m active" href="admin.html">대시보드</a>
+      <a class="m" href="admin_reports.html">신고 관리</a>
+      <a class="m" href="admin_recipes.html">레시피/댓글 관리</a>
+      <a class="m" href="admin_users.html">유저 관리</a>
+    </nav>
+  </aside>
+
+  <!-- 우측 보드 -->
+  <section class="board">
+    <header class="topbar">
+      <h1>관리자 페이지</h1>
+      <div class="actions">
+        <div class="filters">
+          <button class="pill is-active" data-range="1d">오늘</button>
+          <button class="pill" data-range="7d">7일</button>
+          <button class="pill" data-range="30d">30일</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- KPI -->
+    <div class="kpi-grid">
+      <div class="card kpi">
+        <div class="k-label">DAU</div>
+        <div class="k-num" id="kpi-dau">-</div>
+        <div class="k-sub"></div>
+      </div>
+      <div class="card kpi">
+        <div class="k-label">신규 가입</div>
+        <div class="k-num" id="kpi-signup">-</div>
+        <div class="k-sub" id="kpi-signup-sub"></div>
+      </div>
+      <div class="card kpi">
+        <div class="k-label">신규 레시피</div>
+        <div class="k-num" id="kpi-recipes">-</div>
+        <div class="k-sub" id="kpi-recipes-sub"></div>
+      </div>
+      <div class="card kpi">
+        <div class="k-label">신고</div>
+        <div class="k-num" id="kpi-reports">-</div>
+        <div class="k-sub warn" id="kpi-reports-sub"></div>
+      </div>
+    </div>
+
+    <!-- 차트 -->
+    <div class="charts">
+      <div class="card">
+        <div class="card-title">방문자 추이</div>
+        <div class="chart-box"><canvas id="visitorsChart"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">카테고리별 업로드</div>
+        <div class="chart-box"><canvas id="categoryChart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- 테이블 -->
+    <div class="tables">
+      <div class="card">
+        <div class="card-title">최근 신고</div>
+        <table class="tbl">
+          <thead>
+          <tr>
+            <th>ID</th>
+            <th>사유</th>
+            <th>대상</th>
+            <th>생성일</th>
+            <th></th>
+          </tr>
+          </thead>
+          <tbody id="recentReportsTbody"></tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="card-title">최근 가입</div>
+        <table class="tbl">
+          <thead>
+          <tr>
+            <th>닉네임/이메일</th>
+            <th>사용자ID</th>
+            <th>가입일</th>
+            <th>상태</th>
+          </tr>
+          </thead>
+          <tbody id="recentSignupsTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="quick card">
+      <button class="btn-ghost">신고 큐 열기</button>
+      <button class="btn-ghost">공지 보내기</button>
+      <button class="btn-ghost">보안 로그</button>
+    </div>
+
+    <footer class="foot">© RECIPICK Admin</footer>
+  </section>
+</div>
+
+<!-- 신고 상세 모달 -->
+<div id="reportModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="reportTitle">
+  <div class="overlay" data-close="1"></div>
+  <div class="dialog">
+    <header class="dialog-head">
+      <h3 id="reportTitle">신고 상세</h3>
+      <button class="icon-btn close" data-close="1" aria-label="닫기">×</button>
+    </header>
+    <div class="dialog-body">
+      <div class="row"><strong>신고 ID</strong><span id="m-id">-</span></div>
+      <div class="row"><strong>사유</strong><span id="m-reason">-</span></div>
+      <div class="row"><strong>신고자</strong><span id="m-user">-</span></div>
+      <div class="row"><strong>시간</strong><span id="m-time">-</span></div>
+      <div class="row col"><strong>세부 내용</strong><p id="m-detail">-</p></div>
+    </div>
+    <footer class="dialog-foot">
+      <button class="mini warn">차단</button>
+      <button class="mini">보기</button>
+      <button class="mini ghost" data-close="1">닫기</button>
+    </footer>
+  </div>
+</div>
+</body>
+</html>

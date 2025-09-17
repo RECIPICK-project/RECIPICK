@@ -69,7 +69,7 @@ public class ProfileCommandController {
   /**
    * 아바타 URL 저장 Body: { "profileImg": "https://..." }
    */
-  @PatchMapping(value = "/avatar", consumes = "application/json")
+  @PatchMapping(value = "/image", consumes = "application/json")
   @Operation(summary = "프로필 이미지 URL 저장")
   public ResponseEntity<?> changeProfileImage(@RequestBody ProfileImageUpdateRequest req) {
     Integer me = currentUser.userId();
@@ -78,7 +78,7 @@ public class ProfileCommandController {
     return ResponseEntity.noContent().build();
   }
 
-  @PostMapping("/avatar/presign")
+  @PostMapping("/image/presign")
   @Operation(summary = "아바타 업로드용 S3 PUT Presigned URL 발급")
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "성공(putUrl, publicUrl 반환)")

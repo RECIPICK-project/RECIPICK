@@ -668,3 +668,110 @@ a {
     border-radius: 16px 16px 0 0;
   }
 }
+
+/* === Fix for existing HTML: .tabbar + .tab === */
+.tabbar {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 800px;
+  max-width: 95vw;
+  height: 80px;
+  background: #fff;
+  border-top: 1px solid var(--line);
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 20px;
+  z-index: 1000;
+  /* slide-menu(1001)보다 한 단계 아래 */
+}
+
+/* 아이템 */
+.tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px;
+  min-width: 50px;
+  border-radius: 12px;
+  transition: .2s;
+  color: var(--muted);
+}
+
+.tab:hover {
+  background: var(--soft);
+}
+
+/* 가운데 검색만 둥근 배경 유지 */
+.tab .ring {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--mint-200);
+  display: grid;
+  place-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 활성 탭 */
+.tab.is-active {
+  color: var(--green-700);
+}
+
+.tab.is-active svg {
+  stroke: var(--green-700);
+  fill: none;
+}
+
+/* SVG 기본 톤 */
+.tab svg {
+  stroke: var(--muted);
+  fill: none;
+  stroke-width: 2;
+  transition: .2s;
+}
+
+/* 본문이 탭바에 가리지 않도록 (이미 .phone에 96px 있음) */
+
+/* 강제 오버라이드: tabbar를 가로 고정 */
+.tabbar {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 800px;
+  max-width: 95vw;
+  height: 80px;
+  background: #fff;
+  border-top: 1px solid var(--line);
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, .1);
+  display: flex;
+  /* 핵심 */
+  flex-direction: row;
+  /* 핵심 */
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 20px;
+  z-index: 1000;
+}
+
+.tabbar .tab {
+  display: flex;
+  /* 아이콘+라벨 세로 정렬 */
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px;
+  min-width: 50px;
+  border-radius: 12px;
+  transition: .2s;
+  color: var(--muted);
+}

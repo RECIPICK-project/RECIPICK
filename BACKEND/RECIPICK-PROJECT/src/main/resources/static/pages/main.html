@@ -11,39 +11,6 @@
   <link rel="stylesheet" href="../css/components.css" />
   <link rel="stylesheet" href="../css/main.css" />
 
-  <!-- 메인 전용 오버라이드: 오늘의 추천(히어로) 세로 1.7배 & 기본 슬라이더 레이아웃 -->
-  <style>
-    .hero.is-17x {
-      height: auto !important;
-    }
-
-    .hero.is-17x .hero-thumb {
-      height: 374px;
-      /* 220px × 1.7 */
-      background-size: cover;
-      background-position: center;
-      border-radius: 18px;
-    }
-
-    .hero .slides {
-      display: flex;
-      transition: transform .45s ease;
-      will-change: transform;
-    }
-
-    .hero .slide {
-      min-width: 100%;
-      display: grid;
-      grid-template-rows: 1fr auto;
-      gap: 10px;
-    }
-
-    .hero .hero-meta {
-      padding: 0 2px;
-    }
-
-    /* 텍스트는 이미지 아래에 깔끔하게 */
-  </style>
 </head>
 
 <body>
@@ -106,13 +73,15 @@
       <div class="grid" id="grid"></div>
     </section>
 
-    <!-- 탭바 -->
     <nav class="tabbar" aria-label="하단 탭바">
-      <a class="tab" href="menu.html" aria-label="메뉴">
+      <!-- 메뉴: 시트 열기 -->
+      <button class="tab" type="button" aria-label="메뉴" onclick="toggleSlideMenu()">
         <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#6b7280" stroke-width="2">
           <path d="M4 6h16M4 12h16M4 18h16" />
         </svg>
-      </a>
+      </button>
+
+      <!-- 좋아요 -->
       <a class="tab is-active" href="liked.html" aria-label="좋아요">
         <svg viewBox="0 0 24 24" width="24" height="24" fill="#2E7D32">
           <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5
@@ -122,6 +91,8 @@
                11.54L12 21.35z" />
         </svg>
       </a>
+
+      <!-- 검색 -->
       <a class="tab" href="search.html" aria-label="검색">
         <div class="ring">
           <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#6b7280" stroke-width="2">
@@ -130,11 +101,15 @@
           </svg>
         </div>
       </a>
+
+      <!-- 추가 -->
       <a class="tab" href="post_upload.html" aria-label="추가">
         <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#6b7280" stroke-width="2">
           <path d="M12 5v14M5 12h14" />
         </svg>
       </a>
+
+      <!-- 프로필 -->
       <a class="tab" href="profile.html" aria-label="프로필">
         <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#6b7280" stroke-width="2">
           <circle cx="12" cy="8" r="4" />
@@ -143,11 +118,65 @@
       </a>
     </nav>
 
+
   </main>
+  <!-- ▼ 추가: 슬라이드 업 메뉴 -->
+  <div class="slide-menu" id="slideMenu">
+    <div class="slide-menu-overlay"></div>
+    <div class="slide-menu-content">
+      <div class="slide-menu-header">
+        <h2>메뉴</h2>
+        <button class="close-menu-btn" onclick="closeSlideMenu()">
+          <svg viewBox="0 0 24 24" width="20" height="20">
+            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" fill="none" />
+          </svg>
+        </button>
+      </div>
+      <div class="slide-menu-items">
+        <div class="menu-item" onclick="location.href='profile.html'">
+          <svg class="menu-icon" viewBox="0 0 24 24">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+          <span>마이페이지</span>
+        </div>
+        <div class="menu-item" onclick="location.href='recipes.html'">
+          <svg class="menu-icon" viewBox="0 0 24 24">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14,2 14,8 20,8" />
+          </svg>
+          <span>정식 레시피 조회</span>
+        </div>
+        <div class="menu-item" onclick="location.href='liked.html'">
+          <svg class="menu-icon" viewBox="0 0 24 24">
+            <path
+              d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+          </svg>
+          <span>좋아요한 레시피 조회</span>
+        </div>
+        <div class="menu-item" onclick="location.href='settings.html'">
+          <svg class="menu-icon" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1m11 7.5a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15z" />
+          </svg>
+          <span>설정</span>
+        </div>
+        <div class="menu-item logout" onclick="/* TODO: logout() 연결 */">
+          <svg class="menu-icon" viewBox="0 0 24 24">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16,17 21,12 16,7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+          <span>로그아웃</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
 
   <!-- ===== 스크립트 (중복 선언 없음) ===== -->
   <script>
-    const BASE = 'http://localhost:9999';
+    const BASE = 'http://localhost:8080';
     const PAGES = BASE + '/pages';
     const PLACEHOLDER = 'https://placehold.co/1200x800?text=RECIPICK';
 
@@ -220,27 +249,27 @@
     /* 오늘의 추천 */
     (async () => {
       try {
-        const r = await fetch(`${BASE}/api/home/featured`, { cache: 'no-store' });
+        const r = await fetch(`${BASE}/api/main/today`, { cache: 'no-store' });
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         let list = await r.json();
         if (!Array.isArray(list) || !list.length) {
-          list = [{ title: '추천 레시피가 없습니다', imageUrl: null, minutes: 20, level: '보통', rating: '4.5' }];
+          list = [{ id: 0, title: '추천 레시피가 없습니다', foodName: '', rcpImgUrl: null, likeCount: 0, viewCount: 0 }];
         }
         const slidesEl = document.getElementById('slides');
         slidesEl.innerHTML = list.map((it, i) => `
-      <article class="slide" data-i="${i}">
-        <div class="hero-thumb"></div>
-        <div class="hero-meta">
-          <div class="hero-title">${it.title ?? it.food_name ?? '레시피'}</div>
-          <div class="hero-sub">⭐ ${it.rating ?? '4.5'} · ${(it.minutes ?? it.ckg_time ?? '20')}분 · ${it.level ?? it.ckg_level ?? '보통'}</div>
-        </div>
-      </article>
-    `).join('');
+        <article class="slide" data-i="${i}">
+          <div class="hero-thumb"></div>
+          <div class="hero-meta">
+           <div class="hero-title">${it.title}</div>
+           <div class="hero-sub">❤️ ${it.likeCount} · 👁️ ${it.viewCount}</div>
+         </div>
+        </article>
+       `).join('');
         await Promise.all(list.map(async (it, idx) => {
-          const imgKey = it.imageUrl ?? it.rcp_img_url ?? it.rcpImgUrl ?? it.imgUrl ?? it.thumbnail;
-          const good = await pickWorkingImage(imgKey);
+          const good = await pickWorkingImage(it.rcpImgUrl);
           slidesEl.querySelector(`.slide[data-i="${idx}"] .hero-thumb`).style.backgroundImage = `url('${good}')`;
         }));
+
         const dotsWrap = document.querySelector('.dots');
         dotsWrap.innerHTML = list.map((_, i) =>
           `<button class="dot ${i === 0 ? 'is-active' : ''}" data-i="${i}" aria-label="${i + 1}번"></button>`
@@ -269,12 +298,13 @@
     /* 인기 레시피 */
     (async () => {
       try {
-        const r = await fetch(`${BASE}/api/recipes/popular?limit=8`, { cache: 'no-store' });
+        const r = await fetch(`${BASE}/api/main/popular-grid`, { cache: 'no-store' });
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         const items = await r.json();
         const list = Array.isArray(items) && items.length ? items : [{
-          title: '샘플 레시피', imageUrl: null, likes: 0, minutes: 20, id: ''
+          id: 0, title: '샘플 레시피', foodName: '', rcpImgUrl: null, likeCount: 0, viewCount: 0
         }];
+
         const grid = document.getElementById('grid');
         grid.innerHTML = list.map((it, i) => {
           const id = it.id ?? it.post_id ?? it.postId ?? '';
@@ -283,14 +313,13 @@
         <a class="card" href="${href}" data-i="${i}">
           <div class="thumb"></div>
           <div class="meta">
-            <div class="title">${it.title ?? it.food_name ?? '레시피'}</div>
-            <div class="sub">❤️ ${it.likes ?? it.like_count ?? it.likeCount ?? 0} · ${(it.minutes ?? it.ckg_time ?? '20')}분</div>
+            <div class="title">${it.title}</div>
+            <div class="sub">❤️ ${it.likeCount} · 👁️ ${it.viewCount}</div>
           </div>
         </a>`;
         }).join('');
         await Promise.all(list.map(async (it, idx) => {
-          const imgKey = it.imageUrl ?? it.rcp_img_url ?? it.rcpImgUrl ?? it.imgUrl ?? it.thumbnail;
-          const good = await pickWorkingImage(imgKey);
+          const good = await pickWorkingImage(it.rcpImgUrl);
           grid.querySelector(`.card[data-i="${idx}"] .thumb`).style.backgroundImage = `url('${good}')`;
         }));
       } catch (err) {
@@ -298,6 +327,60 @@
       }
     })();
   </script>
+
+  <script>
+    /* ▼ 추가: 슬라이드 메뉴 토글 박스만 (기존 코드 손대지 말고 맨 아래 붙이기) */
+    function openSlideMenu() {
+      const sheet = document.getElementById('slideMenu');
+      if (!sheet) return;
+      sheet.style.visibility = 'visible';
+      sheet.style.opacity = '1';
+      requestAnimationFrame(() => {
+        sheet.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      });
+    }
+    function closeSlideMenu() {
+      const sheet = document.getElementById('slideMenu');
+      if (!sheet) return;
+      sheet.classList.remove('active');
+      document.body.style.overflow = '';
+      setTimeout(() => {
+        if (!sheet.classList.contains('active')) {
+          sheet.style.opacity = '0';
+          sheet.style.visibility = 'hidden';
+        }
+      }, 300);
+    }
+    function toggleSlideMenu() {
+      const sheet = document.getElementById('slideMenu');
+      if (!sheet) return;
+      sheet.classList.contains('active') ? closeSlideMenu() : openSlideMenu();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const sheet = document.getElementById('slideMenu');
+      if (sheet) {
+        const overlay = sheet.querySelector('.slide-menu-overlay');
+        if (overlay) overlay.addEventListener('click', closeSlideMenu);
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSlideMenu(); });
+      }
+      /* 탭바의 '메뉴' a태그 클릭을 가로채서 시트를 열기 (기존 a 유지) */
+      const tabbar = document.querySelector('.tabbar');
+      if (tabbar) {
+        tabbar.addEventListener('click', (e) => {
+          const tab = e.target.closest('.tab');
+          if (!tab) return;
+          const isMenu = (tab.getAttribute('aria-label') || '').includes('메뉴');
+          if (isMenu) {
+            e.preventDefault(); // menu.html 이동 막고
+            toggleSlideMenu();  // 시트 열기
+          }
+        });
+      }
+    });
+  </script>
+
 
 </body>
 

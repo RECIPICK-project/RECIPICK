@@ -38,8 +38,7 @@ import org.springframework.web.bind.annotation.RestController;
  * 비즈니스 로직 수행 - 현재 로그인한 관리자 식별은 Spring Security Authentication + UserRepository로 처리
  *
  * <p>⚠️ 주의 - "임시 하드코딩된 사용자 ID"는 사용하지 않음. - 신고 등록 등 "신고자 ID"가 필요한 곳에서는 Authentication의 이름(email)로
- * DB
- * 조회 → userId 추출.
+ * DB 조회 → userId 추출.
  */
 @RestController
 @RequestMapping("/admin")
@@ -181,7 +180,7 @@ public class AdminController {
    */
   @PatchMapping("/reports/{id}")
   @Operation(summary = "신고 처리", description = "action=ACCEPT|REJECT")
-  public void moderate(@PathVariable Long id, @RequestBody ReportModerateRequest req) {
+  public void moderate(@PathVariable Integer id, @RequestBody ReportModerateRequest req) {
     svc.moderate(id, req);
   }
 

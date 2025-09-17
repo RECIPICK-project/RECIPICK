@@ -9,7 +9,7 @@
    * ================================ */
   const API_BASE = ''; // 같은 도메인이면 '', 아니면 'http://localhost:8080'
   const USE_CREDENTIALS = true;
-  const OFFICIAL_DETAIL_PAGE = '/pages/official_detail.html';
+  const OFFICIAL_DETAIL_PAGE = '/pages/post_detail.html';
 
   const API = (p) => `${API_BASE}${p}`;
 
@@ -158,15 +158,28 @@
     }
   }
 
+  // ✅ 변경 1: 저장한 레시피 → /me/likes 호출 + 필드 보정
   async function loadSaved() {
     try {
-      const r = await fx('/me/saved?limit=20');
+      const r = await fx('/me/likes?offset=0&limit=20');
       if (r.status === 401) { location.href = '/pages/login.html'; return; }
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
-      const items = await r.json();
+      const raw = await r.json(); // List<PostDto>
+
+      const items = Array.isArray(raw) ? raw.map(it => ({
+        ...it,
+        title: it.title ?? it.foodName ?? '',
+        thumb: it.rcpImgUrl ?? it.thumb ?? '',
+        postId: it.postId ?? it.id ?? it.recipeId ?? null,
+        meta: [
+          (it.cookingTime != null ? `${it.cookingTime}분` : ''),
+          `♥ ${it.likeCount ?? 0}`
+        ].filter(Boolean).join(' · ')
+      })) : [];
+
       window.renderLinkList?.('listSaved', items || []);
     } catch (e) {
-      console.warn('저장 로드 실패:', e);
+      console.warn('저장(좋아요) 로드 실패:', e);
       window.renderLinkList?.('listSaved', []);
     }
   }
@@ -514,7 +527,7 @@
       }
 
       if (btn.classList.contains('btn-edit')) {
-        if (isOfficial) location.href = `${OFFICIAL_DETAIL_PAGE}?id=${encodeURIComponent(id)}`;
+        if (isOfficial) location.href = `${OFFICIAL_DETAIL_PAGE}?postId=${encodeURIComponent(id)}`; // ✅ 변경 2: ?postId=
         else            location.href = `post_upload.html?edit=${encodeURIComponent(id)}`;
         return;
       }
@@ -541,6 +554,7 @@
     };
   };
 
+  // ✅ 변경 3: 상세 링크를 official_detail.html?postId= 로 통일
   window.renderLinkList = function (listId, items) {
     const ul = document.getElementById(listId);
     if (!ul) return;
@@ -556,7 +570,7 @@
       const safeBg = (it?.thumb || '').replace(/'/g, '&#39;');
       const rid = getPostId(it);
       li.innerHTML = `
-        <a class="link" href="recipe_detail.html?id=${encodeURIComponent(rid ?? it.recipeId ?? '')}">
+        <a class="link" href="/pages/post_detail.html?postId=${encodeURIComponent(rid ?? it.recipeId ?? '')}">
           <div class="thumb" style="background-image:url('${safeBg}')"></div>
           <div class="meta">
             <div class="title">${it?.title || ''}</div>

@@ -24,7 +24,7 @@ public interface ReviewRepository extends JpaRepository<ReviewEntity, Integer> {
   Optional<ReviewEntity> findByPostPostIdAndUserUserId(Integer postId, Integer userId);
 
   // 특정 게시글의 평균 평점 계산
-  @Query("SELECT AVG(r.rating) FROM ReviewEntity r WHERE r.post.postId = :postId")
+  @Query("SELECT AVG(r.reviewRating) FROM ReviewEntity r WHERE r.post.postId = :postId")
   Optional<BigDecimal> findAverageRatingByPostId(@Param("postId") Integer postId);
 
   // 특정 게시글의 총 리뷰 수
@@ -33,7 +33,10 @@ public interface ReviewRepository extends JpaRepository<ReviewEntity, Integer> {
   Long countByUserUserId(Integer userId);
 
   // 특정 게시글의 평점별 리뷰 수 계산
-  @Query("SELECT COUNT(r) FROM ReviewEntity r WHERE r.post.postId = :postId AND r.rating >= :minRating AND r.rating < :maxRating")
+  @Query("SELECT COUNT(r) FROM ReviewEntity r " +
+      "WHERE r.post.postId = :postId " +
+      "AND r.reviewRating >= :minRating " +
+      "AND r.reviewRating < :maxRating")
   Long countByPostIdAndRatingRange(@Param("postId") Integer postId,
       @Param("minRating") BigDecimal minRating,
       @Param("maxRating") BigDecimal maxRating);

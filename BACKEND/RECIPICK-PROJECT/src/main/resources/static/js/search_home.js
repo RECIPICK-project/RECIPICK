@@ -24,7 +24,7 @@ const PAGE_SIZE = 10;
 // 레시피 상세 페이지로 이동하는 함수
 function goToRecipeDetail(postId) {
   // URL에 postId를 포함하여 상세 페이지로 이동
-  window.location.href = `/post/${postId}`;
+  window.location.href = `/post_detail.html?postId=${postId}`;
 }
 
 // 로딩 상태 제어 함수

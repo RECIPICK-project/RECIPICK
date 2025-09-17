@@ -77,7 +77,7 @@ public interface SearchRepository extends JpaRepository<PostEntity, Long> {
       LEFT JOIN recipe_ingredient ri ON p.post_id = ri.post_id
       LEFT JOIN ingredient i ON ri.ing_id = i.ing_id
       WHERE 
-          (i.name IN :mainIngredients OR p.ckg_category IN :mainIngredients)
+          (i.name IN :mainIngredients OR i.sort IN :mainIngredients)
       """, nativeQuery = true)
   int countSearchByIngredients(@Param("mainIngredients") List<String> mainIngredients);
 
@@ -154,7 +154,7 @@ public interface SearchRepository extends JpaRepository<PostEntity, Long> {
           WHERE p.ckg_category = :category
       """, nativeQuery = true)
   int countSearchByCategory(@Param("category") String category);
-  
+
   /**
    * 인기/전체 레시피 조회
    */

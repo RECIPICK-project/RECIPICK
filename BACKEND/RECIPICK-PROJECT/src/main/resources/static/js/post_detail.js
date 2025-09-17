@@ -1,122 +1,44 @@
-// 예시 레시피 데이터
-const sampleRecipeData = {
-    title: "소고기콩나물솥밥",
-    author: "맛있는요리사",
-    difficulty: 4,
-    servings: 4,
-    cookingTime: "45 min",
-    thumbnailUrl: "", // 이미지가 있으면 URL 넣기
-    ingredients: "쌀|4컵|콩나물|200g|소고기다짐육|100g|다시마|3조각|부추|넉넉히|설탕|1/2스푼",
-    steps: [
-        {
-            description: "소고기콩나물솥밥을 소개합니다.",
-            imageUrl: "",
-        },
-        {
-            description:
-                "쌀은 깨끗하게 씻어준후 30분간 불린후 다시다 우린물에 밥을 지어주세요.냄비",
-            imageUrl: "",
-        },
-        {
-            description:
-                "소고기다짐육을 후라이팬에 볶아가면서 설탕을 조금 넣어서 볶아주세요.프라이팬,요리스푼",
-            imageUrl: "",
-        },
-        {
-            description:
-                "밥을 지어준후 뜸을 들일때쯤 뚜껑을 열어서 콩나물을 넉넉히 넣어서 뜸을 들여주세요.위생장갑",
-            imageUrl: "",
-        },
-        {
-            description: "10분정도 약불로 뜸을 들여준후 볶은 소고기를 올려주세요.",
-            imageUrl: "",
-        },
-        {
-            description: "부추를 송송송 썰어준후 뚜껑을 닫아주세요.",
-            imageUrl: "",
-        },
-        {
-            description:
-                "주걱을 이용해서 고슬고슬 지어진 밥을 콩나물과 잘 섞이도록 잘 섞어주세요.밥주걱",
-            imageUrl: "",
-        },
-        {
-            description: "부추의 향이 가득 배인 소고기콩나물솥밥 이랍니다.",
-            imageUrl: "",
-        },
-        {
-            description: "소고기콩나물솥밥이 완성이 되었습니다.",
-            imageUrl: "",
-        },
-    ],
-};
+// 백엔드 API 기본 URL
+const API_BASE_URL = 'http://localhost:8080'; 
 
-// 댓글 데이터 (예시)
-let commentsData = [
-    {
-        id: 1,
-        user: "김요리사",
-        rating: 4.5,
-        text: "정말 맛있었어요! 콩나물이 아삭아삭하고 소고기와 잘 어울리네요. 다만 불 조절을 조심해야 할 것 같아요.",
-        date: "2024-03-15",
-    },
-    {
-        id: 2,
-        user: "박주부",
-        rating: 5,
-        text: "가족들이 너무 좋아해요. 특히 아이들이 맛있다고 하네요. 레시피 감사합니다!",
-        date: "2024-03-14",
-    },
-];
-
-// 현재 사용자의 댓글 여부 (실제로는 서버에서 확인)
-let hasUserCommented = false;
-let currentUserRating = 0;
-
-// 좋아요 상태 (실제로는 서버에서 확인)
-let isLiked = false;
-
-// 페이지 로드시 실행
+// 페이지 로드 시 실행
 document.addEventListener("DOMContentLoaded", function () {
-    // URL에서 레시피 ID 추출 (예: /recipe/123)
-    const pathArray = window.location.pathname.split("/");
-    const recipeId = pathArray[pathArray.length - 1];
+    // URL에서 'postId' 파라미터 값 추출
+    const urlParams = new URLSearchParams(window.location.search);
+    const recipeId = urlParams.get('postId');
 
-    // 실제 환경에서는 API 호출
-    // loadRecipeData(recipeId);
+    if (recipeId) {
+        // postId가 있으면 API를 호출하여 레시피 데이터를 불러옴
+        loadRecipeData(recipeId);
+    } else {
+        console.error("레시피 ID를 찾을 수 없습니다.");
+        alert("잘못된 접근입니다.");
+    }
 
-    // 데모용으로 샘플 데이터 사용
-    renderRecipeData(sampleRecipeData);
-    initializeCommentSystem();
-    renderComments();
+    // 댓글 시스템 초기화
+    initializeReviewSystem(recipeId);
 
-    // 슬라이드 메뉴 이벤트 리스너 추가
     initializeSlideMenu();
-
-    // 좋아요 상태 초기화
     initializeLikeButton();
 });
 
-// 슬라이드 메뉴 초기화
-function initializeSlideMenu() {
-    const slideMenu = document.getElementById('slideMenu');
-    
-    // 오버레이 클릭 시 메뉴 닫기
-    slideMenu.addEventListener('click', function(e) {
-        if (e.target.classList.contains('slide-menu-overlay')) {
-            closeSlideMenu();
-        }
-    });
-}
-// 실제 레시피 데이터 로드 함수
+
+// 실제 레시피 데이터 로드 함수 (API 호출)
 async function loadRecipeData(recipeId) {
     try {
-        const response = await fetch(`/api/recipes/${recipeId}`);
+        // 백엔드의 GET /post/{postId} 엔드포인트 호출
+        const response = await fetch(`${API_BASE_URL}/post/${recipeId}`);
         if (!response.ok) {
             throw new Error("레시피를 불러올 수 없습니다.");
         }
-        const recipeData = await response.json();
-        renderRecipeData(recipeData);
+        const result = await response.json();
+
+        if (result.success && result.data) {
+            renderRecipeData(result.data);
+        } else {
+            throw new Error(result.message || "데이터 형식이 올바르지 않습니다.");
+        }
+
     } catch (error) {
         console.error("레시피 로드 에러:", error);
         alert("레시피를 불러오는데 실패했습니다: " + error.message);
@@ -124,30 +46,32 @@ async function loadRecipeData(recipeId) {
 }
 
 // 레시피 데이터 렌더링
-function renderRecipeData(data) {
+function renderRecipeData(recipe) {
     // 기본 정보 업데이트
-    document.getElementById("recipeTitle").textContent = data.title;
-    document.getElementById("authorName").textContent = data.author;
-    document.getElementById("difficulty").textContent = data.difficulty;
-    document.getElementById("servings").textContent = data.servings;
-    document.getElementById("cookingTime").textContent = data.cookingTime;
+    document.title = recipe.title; // 브라우저 탭 제목 변경
+    document.getElementById("recipeTitle").textContent = recipe.title;
+    document.getElementById("authorName").textContent = recipe.author;
+    document.getElementById("difficulty").textContent = recipe.ckgLevel;
+    document.getElementById("servings").textContent = recipe.ckgInbun;
+    document.getElementById("cookingTime").textContent = recipe.cookingTimeString;
 
     // 썸네일 이미지
-    if (data.thumbnailUrl) {
+    if (recipe.rcpImgUrl) {
         const thumbnail = document.getElementById("thumbnailBox");
-        thumbnail.innerHTML = `<img src="${data.thumbnailUrl}" alt="레시피 이미지">`;
+        thumbnail.innerHTML = `<img src="${recipe.rcpImgUrl}" alt="${recipe.title} 이미지">`;
         thumbnail.classList.add("has-img");
     }
 
-    // 재료 렌더링
-    renderIngredients(data.ingredients);
+    // 재료 렌더링 (PostDto의 ingredientsString 사용)
+    renderIngredients(recipe.ingredientsString);
 
-    // 조리순서 렌더링
-    renderCookingSteps(data.steps);
+    // 조리순서 렌더링 (PostDto의 rcpSteps 사용)
+    renderCookingSteps(recipe.rcpSteps, recipe.rcpStepsImg);
 }
 
-// 재료 리스트 렌더링
+// 재료 리스트 렌더링 (백엔드 데이터 형식에 맞게 수정)
 function renderIngredients(ingredientsString) {
+    if (!ingredientsString) return;
     const ingredientsArray = ingredientsString.split("|");
     const container = document.getElementById("ingredientsList");
     container.innerHTML = "";
@@ -159,41 +83,38 @@ function renderIngredients(ingredientsString) {
         const ingredientItem = document.createElement("div");
         ingredientItem.className = "ingredient-item";
         ingredientItem.innerHTML = `
-      <span class="ingredient-name">${name}</span>
-      <span class="ingredient-amount">${amount}</span>
-      <button class="btn-small btn-substitute" onclick="getSubstituteIngredient('${name}', this)">대체</button>
-      <button class="btn-small" onclick="goToCoupang('${name}')">구매</button>
-    `;
-
+          <span class="ingredient-name">${name}</span>
+          <span class="ingredient-amount">${amount}</span>
+          <button class="btn-small btn-substitute" onclick="getSubstituteIngredient('${name}', this)">대체</button>
+          <button class="btn-small" onclick="goToCoupang('${name}')">구매</button>
+        `;
         container.appendChild(ingredientItem);
     }
 }
 
-// 조리순서 렌더링
-function renderCookingSteps(steps) {
+// 조리순서 렌더링 (백엔드 데이터 형식에 맞게 수정)
+function renderCookingSteps(steps, stepImages) {
     const container = document.getElementById("cookingStepsList");
     container.innerHTML = "";
 
-    steps.forEach((step, index) => {
+    steps.forEach((stepDescription, index) => {
         const stepItem = document.createElement("div");
         stepItem.className = "step-item";
-        stepItem.innerHTML = `
-      <div class="step-header">${index + 1}단계</div>
-      <div class="step-content">
-        <div class="step-description">${step.description}</div>
-        <div class="step-image">
-          ${
-              step.imageUrl
-                  ? `<img src="${step.imageUrl}" alt="${index + 1}단계 이미지">`
-                  : '<div class="step-image-placeholder">사진</div>'
-          }
-        </div>
-      </div>
-    `;
+        const imageUrl = (stepImages && stepImages[index]) ? stepImages[index] : '';
 
+        stepItem.innerHTML = `
+          <div class="step-header">${index + 1}단계</div>
+          <div class="step-content">
+            <div class="step-description">${stepDescription}</div>
+            <div class="step-image">
+              ${imageUrl ? `<img src="${imageUrl}" alt="${index + 1}단계 이미지">` : '<div class="step-image-placeholder">사진</div>'}
+            </div>
+          </div>
+        `;
         container.appendChild(stepItem);
     });
 }
+
 
 // GPT API를 통한 대체 재료 추천
 async function getSubstituteIngredient(ingredientName, button) {

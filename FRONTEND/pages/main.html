@@ -219,7 +219,7 @@
       const grid = document.getElementById('categoryGrid');
       if (!grid) return;
       grid.innerHTML = categories.map(c => `
-    <a class="category-item" href="${PAGES}/search.html?category=${encodeURIComponent(c.name)}" aria-label="${c.name}">
+    <a class="category-item" href="${PAGES}/search_home.html?category=${encodeURIComponent(c.name)}" aria-label="${c.name}">
       <div class="cat-badge" aria-hidden="true">${c.icon}</div>
       <div class="category-name">${c.name}</div>
     </a>
@@ -256,15 +256,22 @@
           list = [{ id: 0, title: '추천 레시피가 없습니다', foodName: '', rcpImgUrl: null, likeCount: 0, viewCount: 0 }];
         }
         const slidesEl = document.getElementById('slides');
-        slidesEl.innerHTML = list.map((it, i) => `
+        slidesEl.innerHTML = list.map((it, i) => {
+          const id = it.id ?? it.post_id ?? it.postId ?? '';
+          const href = `${PAGES}/post_detail.html${id ? `?id=${id}` : ''}`;
+          return `
         <article class="slide" data-i="${i}">
-          <div class="hero-thumb"></div>
-          <div class="hero-meta">
-           <div class="hero-title">${it.title}</div>
-           <div class="hero-sub">❤️ ${it.likeCount} · 👁️ ${it.viewCount}</div>
-         </div>
-        </article>
-       `).join('');
+        <a href="${href}" class="hero-link">
+        <div class="hero-thumb"></div>
+        <div class="hero-meta">
+          <div class="hero-title">${it.title}</div>
+          <div class="hero-sub">❤️ ${it.likeCount} · 👁️ ${it.viewCount}</div>
+        </div>
+      </a>
+      </article>
+      `;
+        }).join('');
+
         await Promise.all(list.map(async (it, idx) => {
           const good = await pickWorkingImage(it.rcpImgUrl);
           slidesEl.querySelector(`.slide[data-i="${idx}"] .hero-thumb`).style.backgroundImage = `url('${good}')`;
@@ -308,7 +315,7 @@
         const grid = document.getElementById('grid');
         grid.innerHTML = list.map((it, i) => {
           const id = it.id ?? it.post_id ?? it.postId ?? '';
-          const href = `${PAGES}/recipe-detail.html${id ? `?id=${id}` : ''}`;
+          const href = `${PAGES}/post_detail.html${id ? `?id=${id}` : ''}`;
           return `
         <a class="card" href="${href}" data-i="${i}">
           <div class="thumb"></div>

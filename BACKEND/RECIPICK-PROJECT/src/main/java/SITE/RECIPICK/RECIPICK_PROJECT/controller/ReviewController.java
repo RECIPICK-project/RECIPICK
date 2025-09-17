@@ -12,7 +12,6 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -59,21 +58,6 @@ public class ReviewController {
   public ResponseEntity<ReviewDto> getReviewStats(@PathVariable Integer postId) {
     ReviewDto stats = reviewService.getReviewStats(postId);
     return ResponseEntity.ok(stats);
-  }
-
-  /**
-   * 리뷰 수정
-   */
-  @PatchMapping("/{reviewId}")
-  public ResponseEntity<ReviewDto> updateReview(
-      @PathVariable Integer reviewId,
-      @Valid @RequestBody ReviewDto reviewDto,
-      HttpSession session) {
-
-    Integer userId = getUserIdFromSession(session);
-    ReviewDto response = reviewService.updateReview(userId, reviewId, reviewDto);
-
-    return ResponseEntity.ok(response);
   }
 
   /**

@@ -21,12 +21,6 @@ let hasMoreData = true;
 let totalRecipeCount = 0;
 const PAGE_SIZE = 10;
 
-// 레시피 상세 페이지로 이동하는 함수
-function goToRecipeDetail(postId) {
-  // URL에 postId를 포함하여 상세 페이지로 이동
-  window.location.href = `/post_detail.html?postId=${postId}`;
-}
-
 // 로딩 상태 제어 함수
 function showLoading() {
   isLoading = true;
@@ -143,16 +137,13 @@ function processImageUrl(imageUrl) {
   return DEFAULT_IMAGE_URL;
 }
 
-// 레시피 카드 생성 (클릭 이벤트 수정)
+// 레시피 카드 생성
 function makeCard(recipe) {
   console.log('Recipe data:', recipe);
 
   const li = document.createElement('li');
   li.className = 'card';
-  
-  // 클릭 이벤트 수정 - postId를 사용하여 상세 페이지로 이동
-  li.onclick = () => goToRecipeDetail(recipe.postId);
-  li.style.cursor = 'pointer'; // 클릭 가능함을 시각적으로 표시
+  li.onclick = () => window.location.href = `/post_detail/${recipe.postId}`;
 
   const imgWrapper = document.createElement('div');
   imgWrapper.className = 'card-img';

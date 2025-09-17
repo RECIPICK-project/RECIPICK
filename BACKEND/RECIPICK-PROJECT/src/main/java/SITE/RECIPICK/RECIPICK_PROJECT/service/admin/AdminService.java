@@ -239,7 +239,7 @@ public class AdminService {
 
   // ===== 신고 처리 =====
   @Transactional
-  public void moderate(Long id, ReportModerateRequest req) {
+  public void moderate(Integer id, ReportModerateRequest req) {
     var r =
         reportRepo
             .findById(id)

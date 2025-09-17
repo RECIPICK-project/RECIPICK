@@ -149,10 +149,7 @@ function makeCard(recipe) {
 
   const li = document.createElement('li');
   li.className = 'card';
-  
-  // 클릭 이벤트 수정 - postId를 사용하여 상세 페이지로 이동
-  li.onclick = () => goToRecipeDetail(recipe.postId);
-  li.style.cursor = 'pointer'; // 클릭 가능함을 시각적으로 표시
+  li.onclick = () => window.location.href = `/post_detail/${recipe.postId}`;
 
   const imgWrapper = document.createElement('div');
   imgWrapper.className = 'card-img';

@@ -1,4 +1,4 @@
-/* profile.js (stable)
+/* profile.js (stable, hardened)
  * 마이페이지: 탭 전환, 프로필 편집, 목록 로드(내 글/저장/활동), 정식 레시피 예외 처리
  */
 (function () {
@@ -9,7 +9,7 @@
    * ================================ */
   const API_BASE = ''; // 같은 도메인이면 '', 아니면 'http://localhost:8080'
   const USE_CREDENTIALS = true;
-  const OFFICIAL_DETAIL_PAGE = '/pages/official_detail.html';
+  const OFFICIAL_DETAIL_PAGE = '/pages/post_detail.html';
 
   const API = (p) => `${API_BASE}${p}`;
 
@@ -49,14 +49,23 @@
 
   function fx(path, opts = {}) {
     const method = (opts.method || 'GET').toUpperCase();
+
+    // FormData일 때는 Content-Type을 절대 강제 설정하지 않음
+    const isFormData = (opts.body && typeof FormData !== 'undefined' && opts.body instanceof FormData);
+
     const headers = {
       Accept: 'application/json',
       ...authHeader(),
       ...getCsrfHeaders(method),
       ...(opts.headers || {}),
     };
+
+    // FormData가 아닌데 JSON 보낼 때만 Content-Type을 유지(호출부에서 넣음)
+    if (isFormData && headers['Content-Type']) {
+      delete headers['Content-Type'];
+    }
+
     const cred = USE_CREDENTIALS ? { credentials: 'include' } : {};
-    // 반드시 fetch 반환
     return fetch(API(path), { ...opts, headers, ...cred });
   }
 
@@ -76,7 +85,6 @@
 
   const confirmAsync = (message) => Promise.resolve(confirm(message));
 
-
   function getPostId(it) {
     if (!it || typeof it !== 'object') return null;
 
@@ -87,11 +95,11 @@
       if (v !== undefined && v !== null && String(v).trim?.() !== '') return v;
     }
 
-    // 2) "id"가 들어가는 모든 직속 키 스캔 (예: post_id, recipe_id, myCustomId 등)
+    // 2) "id"가 들어가는 모든 직속 키 스캔
     for (const [k, v] of Object.entries(it)) {
       if (/(^|_)(id|Id|ID)$/.test(k) || /id$/i.test(k) || k.toLowerCase().includes('id')) {
         const val = (typeof v === 'object' && v !== null) ? null : v;
-        if (val !== null && val !== undefined && String(val).trim() !== '') return val;
+        if (val !== null && val !== undefined && String(val).trim?.() !== '') return val;
       }
     }
 
@@ -113,15 +121,15 @@
     return null;
   }
 
-
   /* ================================
-   * 1) 데이터 로더들 (선언을 먼저 해서 navigateTo가 안 꼬이게)
+   * 1) 데이터 로더들
    * ================================ */
   async function loadProfile() {
     try {
       const res = await fx('/me/profile');
       if (res.status === 401) { location.href = '/pages/login.html'; return; }
       if (res.status === 404) { console.warn('PROFILE_NOT_FOUND'); return; }
+      if (res.status === 405) { console.warn('PROFILE_ENDPOINT_NO_GET'); return; } // GET 미지원일 때 스킵
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const p = await res.json();
       window.initProfile?.({
@@ -150,16 +158,28 @@
     }
   }
 
-
+  // ✅ 변경 1: 저장한 레시피 → /me/likes 호출 + 필드 보정
   async function loadSaved() {
     try {
-      const r = await fx('/me/saved?limit=20');
+      const r = await fx('/me/likes?offset=0&limit=20');
       if (r.status === 401) { location.href = '/pages/login.html'; return; }
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
-      const items = await r.json();
+      const raw = await r.json(); // List<PostDto>
+
+      const items = Array.isArray(raw) ? raw.map(it => ({
+        ...it,
+        title: it.title ?? it.foodName ?? '',
+        thumb: it.rcpImgUrl ?? it.thumb ?? '',
+        postId: it.postId ?? it.id ?? it.recipeId ?? null,
+        meta: [
+          (it.cookingTime != null ? `${it.cookingTime}분` : ''),
+          `♥ ${it.likeCount ?? 0}`
+        ].filter(Boolean).join(' · ')
+      })) : [];
+
       window.renderLinkList?.('listSaved', items || []);
     } catch (e) {
-      console.warn('저장 로드 실패:', e);
+      console.warn('저장(좋아요) 로드 실패:', e);
       window.renderLinkList?.('listSaved', []);
     }
   }
@@ -240,45 +260,49 @@
   }
 
   /* ================================
-   * 4) 프로필 편집 모달 + 저장
+   * 4) 프로필 편집 모달 + 저장 (수정판)
    * ================================ */
+  let savingProfile = false; // 중복 클릭 방지
+
   function buildProfileModal() {
     const wrap = document.createElement('div');
     wrap.className = 'modal';
     wrap.setAttribute('aria-hidden', 'true');
     wrap.innerHTML = `
-      <div class="overlay" data-close></div>
-      <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="editTitle">
-        <div class="dialog-head">
-          <h3 id="editTitle">프로필 편집</h3>
-          <button class="btn-ghost" data-close aria-label="닫기">닫기</button>
-        </div>
-        <div class="dialog-body">
-          <label class="row"><span>닉네임</span><input class="input" id="editName" maxlength="20" placeholder="닉네임" /></label>
-          <label class="row"><span>프로필 사진</span><input class="input" id="editAvatar" type="file" accept="image/*" /></label>
-        </div>
-        <div class="dialog-foot">
-          <button class="btn-ghost" data-close>취소</button>
-          <button class="btn success" id="saveProfile">저장</button>
-        </div>
-      </div>`;
+    <div class="overlay" data-close></div>
+    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="editTitle">
+      <div class="dialog-head">
+        <h3 id="editTitle">프로필 편집</h3>
+        <button class="btn-ghost" data-close aria-label="닫기">닫기</button>
+      </div>
+      <div class="dialog-body">
+        <label class="row"><span>닉네임</span><input class="input" id="editName" maxlength="20" placeholder="닉네임" /></label>
+        <label class="row"><span>프로필 사진</span><input class="input" id="editAvatar" type="file" accept="image/*" /></label>
+      </div>
+      <div class="dialog-foot">
+        <button class="btn-ghost" data-close>취소</button>
+        <button class="btn success" id="saveProfile">저장</button>
+      </div>
+    </div>`;
     document.body.appendChild(wrap);
 
+    // 오버레이/닫기 버튼
     wrap.addEventListener('click', (e) => {
       if (e.target && e.target.dataset.close !== undefined) {
         wrap.setAttribute('aria-hidden', 'true');
       }
     });
 
+    // 열기
     document.getElementById('openEdit')?.addEventListener('click', () => {
       const cur = document.getElementById('userName')?.textContent?.trim() || '';
-      const input = document.getElementById('editName');
+      const input = wrap.querySelector('#editName');
       if (input) input.value = cur;
       wrap.setAttribute('aria-hidden', 'false');
     });
 
-    // 아바타 프리뷰
-    document.addEventListener('change', (e) => {
+    // 프리뷰
+    wrap.addEventListener('change', (e) => {
       if (e.target && e.target.id === 'editAvatar') {
         const f = e.target.files?.[0];
         if (!f) return;
@@ -287,45 +311,114 @@
       }
     });
 
-    // 저장
-    document.addEventListener('click', async (e) => {
-      if (!(e.target && e.target.id === 'saveProfile')) return;
+    // ✅ 저장 버튼에만 핸들러 바인딩 (전역 document 핸들러 제거)
+    const saveBtn = wrap.querySelector('#saveProfile');
+    saveBtn?.addEventListener('click', onSaveProfile);
 
-      const nickname = document.getElementById('editName')?.value?.trim();
-      if (!nickname) { toast('닉네임을 입력해 주세요.'); return; }
+    async function onSaveProfile() {
+      if (savingProfile) return;
+      savingProfile = true;
+
+      const btn = saveBtn;
+      const orig = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = '저장 중...';
 
       try {
+        const nickname = wrap.querySelector('#editName')?.value?.trim();
+        if (!nickname) { toast('닉네임을 입력해 주세요.'); return; }
+
+        // (1) 아바타 저장: 파일 선택 여부와 무관하게 URL만 저장
         let avatarUrl;
-        const file = document.getElementById('editAvatar')?.files?.[0];
-        if (file) {
-          const form = new FormData();
-          form.append('file', file);
-          const upRes = await fx('/me/profile/avatar', { method: 'POST', body: form });
-          if (upRes.status === 401) { location.href = '/pages/login.html'; return; }
-          if (!upRes.ok) throw new Error(`AVATAR HTTP ${upRes.status}`);
-          const u = await upRes.json();
-          avatarUrl = u.url;
+        const file = document.getElementById('editAvatar')?.files?.[0] || null;
+        const up = await uploadAvatar(file);
+        if (up.status === 401) { location.href = '/pages/login.html'; return; }
+        if (up.ok && up.url) {
+          avatarUrl = up.url;
+          const img = document.getElementById('avatarImg');
+          if (img) img.src = avatarUrl;
+        } else if (up.status !== 0) {
+          // status=0 은 사용자가 취소한 케이스. 그 외는 오류 메시지.
+          toast('프로필 사진 저장에 실패했어요. 닉네임만 저장합니다.');
         }
 
-        const body = JSON.stringify({ nickname, ...(avatarUrl ? { profileImg: avatarUrl } : {}) });
-        const res = await fx('/me/profile', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body });
-        if (res.status === 401) { location.href = '/pages/login.html'; return; }
-        if (!res.ok) throw new Error(`PATCH HTTP ${res.status}`);
 
-        const nameEl = document.getElementById('userName');
-        if (nameEl) nameEl.textContent = nickname;
-        if (avatarUrl) {
-          const imgEl = document.getElementById('avatarImg');
-          if (imgEl) imgEl.src = avatarUrl;
+        // (2) 닉네임 PATCH
+        const nickRes = await fx('/me/profile/nickname', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ newNickname: nickname })
+        });
+
+        const rawText = await nickRes.text().catch(() => '');
+
+        if (nickRes.status === 401) { location.href = '/pages/login.html'; return; }
+        if (nickRes.status === 409) { // 🔒 충돌(중복/금지어 등)
+          toast(rawText || '이미 사용 중인 닉네임이거나 변경이 제한되었습니다.');
+          return; // ✅ 실패이므로 모달 닫지 않음
         }
-        wrap.setAttribute('aria-hidden', 'true');
+        if (nickRes.status === 404) { toast(rawText || '프로필을 찾을 수 없어요.'); return; }
+        if (nickRes.status === 400) { toast(rawText || '요청 값이 올바르지 않습니다.'); return; }
+        if (!nickRes.ok) { toast(rawText || `닉네임 변경 실패(${nickRes.status})`); return; }
+
+        // 성공 처리
+        document.getElementById('userName').textContent = nickname;
+        wrap.setAttribute('aria-hidden', 'true'); // ✅ 성공시에만 닫기
+        loadProfile();
         toast('저장되었습니다.');
       } catch (err) {
         console.error('프로필 저장 실패:', err);
         toast('프로필 저장에 실패했습니다.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = orig;
+        savingProfile = false;
       }
-    });
+    }
   }
+
+  async function uploadAvatar(file) {
+    if (!file) return { ok:false, status:0 };
+
+    try {
+      // 1) 프리사인 받기
+      const presignRes = await fx('/me/profile/avatar/presign', {
+        method: 'POST',
+        // URLSearchParams = x-www-form-urlencoded (우리 fx가 CSRF/인증 붙임)
+        body: new URLSearchParams({
+          filename: file.name,
+          contentType: file.type || 'application/octet-stream'
+        })
+      });
+      if (presignRes.status === 401) return { ok:false, status:401 };
+      if (!presignRes.ok) return { ok:false, status:presignRes.status };
+      const { putUrl, publicUrl } = await presignRes.json();
+
+      // 2) 브라우저 → S3 직접 업로드
+      const put = await fetch(putUrl, {
+        method: 'PUT',
+        body: file
+        // Content-Type은 presign에 이미 박혀 있음. 명시 안 하는 게 안전.
+      });
+      if (!put.ok) return { ok:false, status:put.status };
+
+      // 3) 최종 URL을 DB에 저장 (PATCH 유지)
+      const save = await fx('/me/profile/avatar', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ profileImg: publicUrl })
+      });
+      if (save.status === 401) return { ok:false, status:401 };
+      if (!save.ok) return { ok:false, status:save.status };
+
+      return { ok:true, status:save.status, url: publicUrl };
+    } catch (e) {
+      console.warn('[AVATAR] upload error:', e);
+      return { ok:false, status:0 };
+    }
+  }
+
+
 
   /* ================================
    * 5) 등급 표시 & 프로필 초기화
@@ -361,16 +454,16 @@
     ul.innerHTML = '';
 
     const emptyEl = document.querySelector('[data-empty-mine]');
-    if (emptyEl) emptyEl.hidden = items.length > 0;
+    if (emptyEl) emptyEl.hidden = (Array.isArray(items) && items.length > 0);
 
-    items.forEach((it, idx) => {
+    (items || []).forEach((it, idx) => {
       const li = document.createElement('li');
       li.className = 'card';
 
       const rid = getPostId(it);
       const isOfficialFlag = typeof it?.official === 'boolean' ? it.official : Number(it?.rcpIsOfficial) === 1;
 
-      // ✅ 항상 인덱스 저장 (id가 없어도 클릭 시 역추적)
+      // 항상 인덱스 저장 (id가 없어도 클릭 시 역추적)
       li.dataset.idx = String(idx);
       if (rid != null) li.dataset.id = String(rid);
       li.dataset.official = isOfficialFlag ? '1' : '0';
@@ -393,7 +486,7 @@
       </div>`;
 
       if (rid == null) {
-        console.warn('[renderMine] id가 비어있는 아이템', { index: idx, item: it, keys: Object.keys(it) });
+        console.warn('[renderMine] id가 비어있는 아이템', { index: idx, item: it, keys: Object.keys(it || {}) });
       }
 
       ul.appendChild(li);
@@ -411,7 +504,7 @@
       let isOfficial = (card?.dataset.official === '1');
 
       // 2) 여전히 id 없으면, items[idx]에서 다시 파생
-      if ((!id || id === '') && idx >= 0 && items[idx]) {
+      if ((!id || id === '') && idx >= 0 && (items || [])[idx]) {
         const backId = getPostId(items[idx]);
         if (backId != null) {
           id = String(backId);
@@ -428,13 +521,13 @@
       }
 
       if (!id) {
-        console.warn('data-id 없음', { btn, card, idx, item: items[idx] });
+        console.warn('data-id 없음', { btn, card, idx, item: (items || [])[idx] });
         toast('잘못된 항목입니다.');
         return;
       }
 
       if (btn.classList.contains('btn-edit')) {
-        if (isOfficial) location.href = `${OFFICIAL_DETAIL_PAGE}?id=${encodeURIComponent(id)}`;
+        if (isOfficial) location.href = `${OFFICIAL_DETAIL_PAGE}?postId=${encodeURIComponent(id)}`; // ✅ 변경 2: ?postId=
         else            location.href = `post_upload.html?edit=${encodeURIComponent(id)}`;
         return;
       }
@@ -461,7 +554,7 @@
     };
   };
 
-
+  // ✅ 변경 3: 상세 링크를 official_detail.html?postId= 로 통일
   window.renderLinkList = function (listId, items) {
     const ul = document.getElementById(listId);
     if (!ul) return;
@@ -469,14 +562,15 @@
 
     const emptySel = listId === 'listSaved' ? '[data-empty-saved]' : '[data-empty-activity]';
     const em = document.querySelector(emptySel);
-    if (em) em.hidden = items.length > 0;
+    if (em) em.hidden = (Array.isArray(items) && items.length > 0);
 
-    items.forEach((it) => {
+    (items || []).forEach((it) => {
       const li = document.createElement('li');
       li.className = 'card';
       const safeBg = (it?.thumb || '').replace(/'/g, '&#39;');
+      const rid = getPostId(it);
       li.innerHTML = `
-        <a class="link" href="recipe_detail.html?id=${it.recipeId}">
+        <a class="link" href="/pages/post_detail.html?postId=${encodeURIComponent(rid ?? it.recipeId ?? '')}">
           <div class="thumb" style="background-image:url('${safeBg}')"></div>
           <div class="meta">
             <div class="title">${it?.title || ''}</div>

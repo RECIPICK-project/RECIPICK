@@ -143,7 +143,7 @@ function makeCard(recipe) {
 
   const li = document.createElement('li');
   li.className = 'card';
-  li.onclick = () => window.location.href = `/post/${recipe.postId}`;
+  li.onclick = () => window.location.href = `/post_detail/${recipe.postId}`;
 
   const imgWrapper = document.createElement('div');
   imgWrapper.className = 'card-img';

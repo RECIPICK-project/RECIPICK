@@ -1,8 +1,6 @@
 package SITE.RECIPICK.RECIPICK_PROJECT.controller;
 
-import SITE.RECIPICK.RECIPICK_PROJECT.dto.ReviewRequestDto;
-import SITE.RECIPICK.RECIPICK_PROJECT.dto.ReviewResponseDto;
-import SITE.RECIPICK.RECIPICK_PROJECT.dto.ReviewStatsDto;
+import SITE.RECIPICK.RECIPICK_PROJECT.dto.ReviewDto;
 import SITE.RECIPICK.RECIPICK_PROJECT.service.ReviewService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -14,7 +12,6 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -32,12 +29,12 @@ public class ReviewController {
    * 리뷰 작성
    */
   @PostMapping
-  public ResponseEntity<ReviewResponseDto> createReview(
-      @Valid @RequestBody ReviewRequestDto requestDto,
+  public ResponseEntity<ReviewDto> createReview(
+      @Valid @RequestBody ReviewDto reviewDto,
       HttpSession session) {
 
     Integer userId = getUserIdFromSession(session);
-    ReviewResponseDto response = reviewService.createReview(userId, requestDto);
+    ReviewDto response = reviewService.createReview(userId, reviewDto);
 
     return ResponseEntity.ok(response);
   }
@@ -46,12 +43,11 @@ public class ReviewController {
    * 특정 게시글의 리뷰 목록 조회
    */
   @GetMapping("/post/{postId}")
-  public ResponseEntity<Page<ReviewResponseDto>> getReviewsByPostId(
+  public ResponseEntity<Page<ReviewDto>> getReviewsByPostId(
       @PathVariable Integer postId,
       @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
 
-    Page<ReviewResponseDto> reviews = reviewService.getReviewsByPostId(postId, pageable);
-
+    Page<ReviewDto> reviews = reviewService.getReviewsByPostId(postId, pageable);
     return ResponseEntity.ok(reviews);
   }
 
@@ -59,25 +55,9 @@ public class ReviewController {
    * 특정 게시글의 리뷰 통계 조회
    */
   @GetMapping("/post/{postId}/stats")
-  public ResponseEntity<ReviewStatsDto> getReviewStats(@PathVariable Integer postId) {
-    ReviewStatsDto stats = reviewService.getReviewStats(postId);
-
+  public ResponseEntity<ReviewDto> getReviewStats(@PathVariable Integer postId) {
+    ReviewDto stats = reviewService.getReviewStats(postId);
     return ResponseEntity.ok(stats);
-  }
-
-  /**
-   * 리뷰 수정
-   */
-  @PatchMapping("/{reviewId}")
-  public ResponseEntity<ReviewResponseDto> updateReview(
-      @PathVariable Integer reviewId,
-      @Valid @RequestBody ReviewRequestDto requestDto,
-      HttpSession session) {
-
-    Integer userId = getUserIdFromSession(session);
-    ReviewResponseDto response = reviewService.updateReview(userId, reviewId, requestDto);
-
-    return ResponseEntity.ok(response);
   }
 
   /**
@@ -112,12 +92,12 @@ public class ReviewController {
    * 사용자의 특정 게시글 리뷰 조회
    */
   @GetMapping("/post/{postId}/user-review")
-  public ResponseEntity<ReviewResponseDto> getUserReviewForPost(
+  public ResponseEntity<ReviewDto> getUserReviewForPost(
       @PathVariable Integer postId,
       HttpSession session) {
 
     Integer userId = getUserIdFromSession(session);
-    ReviewResponseDto review = reviewService.getUserReviewForPost(userId, postId);
+    ReviewDto review = reviewService.getUserReviewForPost(userId, postId);
 
     return ResponseEntity.ok(review);
   }
@@ -128,13 +108,9 @@ public class ReviewController {
   @PostMapping("/{reviewId}/report")
   public ResponseEntity<Void> reportReview(@PathVariable Integer reviewId) {
     reviewService.reportReview(reviewId);
-
     return ResponseEntity.ok().build();
   }
 
-  /**
-   * 세션에서 사용자 ID 가져오기
-   */
   private Integer getUserIdFromSession(HttpSession session) {
     Integer userId = (Integer) session.getAttribute("userId");
     if (userId == null) {

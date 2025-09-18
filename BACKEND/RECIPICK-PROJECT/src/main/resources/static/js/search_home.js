@@ -1,7 +1,14 @@
 // 백엔드 API 기본 URL
 const API_BASE_URL = '/api/posts';
-// 이미지 로드 실패 시 표시할 기본 이미지 URL
-const DEFAULT_IMAGE_URL = 'https://via.placeholder.com/300x200.png?text=No+Image';
+// 이미지 로드 실패 시 표시할 기본 이미지 URL 수정,추가내용
+const DEFAULT_IMAGE_URL = '/images/no-image.png';
+
+// --- 상수들 아래에 추가 ---
+const CATEGORY_ALIAS = Object.freeze({
+  '계란': '달걀',   // UI '계란' → DB '달걀'
+});
+const normalizeCategoryName = (name) => CATEGORY_ALIAS[name] ?? name;
+
 
 // DOM 요소
 const listEl = document.getElementById('cardList');
@@ -14,12 +21,14 @@ const qInput = document.getElementById('recipeQuery');
 // 상태 관리
 let currentQuery = '';
 let currentSearchType = '';
-let currentIngredients = {main: [], sub: []};
+let currentIngredients = { main: [], sub: [] };
 let isLoading = false;
 let nextPage = 0;
 let hasMoreData = true;
 let totalRecipeCount = 0;
 const PAGE_SIZE = 10;
+
+let currentCategory = ''; // <= 추가 내용
 
 // 로딩 상태 제어 함수
 function showLoading() {
@@ -47,7 +56,7 @@ function showSearchedIngredients() {
   }
 
   if (currentSearchType === 'ingredients' && (currentIngredients.main.length > 0
-      || currentIngredients.sub.length > 0)) {
+    || currentIngredients.sub.length > 0)) {
     const ingredientsInfo = document.createElement('div');
     ingredientsInfo.className = 'search-ingredients-info';
 
@@ -74,7 +83,7 @@ function showSearchedIngredients() {
 
 // API 호출 함수들
 async function searchRecipesByTitle(query, sort = 'latest', page = 0,
-    size = PAGE_SIZE) {
+  size = PAGE_SIZE) {
   const params = new URLSearchParams({
     title: query,
     sort: sort,
@@ -83,7 +92,7 @@ async function searchRecipesByTitle(query, sort = 'latest', page = 0,
   });
 
   const response = await fetch(
-      `${API_BASE_URL}/search/by-title?${params.toString()}`);
+    `${API_BASE_URL}/search/by-title?${params.toString()}`);
   if (!response.ok) {
     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
   }
@@ -92,7 +101,7 @@ async function searchRecipesByTitle(query, sort = 'latest', page = 0,
 }
 
 async function searchRecipesByIngredients(mainIngredients, subIngredients,
-    sort = 'latest', page = 0, size = PAGE_SIZE) {
+  sort = 'latest', page = 0, size = PAGE_SIZE) {
   const params = new URLSearchParams();
   mainIngredients.forEach(ingredient => params.append('main', ingredient));
   subIngredients.forEach(ingredient => params.append('sub', ingredient));
@@ -116,12 +125,25 @@ async function getPopularRecipes(sort = 'latest', page = 0, size = PAGE_SIZE) {
   });
 
   const response = await fetch(
-      `${API_BASE_URL}/search/popular?${params.toString()}`);
+    `${API_BASE_URL}/search/popular?${params.toString()}`);
   if (!response.ok) {
     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
   }
 
   return await response.json();
+}
+
+// 카테고리별 레시피 검색 함수 (추가) 추가내용 ✅
+async function searchRecipesByCategory(category, sort = 'latest', page = 0, size = PAGE_SIZE) {
+  const params = new URLSearchParams({
+    category,
+    sort,
+    page: String(page),
+    size: String(size),
+  });
+  const res = await fetch(`${API_BASE_URL}/search/by-category?${params}`);
+  if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+  return await res.json();
 }
 
 // 이미지 URL 유효성 검사 및 처리
@@ -166,6 +188,7 @@ function makeCard(recipe) {
   };
 
   img.onerror = function () {
+    this.onerror = null;               // ✅ 루프 방지 한 줄 추가
     console.log('Image load failed, using default:', this.src);
     this.src = DEFAULT_IMAGE_URL;
   };
@@ -185,9 +208,9 @@ function makeCard(recipe) {
   sub.className = 'sub';
 
   const likeCount = recipe.likeCount !== undefined ? `❤ ${recipe.likeCount}`
-      : '❤ 0';
+    : '❤ 0';
   const viewCount = recipe.viewCount !== undefined ? `👀 ${recipe.viewCount}`
-      : '👀 0';
+    : '👀 0';
   sub.innerHTML = `${recipe.foodName} · ${likeCount} · ${viewCount}`;
   meta.appendChild(sub);
 
@@ -195,7 +218,7 @@ function makeCard(recipe) {
   date.className = 'sub';
   if (recipe.createdAt) {
     date.textContent = `등록일: ${new Date(
-        recipe.createdAt).toLocaleDateString()}`;
+      recipe.createdAt).toLocaleDateString()}`;
   }
   meta.appendChild(date);
 
@@ -265,14 +288,14 @@ function updateSortOptions(searchType) {
       <option value="defaultsort">관련도순</option>
       <option value="popular">인기순</option>
       <option value="latest">최신순</option>
-      <option value="rating">조회순</option>
+      <option value="views">조회순</option>
     `;
   } else {
     // 제목 검색, 인기 레시피: defaultsort 제외
     sortSel.innerHTML = `
       <option value="latest">최신순</option>
       <option value="popular">인기순</option>
-      <option value="rating">조회순</option>
+      <option value="views">조회순</option>
     `;
   }
 }
@@ -287,14 +310,16 @@ async function applySort() {
   try {
     if (currentSearchType === 'ingredients') {
       response = await searchRecipesByIngredients(
-          currentIngredients.main,
-          currentIngredients.sub,
-          sort,
-          0,
-          PAGE_SIZE
+        currentIngredients.main,
+        currentIngredients.sub,
+        sort,
+        0,
+        PAGE_SIZE
       );
     } else if (currentSearchType === 'title') {
       response = await searchRecipesByTitle(currentQuery, sort, 0, PAGE_SIZE);
+    } else if (currentSearchType === 'category') {   // <= 추가 내용
+      response = await searchRecipesByCategory(currentCategory, sort, 0, PAGE_SIZE);
     } else {
       response = await getPopularRecipes(sort, 0, PAGE_SIZE);
     }
@@ -336,16 +361,19 @@ async function handleLoadMore() {
 
     if (currentSearchType === 'ingredients') {
       response = await searchRecipesByIngredients(
-          currentIngredients.main,
-          currentIngredients.sub,
-          sort,
-          nextPage,
-          PAGE_SIZE
+        currentIngredients.main,
+        currentIngredients.sub,
+        sort,
+        nextPage,
+        PAGE_SIZE
       );
       recipes = response.recipes;
     } else if (currentSearchType === 'title') {
       response = await searchRecipesByTitle(currentQuery, sort, nextPage,
-          PAGE_SIZE);
+        PAGE_SIZE);
+      recipes = response.recipes;
+    } else if (currentSearchType === 'category') {   // <= 추가 내용
+      response = await searchRecipesByCategory(currentCategory, sort, nextPage, PAGE_SIZE);
       recipes = response.recipes;
     } else {
       response = await getPopularRecipes(sort, nextPage, PAGE_SIZE);
@@ -373,32 +401,44 @@ async function handleLoadMore() {
 // 초기화
 async function init() {
   const urlParams = new URLSearchParams(window.location.search);
+
   const searchType = urlParams.get('searchType');
   const query = urlParams.get('q');
   const sort = sortSel.value;
 
-  // 정렬 옵션 동적 설정
-  updateSortOptions(searchType);
+  // ✅ 반드시 선언 + 정규화 + trim
+  const categoryParams = urlParams.getAll('category');
+  if ((!searchType || searchType === 'category') && categoryParams.length > 0) {
+    currentSearchType = 'category';
+    currentCategory = normalizeCategoryName(categoryParams[0].trim());
+    console.log('[search] category:', categoryParams[0], '→', currentCategory);
+  }
+
+
+  // ✅ 정렬 옵션 동적 설정 (category 모드면 defaultsort 제거)
+  updateSortOptions(currentSearchType || searchType);
 
   try {
     resetState();
     showLoading();
     let response = {};
 
-    if (searchType === 'ingredients') {
+    if (currentSearchType === 'category') {
+      response = await searchRecipesByCategory(currentCategory, sort, 0, PAGE_SIZE);
+    } else if (searchType === 'ingredients') {
       const mainIngredients = urlParams.getAll('main');
       const subIngredients = urlParams.getAll('sub');
 
       if (mainIngredients.length > 0) {
         currentSearchType = 'ingredients';
-        currentIngredients = {main: mainIngredients, sub: subIngredients};
+        currentIngredients = { main: mainIngredients, sub: subIngredients };
         response = await searchRecipesByIngredients(mainIngredients,
-            subIngredients, sort, 0, PAGE_SIZE);
+          subIngredients, sort, 0, PAGE_SIZE);
       } else {
         currentSearchType = '';
         response = await getPopularRecipes(sort, 0, PAGE_SIZE);
       }
-    } else if (searchType === 'title') {
+    } else if (searchType === 'title' && query) {
       currentSearchType = 'title';
       currentQuery = query;
       response = await searchRecipesByTitle(query, sort, 0, PAGE_SIZE);
@@ -427,7 +467,6 @@ async function init() {
     showSearchedIngredients(); // 검색 재료 표시
   }
 }
-
 // 이벤트 리스너
 sortSel.addEventListener('change', applySort);
 loadMoreBtn.addEventListener('click', handleLoadMore);

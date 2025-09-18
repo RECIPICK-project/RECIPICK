@@ -130,7 +130,9 @@ public interface SearchRepository extends JpaRepository<PostEntity, Long> {
                  p.like_count AS likeCount,
                  p.created_at AS createdAt
           FROM post p
-          WHERE p.ckg_category = :category
+          JOIN recipe_ingredient ri ON p.post_id = ri.post_id
+          JOIN ingredient i ON ri.ing_id = i.ing_id
+          WHERE i.name = :category   -- ✅ ingredient.name 매칭
           ORDER BY
               CASE WHEN :sort = 'views' THEN p.view_count END DESC,
               CASE WHEN :sort = 'likes' THEN p.like_count END DESC,
@@ -149,9 +151,11 @@ public interface SearchRepository extends JpaRepository<PostEntity, Long> {
    * 카테고리로 레시피 개수 조회
    */
   @Query(value = """
-          SELECT COUNT(p.post_id)
-          FROM post p
-          WHERE p.ckg_category = :category
+  SELECT COUNT(DISTINCT p.post_id)
+  FROM post p
+  JOIN recipe_ingredient ri ON p.post_id = ri.post_id
+  JOIN ingredient i ON ri.ing_id = i.ing_id
+  WHERE i.name = :category
       """, nativeQuery = true)
   int countSearchByCategory(@Param("category") String category);
 

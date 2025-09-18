@@ -215,7 +215,7 @@ public class SearchService {
    */
   private SearchPostDto mapToPostDto(Object[] row) {
     SearchPostDto dto = new SearchPostDto();
-    dto.setPostId(((Number) row[0]).longValue());
+    dto.setPostId(((Number) row[0]).intValue());
     dto.setTitle((String) row[1]);
     dto.setFoodName((String) row[2]);
 

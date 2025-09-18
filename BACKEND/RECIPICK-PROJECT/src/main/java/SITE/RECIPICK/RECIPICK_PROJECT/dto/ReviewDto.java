@@ -21,7 +21,7 @@ public class ReviewDto {
   private Integer postId;
   private Integer userId;
   private String nickname;
-  private BigDecimal rating;
+  private BigDecimal reviewRating;
   private String comment;
   private Integer reportCount;
   private LocalDateTime createdAt;
@@ -39,21 +39,21 @@ public class ReviewDto {
   // === 생성자들 ===
 
   // 리뷰 생성/수정 요청용 생성자
-  public ReviewDto(Integer postId, BigDecimal rating, String comment) {
+  public ReviewDto(Integer postId, BigDecimal reviewRating, String comment) {
     this.postId = postId;
-    this.rating = rating;
+    this.reviewRating = reviewRating;
     this.comment = comment;
   }
 
   // 리뷰 응답용 생성자 (Entity → DTO 변환용)
   public ReviewDto(Integer reviewId, Integer postId, Integer userId, String nickname,
-      BigDecimal rating, String comment, Integer reportCount,
+      BigDecimal reviewRating, String comment, Integer reportCount,
       LocalDateTime createdAt, LocalDateTime updatedAt) {
     this.reviewId = reviewId;
     this.postId = postId;
     this.userId = userId;
     this.nickname = nickname;
-    this.rating = rating;
+    this.reviewRating = reviewRating;
     this.comment = comment;
     this.reportCount = reportCount;
     this.createdAt = createdAt;
@@ -78,7 +78,7 @@ public class ReviewDto {
         .postId(entity.getPost().getPostId())
         .userId(entity.getUser().getUserId())
         .nickname(entity.getUser().getNickname()) // User entity에서 가져옴
-        .rating(entity.getReviewRating())
+        .reviewRating(entity.getReviewRating())
         .comment(entity.getComment())
         .reportCount(entity.getReportCount())
         .createdAt(entity.getCreatedAt())
@@ -102,10 +102,10 @@ public class ReviewDto {
   }
 
   // 요청 전용 DTO 생성
-  public static ReviewDto forRequest(Integer postId, BigDecimal rating, String comment) {
+  public static ReviewDto forRequest(Integer postId, BigDecimal reviewRating, String comment) {
     return ReviewDto.builder()
         .postId(postId)
-        .rating(rating)
+        .reviewRating(reviewRating)
         .comment(comment)
         .build();
   }

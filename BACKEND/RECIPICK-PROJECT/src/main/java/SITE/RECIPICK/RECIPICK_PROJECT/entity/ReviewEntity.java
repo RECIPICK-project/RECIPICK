@@ -54,7 +54,7 @@ public class ReviewEntity {
   /**
    * 리뷰 내용
    */
-  @Column(name = "comment", nullable = false, length = 255)
+  @Column(name = "comment", length = 255)
   private String comment;
 
   @Builder.Default

@@ -143,7 +143,13 @@ function makeCard(recipe) {
 
   const li = document.createElement('li');
   li.className = 'card';
-  li.onclick = () => window.location.href = `/post_detail/${recipe.postId}`;
+  
+  // SearchPostDto의 postId 필드 사용
+  if (recipe.postId) {
+    li.onclick = () => window.location.href = `/pages/post_detail.html?postId=${recipe.postId}`;
+  } else {
+    console.error('Recipe postId not found:', recipe);
+  }
 
   const imgWrapper = document.createElement('div');
   imgWrapper.className = 'card-img';

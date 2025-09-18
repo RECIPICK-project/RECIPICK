@@ -98,7 +98,7 @@ body.detail {
 
 /* 메인 콘텐츠 */
 .wrap {
-    padding: 20px;
+    padding: 20px 20px 100px 20px;
     display: flex;
     flex-direction: column;
     gap: 18px;

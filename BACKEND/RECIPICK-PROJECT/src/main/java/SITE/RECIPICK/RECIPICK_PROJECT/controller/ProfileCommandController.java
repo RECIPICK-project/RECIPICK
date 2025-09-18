@@ -51,24 +51,12 @@ public class ProfileCommandController {
    *            <p>검증 규칙: - profileImg null/빈 값 → IllegalArgumentException("PROFILE_IMG_REQUIRED")
    *            <p>성공 시: - DB의 프로필 이미지 URL 업데이트 - updated_at 타임스탬프 갱신 - 응답 코드: 204 No Content
    */
-  @PatchMapping("/image")
-  @Operation(summary = "프로필 이미지 변경", description = "현재 로그인 사용자의 프로필 이미지를 변경합니다.")
   @ApiResponses({
       @ApiResponse(responseCode = "204", description = "변경 성공 (본문 없음)"),
       @ApiResponse(responseCode = "400", description = "잘못된 요청 (PROFILE_IMG_REQUIRED)"),
       @ApiResponse(responseCode = "404", description = "프로필 없음 (PROFILE_NOT_FOUND)"),
       @ApiResponse(responseCode = "500", description = "서버 오류")
   })
-  public void changeImage(@RequestBody ProfileImageUpdateRequest req) {
-    // ✅ 배포용: SecurityContext에서 userId 가져오기
-    Integer userId = currentUser.userId();
-
-    svc.changeProfileImage(userId, req);
-  }
-
-  /**
-   * 아바타 URL 저장 Body: { "profileImg": "https://..." }
-   */
   @PatchMapping(value = "/image", consumes = "application/json")
   @Operation(summary = "프로필 이미지 URL 저장")
   public ResponseEntity<?> changeProfileImage(@RequestBody ProfileImageUpdateRequest req) {

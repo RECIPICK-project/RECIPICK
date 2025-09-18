@@ -139,18 +139,28 @@ function normalizeRecipe(dto) {
 
   // 재료 문자열: "이름|수량|이름|수량|..."
   const ingredients =
+      dto.ckgMtrlCn ??                 // ★ 추가
       dto.ingredientsString ??
       dto.rcpIngredients ??
       "";
 
-  // 단계
+  // 단계 & (선택) 단계 이미지 별도 필드 대응
   let stepsRaw =
       dto.rcpSteps ??
       dto.steps ??
       dto.stepsString ??
       [];
 
-  const steps = parseSteps(stepsRaw);
+  // 이미지가 별도 배열/문자열로 오는 경우 커버
+  const stepImagesRaw =
+      dto.stepImages ??
+      dto.stepsImages ??
+      dto.rcpStepImages ??
+      dto.rcpStepsImg ??
+      dto.stepImagesString ??
+      null;
+
+  const steps = parseSteps(stepsRaw, stepImagesRaw);
 
   return {
     title,
@@ -164,44 +174,80 @@ function normalizeRecipe(dto) {
   };
 }
 
-// 교체: parseSteps
-function parseSteps(stepsRaw) {
+// 교체: parseSteps (번호 제거 + 이미지 매칭 강화: 배열/문자열/JSON/콤마 모두 지원)
+function parseSteps(stepsRaw, stepImagesRaw) {
+  const stripLeadingNumber = (txt) =>
+      String(txt).replace(/^\s*\d+[.)]\s*/, "").trim();
+
   const explodePipe = (txt) =>
       String(txt)
           .split("|")
           .map((t) => t.trim())
           .filter(Boolean)
-          .map((t) => ({ description: t, imageUrl: "" }));
+          .map((t) => ({ description: stripLeadingNumber(t), imageUrl: "" }));
 
+  // 이미지 목록을 어떤 형태든 배열로 정규화
+  function normalizeImages(imgRaw) {
+    if (!imgRaw) return [];
+    if (Array.isArray(imgRaw)) {
+      return imgRaw.map((s) => String(s ?? "").trim()).filter(Boolean);
+    }
+    const s = String(imgRaw).trim();
+    // JSON 문자열 ["url1","url2"]
+    if (s.startsWith("[") && s.endsWith("]")) {
+      try {
+        const arr = JSON.parse(s);
+        if (Array.isArray(arr)) {
+          return arr.map((x) => String(x ?? "").trim()).filter(Boolean);
+        }
+      } catch (_) {}
+    }
+    // | 또는 , 로 구분된 문자열
+    return s.split(/[|,]/).map((t) => t.trim()).filter(Boolean);
+  }
+
+  const imgArr = normalizeImages(stepImagesRaw);
+
+  // 1) 배열로 온 경우
   if (Array.isArray(stepsRaw)) {
     const out = [];
     for (const s of stepsRaw) {
       if (s == null) continue;
+
       if (typeof s === "string") {
-        // 배열인데 원소가 "1. 준비|2. 조리" 같은 형태면 파이프 분해
         if (s.includes("|")) out.push(...explodePipe(s));
-        else out.push({ description: s.trim(), imageUrl: "" });
+        else out.push({ description: stripLeadingNumber(s), imageUrl: "" });
       } else if (typeof s === "object") {
-        const desc = s.description ?? s.desc ?? "";
-        const img  = s.imageUrl ?? s.img ?? "";
-        if (typeof desc === "string" && desc.includes("|")) {
-          out.push(...explodePipe(desc));
-        } else if (desc) {
-          out.push({ description: String(desc).trim(), imageUrl: img || "" });
-        }
+        const desc =
+            s.description ?? s.desc ?? s.text ?? s.step ?? s.content ?? "";
+        const img =
+            s.imageUrl ?? s.img ?? s.image ?? s.photoUrl ?? s.photo ?? s.url ?? "";
+        const cleaned = stripLeadingNumber(desc || "");
+        if (cleaned) out.push({ description: cleaned, imageUrl: img || "" });
       } else {
-        out.push({ description: String(s).trim(), imageUrl: "" });
+        out.push({ description: stripLeadingNumber(String(s)), imageUrl: "" });
       }
+    }
+    // 비어있는 이미지 칸에만 보조 배열로 주입
+    for (let i = 0; i < out.length; i++) {
+      if (!out[i].imageUrl && imgArr[i]) out[i].imageUrl = imgArr[i];
     }
     return out;
   }
 
+  // 2) 문자열로 온 경우 ("1. 준비|2. 확인 필요" 등)
   if (typeof stepsRaw === "string") {
-    return explodePipe(stepsRaw);
+    const out = explodePipe(stepsRaw);
+    for (let i = 0; i < out.length; i++) {
+      if (!out[i].imageUrl && imgArr[i]) out[i].imageUrl = imgArr[i];
+    }
+    return out;
   }
 
   return [];
 }
+
+
 
 
 /* -------------------------------
@@ -245,22 +291,58 @@ function renderRecipeData(data) {
   renderCookingSteps(data.steps);
 }
 
-function renderIngredients(ingredientsString) {
+// 교체: renderIngredients (콤마/세미콜론/중점/슬래시 지원 + 수량 자동 추출)
+function renderIngredients(ingredientsValue) {
   const container = document.getElementById("ingredientsList");
   if (!container) return;
   container.innerHTML = "";
 
-  if (!ingredientsString || typeof ingredientsString !== "string") return;
+  if (!ingredientsValue) return;
 
-  const arr = ingredientsString.split("|");
-  for (let i = 0; i < arr.length; i += 2) {
-    const name = arr[i];
-    const amount = arr[i + 1] || "";
-    if (!name) continue;
+  // 0) 구분자 통합: | , 、 ， · • ∙ ㆍ ; / 를 모두 파이프로 정규화
+  const normalized = String(ingredientsValue)
+      .replace(/[,\u3001\uFF0C\u00B7\u2022\u2219\u318D;\/]/g, "|");
 
-    // ★ onclick 인자 안전 처리 (따옴표/특수문자 보정)
+  const tokens = normalized.split("|").map(s => s.trim()).filter(Boolean);
+
+  // 1) "이름|수량|이름|수량" 페어 형태인지 감지 (짝수길이 + 짝수 인덱스에 이름 느낌)
+  const looksLikePairs = tokens.length % 2 === 0;
+
+  const UNIT_RE = "(장|개|g|kg|mg|L|l|ml|컵|스푼|큰술|작은술|tsp|tbsp|모|줌|쪽|꼬집|알|대|봉|팩|마리|줄|공기|조각|장분|덩이|스틱|줌가량)";
+  const AMOUNT_RE = new RegExp(
+      String.raw`^\s*(.+?)\s*([0-9]+(?:\.[0-9]+)?\s*${UNIT_RE}?(?:\s*~\s*[0-9]+(?:\.[0-9]+)?\s*${UNIT_RE}?)?)\s*$`
+  );
+
+  /** 이름/수량 추출기
+   *  - "식빵 2장" → {name:"식빵", amount:"2장"}
+   *  - "콩나물 3 g" → {name:"콩나물", amount:"3 g"}
+   *  - "두부" → {name:"두부", amount:""}
+   */
+  const splitNameAmount = (s) => {
+    const m = s.match(AMOUNT_RE);
+    if (m) return { name: m[1].trim(), amount: m[2].replace(/\s+/g, " ").trim() };
+    // 마지막 공백 기준 분리(대충이라도)
+    const k = s.lastIndexOf(" ");
+    if (k > 0) return { name: s.slice(0, k).trim(), amount: s.slice(k + 1).trim() };
+    return { name: s.trim(), amount: "" };
+  };
+
+  const items = [];
+  if (looksLikePairs) {
+    for (let i = 0; i < tokens.length; i += 2) {
+      const name = tokens[i];
+      const amount = tokens[i + 1] || "";
+      if (name) items.push({ name, amount });
+    }
+  } else {
+    // "식빵 3장,청경채 2개,상추 1장,콩나물 3g,두부" 같은 콤마 나열 처리
+    for (const tok of tokens) {
+      items.push(splitNameAmount(tok));
+    }
+  }
+
+  for (const { name, amount } of items) {
     const safeNameArg = JSON.stringify(String(name));
-
     const el = document.createElement("div");
     el.className = "ingredient-item";
     el.innerHTML = `
@@ -273,14 +355,16 @@ function renderIngredients(ingredientsString) {
   }
 }
 
+
+
 function renderCookingSteps(steps) {
   const container = document.getElementById("cookingStepsList");
   if (!container) return;
   container.innerHTML = "";
 
   (steps || []).forEach((step, idx) => {
-    const desc = (step && step.description) ? step.description : String(step || "");
-    const img = (step && step.imageUrl) ? step.imageUrl : "";
+    const desc = step?.description ?? String(step ?? "");
+    const img = step?.imageUrl ?? "";
 
     const el = document.createElement("div");
     el.className = "step-item";
@@ -288,18 +372,25 @@ function renderCookingSteps(steps) {
       <div class="step-header">${idx + 1}단계</div>
       <div class="step-content">
         <div class="step-description">${desc}</div>
-        <div class="step-image">
-          ${
+        <div class="step-image">${
         img
             ? `<img src="${img}" alt="${idx + 1}단계 이미지">`
             : '<div class="step-image-placeholder">사진</div>'
-    }
-        </div>
+    }</div>
       </div>
     `;
+    // onerror 대체
+    const imgEl = el.querySelector(".step-image img");
+    if (imgEl) {
+      imgEl.addEventListener("error", () => {
+        console.warn("[image error]", img);
+        el.querySelector(".step-image").innerHTML = '<div class="step-image-placeholder">사진</div>';
+      });
+    }
     container.appendChild(el);
   });
 }
+
 
 /* -------------------------------
  * 대체 재료 / 쿠팡

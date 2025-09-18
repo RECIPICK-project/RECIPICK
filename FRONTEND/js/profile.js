@@ -4,6 +4,80 @@
 (function () {
   'use strict';
 
+  document.addEventListener('DOMContentLoaded', () => {
+    window.__origNickname = document.querySelector('[name="nickname"]')?.value?.trim() || '';
+  });
+
+  // ✅ 폼 있을 때만 등록
+  const profileForm = document.getElementById('profileForm');
+  if (profileForm) profileForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const btn = e.currentTarget.querySelector('button[type="submit"]');
+    btn && (btn.disabled = true, btn.textContent = '저장 중...');
+
+    try {
+      const nicknameInput = document.querySelector('[name="nickname"]');
+      const newNickname   = nicknameInput?.value?.trim() || '';
+      const file          = document.getElementById('profileImageInput')?.files?.[0];
+
+      // 변경된 필드만
+      const payload = {};
+      if (newNickname && newNickname !== window.__origNickname) {
+        payload.nickname = newNickname;
+      }
+      if (file) {
+        const url = await uploadImageToS3(file, 'profile-images');
+        payload.profileImageUrl = url;
+      }
+
+      if (!Object.keys(payload).length) {
+        alert('변경된 내용이 없습니다.');
+        return;
+      }
+
+      // PATCH 시도
+      let res = await fx('/me/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      // 닉네임 쿨다운이면 사진만 재시도
+      if (!res.ok) {
+        let err = {};
+        try { err = await res.json(); } catch (_) {}
+        const isCooldown =
+            err?.code === 'NICKNAME_COOLDOWN' ||
+            err?.error === 'NICKNAME_COOLDOWN' ||
+            res.status === 429 || res.status === 409;
+
+        if (isCooldown && 'nickname' in payload && 'profileImageUrl' in payload) {
+          const onlyPhoto = { profileImageUrl: payload.profileImageUrl };
+          res = await fx('/me/profile', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(onlyPhoto),
+          });
+          if (res.ok) {
+            alert('프로필 사진만 변경되었습니다. 닉네임은 쿨다운 이후에 변경할 수 있어요.');
+            location.reload();
+            return;
+          }
+        }
+        throw new Error(err?.message || `HTTP ${res.status}`);
+      }
+
+      alert('프로필이 저장되었습니다.');
+      location.reload();
+    } catch (e2) {
+      console.error('[profile save] error:', e2);
+      alert('저장 실패: ' + (e2?.message || '알 수 없는 오류'));
+    } finally {
+      btn && (btn.disabled = false, btn.textContent = '저장');
+    }
+  });
+
   /* ================================
    * 0) 공통 유틸 (API/인증/토스트/확인/CSRF)
    * ================================ */
@@ -171,10 +245,6 @@
         title: it.title ?? it.foodName ?? '',
         thumb: it.rcpImgUrl ?? it.thumb ?? '',
         postId: it.postId ?? it.id ?? it.recipeId ?? null,
-        meta: [
-          (it.cookingTime != null ? `${it.cookingTime}분` : ''),
-          `♥ ${it.likeCount ?? 0}`
-        ].filter(Boolean).join(' · ')
       })) : [];
 
       window.renderLinkList?.('listSaved', items || []);
@@ -262,7 +332,7 @@
   /* ================================
    * 4) 프로필 편집 모달 + 저장 (수정판)
    * ================================ */
-  let savingProfile = false; // 중복 클릭 방지
+  let savingProfile = false;
 
   function buildProfileModal() {
     const wrap = document.createElement('div');
@@ -286,14 +356,12 @@
     </div>`;
     document.body.appendChild(wrap);
 
-    // 오버레이/닫기 버튼
     wrap.addEventListener('click', (e) => {
       if (e.target && e.target.dataset.close !== undefined) {
         wrap.setAttribute('aria-hidden', 'true');
       }
     });
 
-    // 열기
     document.getElementById('openEdit')?.addEventListener('click', () => {
       const cur = document.getElementById('userName')?.textContent?.trim() || '';
       const input = wrap.querySelector('#editName');
@@ -301,7 +369,6 @@
       wrap.setAttribute('aria-hidden', 'false');
     });
 
-    // 프리뷰
     wrap.addEventListener('change', (e) => {
       if (e.target && e.target.id === 'editAvatar') {
         const f = e.target.files?.[0];
@@ -311,7 +378,6 @@
       }
     });
 
-    // ✅ 저장 버튼에만 핸들러 바인딩 (전역 document 핸들러 제거)
     const saveBtn = wrap.querySelector('#saveProfile');
     saveBtn?.addEventListener('click', onSaveProfile);
 
@@ -325,45 +391,46 @@
       btn.textContent = '저장 중...';
 
       try {
-        const nickname = wrap.querySelector('#editName')?.value?.trim();
-        if (!nickname) { toast('닉네임을 입력해 주세요.'); return; }
+        const inputEl = wrap.querySelector('#editName');
+        const typedNickname = inputEl?.value?.trim() || '';
+        const currentNickname = document.getElementById('userName')?.textContent?.trim() || '';
+        const shouldPatchNickname = !!typedNickname && typedNickname !== currentNickname;
 
-        // (1) 아바타 저장: 파일 선택 여부와 무관하게 URL만 저장
+        // (1) 아바타 업로드
         let avatarUrl;
         const file = document.getElementById('editAvatar')?.files?.[0] || null;
-        const up = await uploadAvatar(file);
-        if (up.status === 401) { location.href = '/pages/login.html'; return; }
-        if (up.ok && up.url) {
-          avatarUrl = up.url;
-          const img = document.getElementById('avatarImg');
-          if (img) img.src = avatarUrl;
-        } else if (up.status !== 0) {
-          // status=0 은 사용자가 취소한 케이스. 그 외는 오류 메시지.
-          toast('프로필 사진 저장에 실패했어요. 닉네임만 저장합니다.');
+        if (file) {
+          const up = await uploadAvatar(file);
+          if (up.status === 401) { location.href = '/pages/login.html'; return; }
+          if (up.ok && up.url) {
+            avatarUrl = up.url;
+            const img = document.getElementById('avatarImg');
+            if (img) img.src = avatarUrl;
+          } else if (up.status !== 0) {
+            toast('프로필 사진 저장에 실패했어요. 닉네임만 저장합니다.');
+          }
         }
 
+        // (2) 닉네임 PATCH (변경된 경우에만)
+        if (shouldPatchNickname) {
+          const nickRes = await fx('/me/profile/nickname', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ newNickname: typedNickname })
+          });
 
-        // (2) 닉네임 PATCH
-        const nickRes = await fx('/me/profile/nickname', {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ newNickname: nickname })
-        });
+          const rawText = await nickRes.text().catch(() => '');
+          if (nickRes.status === 401) { location.href = '/pages/login.html'; return; }
+          if (nickRes.status === 409 || nickRes.status === 429) {
+            toast(rawText || '닉네임 변경이 제한되었습니다. 쿨다운 이후 다시 시도해 주세요.');
+            return; // 닉네임만 실패 → 사진은 이미 반영됨
+          }
+          if (!nickRes.ok) { toast(rawText || `닉네임 변경 실패(${nickRes.status})`); return; }
 
-        const rawText = await nickRes.text().catch(() => '');
-
-        if (nickRes.status === 401) { location.href = '/pages/login.html'; return; }
-        if (nickRes.status === 409) { // 🔒 충돌(중복/금지어 등)
-          toast(rawText || '이미 사용 중인 닉네임이거나 변경이 제한되었습니다.');
-          return; // ✅ 실패이므로 모달 닫지 않음
+          document.getElementById('userName').textContent = typedNickname;
         }
-        if (nickRes.status === 404) { toast(rawText || '프로필을 찾을 수 없어요.'); return; }
-        if (nickRes.status === 400) { toast(rawText || '요청 값이 올바르지 않습니다.'); return; }
-        if (!nickRes.ok) { toast(rawText || `닉네임 변경 실패(${nickRes.status})`); return; }
 
-        // 성공 처리
-        document.getElementById('userName').textContent = nickname;
-        wrap.setAttribute('aria-hidden', 'true'); // ✅ 성공시에만 닫기
+        wrap.setAttribute('aria-hidden', 'true');
         loadProfile();
         toast('저장되었습니다.');
       } catch (err) {
@@ -377,46 +444,46 @@
     }
   }
 
+// === 프로필 아바타 업로드 (S3 presign → PUT → 서버에 URL 저장) ===
   async function uploadAvatar(file) {
-    if (!file) return { ok:false, status:0 };
+    if (!file) return { ok: false, status: 0 }; // 파일 없으면 사진 없이 진행
 
     try {
-      // 1) 프리사인 받기
-      const presignRes = await fx('/me/profile/avatar/presign', {
+      // 1) presign 요청: POST /me/profile/image/presign  (filename, contentType form-urlencoded)
+      const presignRes = await fx('/me/profile/image/presign', {
         method: 'POST',
-        // URLSearchParams = x-www-form-urlencoded (우리 fx가 CSRF/인증 붙임)
         body: new URLSearchParams({
           filename: file.name,
-          contentType: file.type || 'application/octet-stream'
-        })
+          contentType: file.type || 'application/octet-stream',
+        }),
       });
-      if (presignRes.status === 401) return { ok:false, status:401 };
-      if (!presignRes.ok) return { ok:false, status:presignRes.status };
+      if (presignRes.status === 401) return { ok: false, status: 401 };
+      if (!presignRes.ok)          return { ok: false, status: presignRes.status };
+
       const { putUrl, publicUrl } = await presignRes.json();
+      if (!putUrl || !publicUrl)   return { ok: false, status: 500 };
 
-      // 2) 브라우저 → S3 직접 업로드
-      const put = await fetch(putUrl, {
-        method: 'PUT',
-        body: file
-        // Content-Type은 presign에 이미 박혀 있음. 명시 안 하는 게 안전.
-      });
-      if (!put.ok) return { ok:false, status:put.status };
+      // 2) 브라우저 → S3 업로드 (PUT)
+      const put = await fetch(putUrl, { method: 'PUT', body: file });
+      if (!put.ok) return { ok: false, status: put.status };
 
-      // 3) 최종 URL을 DB에 저장 (PATCH 유지)
-      const save = await fx('/me/profile/avatar', {
+      // 3) 최종 URL 저장: PATCH /me/profile/image  (JSON: { profileImg })
+      const save = await fx('/me/profile/image', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ profileImg: publicUrl })
+        body: JSON.stringify({ profileImg: publicUrl }),
       });
-      if (save.status === 401) return { ok:false, status:401 };
-      if (!save.ok) return { ok:false, status:save.status };
+      if (save.status === 401) return { ok: false, status: 401 };
+      if (!save.ok)            return { ok: false, status: save.status };
 
-      return { ok:true, status:save.status, url: publicUrl };
+      return { ok: true, status: save.status, url: publicUrl };
     } catch (e) {
-      console.warn('[AVATAR] upload error:', e);
-      return { ok:false, status:0 };
+      console.warn('[uploadAvatar] error:', e);
+      return { ok: false, status: 0 };
     }
   }
+
+
 
 
 
@@ -576,7 +643,6 @@
             <div class="title">${it?.title || ''}</div>
             <div class="sub">${it?.meta || ''}</div>
           </div>
-          <div class="rating">${it?.rating ? '⭐ ' + it.rating : ''}</div>
         </a>`;
       ul.appendChild(li);
     });

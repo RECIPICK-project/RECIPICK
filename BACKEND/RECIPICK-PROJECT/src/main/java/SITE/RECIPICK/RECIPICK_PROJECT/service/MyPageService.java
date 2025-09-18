@@ -26,32 +26,30 @@ public class MyPageService {
   private final ReviewRepository reviewRepo;
   private final UserRepository userRepo;
 
+  
   @Transactional(readOnly = true)
-  public MyProfileResponse getMyProfile(Integer me) {
-    var pr = profileRepo.findById(me)
+  public MyProfileResponse getMyProfile(Integer userId) {
+    var pr = profileRepo.findById(userId)
         .orElseThrow(() -> new IllegalArgumentException("PROFILE_NOT_FOUND"));
+    var ur = userRepo.findById(userId)
+        .orElseThrow(() -> new RuntimeException("USER_NOT_FOUND"));
 
-    long myRecipeCount = postRepo.countPublishedByAuthor(me);
-    long totalLikesOnMyPosts = postRepo.sumLikesOnUsersPublished(me);
+    long myRecipeCount = postRepo.countPublishedByAuthor(userId);
+    long totalLikesOnMyPosts = postRepo.sumLikesOnUsersPublished(userId);
 
-    long reviewCount = reviewRepo.countByUserUserId(me);
-    long commentCount;
-    try {
-      // COMMENT 리포지토리 분리 전 임시 방어
-      commentCount = reviewRepo.countByUserUserId(me);
-    } catch (Exception e) {
-      commentCount = 0;
-    }
+    long reviewCount = reviewRepo.countByUserUserId(userId);
+    long commentCount = 0; // TODO: commentRepo 생기면 교체
 
     return new MyProfileResponse(
-        pr.getNickname(),
-        pr.getGrade().name(),
+        ur.getNickname(),              // ✅ USERS.nickname
+        pr.getGrade().name(),          // ✅ PROFILE.grade
         pr.getProfileImg(),
         myRecipeCount,
         totalLikesOnMyPosts,
         reviewCount + commentCount
     );
   }
+
 
   @Transactional
   public void changeNickname(Integer me, NicknameUpdateRequest req) {

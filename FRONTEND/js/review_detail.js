@@ -113,7 +113,7 @@ async function renderReviews(reviews) {
   // 삭제 버튼 이벤트 리스너 추가
   container.querySelectorAll('.btn-delete-review').forEach(button => {
     button.addEventListener('click', (e) => {
-      const reviewId = e.target.dataset.reviewId;
+      const reviewId = e.currentTarget.dataset.reviewId;
       handleDeleteReview(reviewId);
     });
   });

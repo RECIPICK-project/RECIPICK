@@ -3,6 +3,7 @@ package SITE.RECIPICK.RECIPICK_PROJECT.service;
 import SITE.RECIPICK.RECIPICK_PROJECT.dto.MyProfileResponse;
 import SITE.RECIPICK.RECIPICK_PROJECT.dto.NicknameUpdateRequest;
 import SITE.RECIPICK.RECIPICK_PROJECT.dto.PostDto;
+import SITE.RECIPICK.RECIPICK_PROJECT.dto.ReviewDto;
 import SITE.RECIPICK.RECIPICK_PROJECT.repository.PostRepository;
 import SITE.RECIPICK.RECIPICK_PROJECT.repository.ProfileRepository;
 import SITE.RECIPICK.RECIPICK_PROJECT.repository.ReviewRepository;
@@ -26,7 +27,7 @@ public class MyPageService {
   private final ReviewRepository reviewRepo;
   private final UserRepository userRepo;
 
-  
+
   @Transactional(readOnly = true)
   public MyProfileResponse getMyProfile(Integer userId) {
     var pr = profileRepo.findById(userId)
@@ -94,6 +95,33 @@ public class MyPageService {
     return postRepo.findLikedPosts(me, pageable)
         .stream()
         .map(PostMapper::toDto)
+        .toList();
+  }
+
+  @Transactional(readOnly = true)
+  public List<ReviewDto> getMyReviews(Integer userId, int offset, int limit) {
+    var reviews = reviewRepo.findByUserUserIdOrderByCreatedAtDesc(userId);
+
+    // 페이징 처리
+    int startIndex = Math.max(0, offset);
+    int endIndex = Math.min(reviews.size(), startIndex + limit);
+
+    var pagedReviews = reviews.subList(startIndex, endIndex);
+
+    return pagedReviews.stream()
+        .map(review -> ReviewDto.builder()
+            .reviewId(review.getReviewId())
+            .postId(review.getPost().getPostId())
+            .reviewRating(review.getReviewRating())
+            .comment(review.getComment())
+            .createdAt(review.getCreatedAt())
+            .post(PostDto.builder()
+                .postId(review.getPost().getPostId())
+                .title(review.getPost().getTitle())
+                .foodName(review.getPost().getFoodName())
+                .rcpImgUrl(review.getPost().getRcpImgUrl())
+                .build())
+            .build())
         .toList();
   }
 }

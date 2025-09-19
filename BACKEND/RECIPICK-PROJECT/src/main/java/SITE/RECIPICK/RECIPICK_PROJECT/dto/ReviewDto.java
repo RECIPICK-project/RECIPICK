@@ -27,6 +27,8 @@ public class ReviewDto {
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;
 
+  private PostDto post;
+
   // === 통계 정보 (리뷰 통계 조회 시에만 사용) ===
   private BigDecimal averageRating;
   private Long totalReviews;

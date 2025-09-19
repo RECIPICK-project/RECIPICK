@@ -5,6 +5,7 @@ import SITE.RECIPICK.RECIPICK_PROJECT.dto.MyProfileResponse;
 import SITE.RECIPICK.RECIPICK_PROJECT.dto.NicknameUpdateRequest;
 import SITE.RECIPICK.RECIPICK_PROJECT.dto.PostDto;
 import SITE.RECIPICK.RECIPICK_PROJECT.dto.PostUpdateRequest;
+import SITE.RECIPICK.RECIPICK_PROJECT.dto.ReviewDto;
 import SITE.RECIPICK.RECIPICK_PROJECT.service.MyPageService;
 import SITE.RECIPICK.RECIPICK_PROJECT.service.MyPostCommandService;
 import SITE.RECIPICK.RECIPICK_PROJECT.util.CurrentUser;
@@ -170,5 +171,29 @@ public class MyPageController {
   public void deleteTemp(@PathVariable Integer postId) {
     Integer userId = currentUser.userId();
     svc.deleteMyTempPost(userId, postId);
+  }
+
+  @GetMapping("/reviews")
+  @Operation(
+      summary = "내가 작성한 리뷰 목록 조회",
+      description = """
+          현재 로그인한 사용자가 작성한 모든 리뷰를 최신순으로 조회합니다.
+          마이페이지의 '내 리뷰' 탭에서 사용됩니다.
+          """
+  )
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "조회 성공",
+          content = @Content(array = @ArraySchema(schema = @Schema(implementation = ReviewDto.class)))),
+      @ApiResponse(responseCode = "401", description = "인증 필요"),
+      @ApiResponse(responseCode = "500", description = "서버 오류")
+  })
+  public List<ReviewDto> getMyReviews(
+      @Parameter(description = "오프셋(0부터 시작)", example = "0")
+      @RequestParam(defaultValue = "0") int offset,
+      @Parameter(description = "가져올 개수(기본 20)", example = "20")
+      @RequestParam(defaultValue = "20") int limit
+  ) {
+    Integer userId = currentUser.userId();
+    return myPageService.getMyReviews(userId, offset, limit);
   }
 }

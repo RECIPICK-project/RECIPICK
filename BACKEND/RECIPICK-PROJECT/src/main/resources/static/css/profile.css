@@ -172,6 +172,59 @@ body.detail{
   margin:24px 0; text-align:center; color:var(--muted); font-size:14px;
 }
 
+/* ===== 리뷰 카드 ===== */
+.review-card a.review-content-link {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  text-decoration: none;
+  color: inherit;
+  padding: 4px 0; /* 상하 여백 추가 */
+  min-width: 0; 
+}
+
+.review-card .main-comment {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+  margin: 0;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;  
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.review-card .meta-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+  font-size: 13px;
+}
+
+.review-card .rating-stars {
+  font-weight: bold;
+}
+
+.review-card .post-title-sub {
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 7. 기존 .review-card 하위 스타일은 새 구조에 맞지 않으므로 초기화 */
+.review-card .meta,
+.review-card .meta .sub {
+  display: contents; /* grid 레이아웃에 영향을 주지 않도록 contents로 변경 */
+}
+.review-card .review-date {
+  display: none; /* 날짜 숨김 */
+}
+
 /* ===== 하단 탭바(고정) ===== */
 .tabbar{
   position:fixed; left:50%; transform:translateX(-50%);

@@ -73,10 +73,12 @@
         </div>
       </div>
       <div class="grid" id="grid"></div>
+
     </section>
+  </main>
   <!-- ===== 스크립트 (중복 선언 없음) ===== -->
   <script>
-    const BASE = 'http://localhost:8080';
+    const BASE = '';
     const PAGES = BASE + '/pages';
     const PLACEHOLDER = 'https://placehold.co/1200x800?text=RECIPICK';
 
@@ -102,7 +104,7 @@
     }
     async function pickWorkingImage(raw) {
       const direct = toAbs(raw);
-      const candidates = [proxyUrl(direct), direct, PLACEHOLDER].filter(Boolean);
+      const candidates = [direct, PLACEHOLDER].filter(Boolean);
       for (const u of candidates) if (await testImage(u)) return u;
       return PLACEHOLDER;
     }

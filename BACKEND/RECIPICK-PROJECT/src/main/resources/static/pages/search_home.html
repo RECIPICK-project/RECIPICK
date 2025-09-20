@@ -6,9 +6,10 @@
   <title>SEARCH · 홈</title>
   <link href="../css/search_home.css" rel="stylesheet"/>
   <script defer src="../js/search_home.js"></script>
+  <script defer src="../js/common_tabbar.js"></script>
 </head>
 <body class="detail">
-  <!-- post_detail과 동일한 구조 사용 -->
+  <!-- 기존 구조 유지 -->
   <div class="phone detail-page">
     <header class="head">
       <button class="back" onclick="history.back()">
@@ -54,44 +55,5 @@
       <button class="loadmore" hidden id="loadMore" type="button">더 보기</button>
     </div>
   </div>
-
-  <!-- post_detail과 완전히 동일한 탭바 -->
-  <nav class="bottom-tabbar">
-    <div class="tab-item" data-tab="menu" onclick="toggleSlideMenu()">
-      <svg class="tab-icon" viewBox="0 0 24 24">
-        <path d="M3 12h18M3 6h18M3 18h18" />
-      </svg>
-      <span class="tab-label">메뉴</span>
-    </div>
-
-    <div class="tab-item" data-tab="favorite" onclick="goToPage('/favorites')">
-      <svg class="tab-icon" viewBox="0 0 24 24">
-        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-      </svg>
-      <span class="tab-label">찜</span>
-    </div>
-
-    <div class="tab-item active" data-tab="search" onclick="goToPage('/search')">
-      <svg class="tab-icon search" viewBox="0 0 24 24">
-        <circle cx="11" cy="11" r="8" />
-        <path d="m21 21-4.35-4.35" />
-      </svg>
-    </div>
-
-    <div class="tab-item" data-tab="add" onclick="goToPage('/add-recipe')">
-      <svg class="tab-icon" viewBox="0 0 24 24">
-        <path d="M12 5v14M5 12h14" />
-      </svg>
-      <span class="tab-label">추가</span>
-    </div>
-
-    <div class="tab-item" data-tab="profile" onclick="goToPage('/profile')">
-      <svg class="tab-icon" viewBox="0 0 24 24">
-        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-        <circle cx="12" cy="7" r="4" />
-      </svg>
-      <span class="tab-label">프로필</span>
-    </div>
-  </nav>
 </body>
 </html>

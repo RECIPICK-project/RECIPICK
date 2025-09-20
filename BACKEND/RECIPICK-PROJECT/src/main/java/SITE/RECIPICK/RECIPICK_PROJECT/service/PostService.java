@@ -16,12 +16,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -80,6 +80,7 @@ public class PostService {
             .userId(userInfo.userId)
             .userNickname(userInfo.nickname)
             .userEmail(userInfo.email)
+            .postId(postDto.getPostId())
             .title(postDto.getTitle())
             .foodName(postDto.getFoodName())
             .ckgMth(cookingMethod)
@@ -99,7 +100,7 @@ public class PostService {
 
     // 재료 및 RecipeIngredient 저장 (분리된 데이터로 저장)
     saveIngredients(savedEntity.getPostId(), postDto.getIngredientNames(),
-                   postDto.getIngredientQuantities(), postDto.getIngredientUnits());
+        postDto.getIngredientQuantities(), postDto.getIngredientUnits());
 
     log.info("레시피 저장 완료 - ID: {}, 제목: {}, 작성자: {}",
         savedEntity.getPostId(), savedEntity.getTitle(), savedEntity.getUserNickname());
@@ -220,6 +221,7 @@ public class PostService {
             .collect(Collectors.toList());
 
     return PostDto.builder()
+        .postId(savedEntity.getPostId())
         .title(savedEntity.getTitle())
         .foodName(savedEntity.getFoodName())
         .ckgMth(savedEntity.getCkgMth().getDescription())
@@ -287,7 +289,7 @@ public class PostService {
 
   // 재료 및 RecipeIngredient 저장 메서드 (분리된 데이터 사용)
   private void saveIngredients(Integer postId, List<String> ingredientNames,
-                               List<String> quantities, List<String> units) {
+      List<String> quantities, List<String> units) {
     if (ingredientNames == null || ingredientNames.isEmpty()) {
       log.warn("재료 목록이 비어있습니다 - postId: {}", postId);
       return;
@@ -342,7 +344,8 @@ public class PostService {
 
       recipeIngredientRepository.save(recipeIngredient);
 
-      log.debug("RecipeIngredient 저장 완료 - postId: {}, ingId: {}, 재료명: {}, 수량: {}, 단위: {}, amount: {}, 자동분류: {}",
+      log.debug(
+          "RecipeIngredient 저장 완료 - postId: {}, ingId: {}, 재료명: {}, 수량: {}, 단위: {}, amount: {}, 자동분류: {}",
           postId, ingredient.getIngId(), ingredientName, quantity, unit, amount, ingredientSort);
     }
 
@@ -506,7 +509,8 @@ public class PostService {
       Ingredient existing = existingIngredients.get(0);
 
       // 기존 재료의 카테고리가 없거나 다른 경우 업데이트
-      if (existing.getSort() == null || existing.getSort().trim().isEmpty() || !existing.getSort().equals(sort)) {
+      if (existing.getSort() == null || existing.getSort().trim().isEmpty() || !existing.getSort()
+          .equals(sort)) {
         existing.setSort(sort);
         existing = ingredientRepository.save(existing);
         log.debug("기존 재료 카테고리 업데이트 - 이름: {}, 카테고리: {}", name, sort);
@@ -530,13 +534,13 @@ public class PostService {
   /**
    * 전체 레시피 조회 (페이징 지원)
    *
-   * @param page 페이지 번호 (0부터 시작)
-   * @param size 페이지 크기
-   * @param sortBy 정렬 기준 (createdAt, likeCount, viewCount 등)
+   * @param page          페이지 번호 (0부터 시작)
+   * @param size          페이지 크기
+   * @param sortBy        정렬 기준 (createdAt, likeCount, viewCount 등)
    * @param sortDirection 정렬 방향 (ASC, DESC)
-   * @param official 정식 레시피 여부 (1: 정식, 0: 임시, null: 전체)
-   * @param category 카테고리 필터 (선택적)
-   * @param method 조리방법 필터 (선택적)
+   * @param official      정식 레시피 여부 (1: 정식, 0: 임시, null: 전체)
+   * @param category      카테고리 필터 (선택적)
+   * @param method        조리방법 필터 (선택적)
    * @return 페이징된 레시피 목록과 메타데이터
    */
   public Map<String, Object> getAllRecipes(
@@ -548,11 +552,13 @@ public class PostService {
       String category,
       String method) {
 
-    log.debug("전체 레시피 조회 - page: {}, size: {}, sortBy: {}, direction: {}, official: {}, category: {}, method: {}",
+    log.debug(
+        "전체 레시피 조회 - page: {}, size: {}, sortBy: {}, direction: {}, official: {}, category: {}, method: {}",
         page, size, sortBy, sortDirection, official, category, method);
 
     // 정렬 설정
-    Sort.Direction direction = "ASC".equalsIgnoreCase(sortDirection) ? Sort.Direction.ASC : Sort.Direction.DESC;
+    Sort.Direction direction =
+        "ASC".equalsIgnoreCase(sortDirection) ? Sort.Direction.ASC : Sort.Direction.DESC;
     Sort sort = Sort.by(direction, sortBy);
     Pageable pageable = PageRequest.of(page, size, sort);
 
@@ -586,7 +592,8 @@ public class PostService {
   /**
    * 필터링된 레시피 조회 (내부 메서드)
    */
-  private Page<PostEntity> getFilteredPosts(Pageable pageable, Integer official, String category, String method) {
+  private Page<PostEntity> getFilteredPosts(Pageable pageable, Integer official, String category,
+      String method) {
     // 기본적으로 모든 레시피 조회
     if (official == null && category == null && method == null) {
       return postRepository.findAll(pageable);
@@ -689,16 +696,7 @@ public class PostService {
   }
 
   // 사용자 정보를 담는 내부 클래스
-  private static class UserInfo {
+  private record UserInfo(Integer userId, String email, String nickname) {
 
-    final Integer userId;
-    final String email;
-    final String nickname;
-
-    UserInfo(Integer userId, String email, String nickname) {
-      this.userId = userId;
-      this.email = email;
-      this.nickname = nickname;
-    }
   }
 }

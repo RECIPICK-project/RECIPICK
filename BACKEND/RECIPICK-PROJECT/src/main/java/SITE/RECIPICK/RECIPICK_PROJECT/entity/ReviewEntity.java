@@ -8,8 +8,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -17,6 +15,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
 @Table(name = "review")
@@ -29,7 +29,7 @@ public class ReviewEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "review_id", updatable = false, nullable = false, columnDefinition = "INT UNSIGNED")
-  private Integer id;
+  private Integer reviewId;
 
   /**
    * 게시글
@@ -49,32 +49,23 @@ public class ReviewEntity {
    * 평점 (0.00 ~ 5.00)
    */
   @Column(name = "review_rating", nullable = false, precision = 3, scale = 2)
-  private BigDecimal rating;
+  private BigDecimal reviewRating;
 
   /**
    * 리뷰 내용
    */
-  @Column(name = "comment", columnDefinition = "TEXT", nullable = false)
+  @Column(name = "comment", length = 255)
   private String comment;
 
   @Builder.Default
-  @Column(name = "report_count", nullable = false)
-  private int reportCount = 0; // 신고 횟수 (기본값 0)
+  @Column(name = "report_count", nullable = false, columnDefinition = "INT UNSIGNED DEFAULT 0")
+  private Integer reportCount = 0;
 
+  @CreationTimestamp
   @Column(name = "created_at", updatable = false)
-  private LocalDateTime createdAt; // 작성일시
+  private LocalDateTime createdAt;
 
+  @UpdateTimestamp
   @Column(name = "updated_at")
-  private LocalDateTime updatedAt; // 수정일시
-
-  @PrePersist
-  protected void onCreate() {
-    this.createdAt = LocalDateTime.now();
-    this.updatedAt = LocalDateTime.now();
-  }
-
-  @PreUpdate
-  protected void onUpdate() {
-    this.updatedAt = LocalDateTime.now();
-  }
+  private LocalDateTime updatedAt;
 }

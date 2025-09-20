@@ -1,4 +1,4 @@
-// 대표 썸네일 미리보기
+// 대표 인네일 미리보기
 const thumbInput = document.getElementById("thumbInput");
 const thumbBox = document.getElementById("thumbBox");
 const thumbControls = document.getElementById("thumbControls");
@@ -35,18 +35,18 @@ thumbInput.addEventListener("change", (e) => {
     showThumbImage(f);
 });
 
-// 썸네일 교체 버튼
+// 인네일 교체 버튼
 changeThumbBtn.addEventListener("click", (e) => {
     e.preventDefault();
     e.stopPropagation();
     thumbInput.click();
 });
 
-// 썸네일 삭제 버튼
+// 인네일 삭제 버튼
 deleteThumbBtn.addEventListener("click", (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (confirm("썸네일 이미지를 삭제하시겠습니까?")) {
+    if (confirm("인네일 이미지를 삭제하시겠습니까?")) {
         hideThumbImage();
     }
 });
@@ -283,16 +283,16 @@ document.getElementById("uploadForm").addEventListener("submit", async (e) => {
             }
         });
 
-        // 썸네일 이미지 업로드 (필수)
+        // 인네일 이미지 업로드 (필수)
         const thumbFile = document.getElementById("thumbInput").files?.[0];
         if (!thumbFile) {
-            alert("썸네일 이미지를 선택해주세요!");
+            alert("인네일 이미지를 선택해주세요!");
             return;
         }
 
-        console.log("썸네일 이미지 업로드 중...");
+        console.log("인네일 이미지 업로드 중...");
         const thumbnailUrl = await uploadImageToS3(thumbFile, "recipe-thumbnails");
-        console.log("썸네일 업로드 완료:", thumbnailUrl);
+        console.log("인네일 업로드 완료:", thumbnailUrl);
 
         // 단계별 이미지 업로드
         const stepImageUrls = [];
@@ -361,7 +361,7 @@ document.getElementById("uploadForm").addEventListener("submit", async (e) => {
             formData.append("ingredientUnits", unit);
         });
 
-        // 썸네일 이미지 URL (빈 문자열이면 기본 이미지로 대체)
+        // 인네일 이미지 URL (빈 문자열이면 기본 이미지로 대체)
         formData.append(
             "rcpImgUrl",
             thumbnailUrl || "https://via.placeholder.com/300x200?text=No+Image"
@@ -397,11 +397,32 @@ document.getElementById("uploadForm").addEventListener("submit", async (e) => {
         }
 
         const result = await saveResponse.json();
-        alert("레시피가 성공적으로 저장되었습니다!");
-        console.log("저장된 레시피:", result);
 
-        // 폼 초기화 또는 다른 페이지로 리다이렉트
-        // window.location.href = '/recipes';
+        let postId;
+        if (result && result.data && result.data.postId) {
+            postId = result.data.postId;
+        } else if (result && result.data && result.data.id) {
+            // PostDto의 getId() 메서드로 반환되는 경우
+            postId = result.data.id;
+        } else {
+            console.error("응답에서 postId를 찾을 수 없습니다:", result);
+            postId = null;
+        }
+
+        console.log("추출된 postId:", postId);
+        console.log("전체 응답 데이터:", result);
+
+        alert("레시피가 성공적으로 저장되었습니다!");
+
+        // 리다이렉트 처리
+        if (postId) {
+            window.location.href = `/pages/post_detail.html?postId=${postId}`;
+        } else {
+            // postId가 없으면 메인 페이지로 이동
+            console.warn("postId를 찾을 수 없어 메인 페이지로 이동합니다.");
+            window.location.href = '/pages/main.html';
+        }
+
     } catch (error) {
         console.error("레시피 저장 에러:", error);
         alert("레시피 저장에 실패했습니다: " + error.message);

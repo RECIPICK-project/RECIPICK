@@ -17,6 +17,15 @@
 * {
     box-sizing: border-box;
 }
+/* 재료 컨테이너: 아이템 단위로만 줄바꿈 */
+#ingredientsList {
+  display: grid;
+  grid-auto-rows: minmax(44px, auto);
+  gap: 12px;
+}
+
+/* 혹시 상위 스타일 영향 받으면 폭 보장 */
+#ingredientsList .ingredient-item { width: 100%; }
 
 html,
 body {
@@ -98,7 +107,7 @@ body.detail {
 
 /* 메인 콘텐츠 */
 .wrap {
-    padding: 20px;
+    padding: 20px 20px 100px 20px;
     display: flex;
     flex-direction: column;
     gap: 18px;

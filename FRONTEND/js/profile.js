@@ -651,18 +651,14 @@
 window.renderActivityList = function (listId, items, onListChange) {
   const ul = document.getElementById(listId);
   if (!ul) return;
-
-  ul.classList.remove('linkable');
   ul.innerHTML = '';
 
   const emptyEl = document.querySelector('[data-empty-activity]');
   if (emptyEl) emptyEl.hidden = (Array.isArray(items) && items.length > 0);
 
-  ul.onclick = null;
-
   (items || []).forEach((it) => {
     const li = document.createElement('li');
-    li.className = 'card review-card';
+    li.className = 'card';
 
     const post = it?.post || {};
     const thumbUrl = post.rcpImgUrl || '';
@@ -675,48 +671,46 @@ window.renderActivityList = function (listId, items, onListChange) {
     
     const safeBg = thumbUrl.replace(/'/g, '&#39;');
 
-    // 새로운 3단 그리드 구조(썸네일 | 내용 링크 | 삭제 버튼)에 맞춘 HTML
+    // 3단 구조 (thumb | meta+rating | actions)
     li.innerHTML = `
       <div class="thumb" style="background-image:url('${safeBg}')"></div>
-
-      <a href="/pages/post_detail.html?postId=${encodeURIComponent(postId || '')}" class="review-content-link">
-        <p class="main-comment">${comment}</p>
-        <div class="meta-line">
-          <span class="rating-stars">⭐ ${rating}</span>
-          <span class="post-title-sub">${titleText}</span>
-        </div>
-      </a>
-
+      <div class="meta">
+        <div class="title">${comment}</div>
+        <div class="sub">⭐ ${rating} · ${titleText}</div>
+      </div>
       <div class="actions">
-        <button class="icon btn-delete-review" data-review-id="${reviewId}" aria-label="리뷰 삭제">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 6h18m-2 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2m-6 5v6m4-6v6"/></svg>
-        </button>
+        <button class="icon btn-view" data-post-id="${postId}" title="원본 레시피 보기">👁️</button>
+        <button class="icon btn-del" data-review-id="${reviewId}" title="리뷰 삭제">🗑️</button>
       </div>`;
     ul.appendChild(li);
   });
 
-  // 삭제 버튼 이벤트 핸들러 (이전과 동일)
   ul.onclick = async (e) => {
-    const deleteBtn = e.target.closest('.btn-delete-review');
-    // a 태그 클릭 시 이벤트가 전파되어 버튼이 눌리는 것을 방지
-    if (!deleteBtn || e.target.closest('a')) return;
-    e.preventDefault(); // 링크 이동 방지
+    const btn = e.target.closest('button');
+    if (!btn) return;
 
-    const reviewId = deleteBtn.dataset.reviewId;
-    if (!reviewId) { toast('잘못된 리뷰 ID입니다.'); return; }
-    if (!await confirmAsync('리뷰를 삭제하시겠어요?')) return;
+    if (btn.classList.contains('btn-view')) {
+      const postId = btn.dataset.postId;
+      if (postId) location.href = `/pages/post_detail.html?postId=${encodeURIComponent(postId)}`;
+      return;
+    }
 
-    try {
-      const res = await fx(`/api/reviews/${reviewId}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('삭제 실패');
-      toast('리뷰가 삭제되었습니다.');
-      if (typeof onListChange === 'function') onListChange();
-    } catch (err) {
-      toast('삭제에 실패했습니다.');
+    if (btn.classList.contains('btn-del')) {
+      const reviewId = btn.dataset.reviewId;
+      if (!reviewId) { toast('잘못된 리뷰 ID입니다.'); return; }
+      if (!await confirmAsync('리뷰를 삭제하시겠어요?')) return;
+
+      try {
+        const res = await fx(`/api/reviews/${reviewId}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error('삭제 실패');
+        toast('리뷰가 삭제되었습니다.');
+        if (typeof onListChange === 'function') onListChange();
+      } catch (err) {
+        toast('삭제에 실패했습니다.');
+      }
     }
   };
 };
-
   /* ================================
    * 7) 하단 하트 → 저장 탭
    * ================================ */

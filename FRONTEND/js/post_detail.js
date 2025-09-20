@@ -299,14 +299,20 @@ function renderIngredients(ingredientsValue) {
 
   if (!ingredientsValue) return;
 
-  // 0) 구분자 통합: | , 、 ， · • ∙ ㆍ ; / 를 모두 파이프로 정규화
+  // 0) 구분자 통합: | , 、 ， · • ∙ ; 를 모두 파이프로 정규화 (분수 보호)
   const normalized = String(ingredientsValue)
-      .replace(/[,\u3001\uFF0C\u00B7\u2022\u2219\u318D;\/]/g, "|");
+      .replace(/[\x00-\x1F\x7F]/g, "") // 제어문자 제거
+      .replace(/\[재료\]/g, "") // [재료] 라벨 제거
+      .replace(/\[[^\]]*\]/g, "|") // [양념], [소스] 등 모든 대괄호 라벨을 구분자로 처리
+      // 슬래시 제거: 분수 형태(숫자/숫자)는 보호하고 나머지만 구분자로 처리
+      .replace(/[,\u3001\uFF0C\u00B7\u2022\u2219;]/g, "|") // 슬래시는 제외
+      .replace(/}$/g, "") // 끝의 } 제거
+      .replace(/^\|+|\|+$/g, ""); // 시작/끝 파이프 제거
 
   const tokens = normalized.split("|").map(s => s.trim()).filter(Boolean);
 
-  // 1) "이름|수량|이름|수량" 페어 형태인지 감지 (짝수길이 + 짝수 인덱스에 이름 느낌)
-  const looksLikePairs = tokens.length % 2 === 0;
+  // 1) "이름|수량|이름|수량" 페어 형태인지 감지 (현재 비활성화 - 개별 재료로 처리)
+  const looksLikePairs = false; // tokens.length % 2 === 0;
 
   const UNIT_RE = "(장|개|g|kg|mg|L|l|ml|컵|스푼|큰술|작은술|tsp|tbsp|모|줌|쪽|꼬집|알|대|봉|팩|마리|줄|공기|조각|장분|덩이|스틱|줌가량)";
   const AMOUNT_RE = new RegExp(

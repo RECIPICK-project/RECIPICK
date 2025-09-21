@@ -38,6 +38,26 @@ public class PostService {
   private final RecipeIngredientRepository recipeIngredientRepository;
   private final CurrentUser currentUser;
 
+  private static String getField(Object o, String name) {
+    try {
+      var f = o.getClass().getDeclaredField(name);
+      f.setAccessible(true);
+      Object v = f.get(o);
+      return v == null ? null : v.toString().trim();
+    } catch (Exception ignore) {
+      return null;
+    }
+  }
+
+  private static String firstNonBlank(String... xs) {
+    for (String x : xs) {
+      if (x != null && !x.trim().isEmpty()) {
+        return x.trim();
+      }
+    }
+    return null;
+  }
+
   @Transactional
   public PostDto saveRecipe(PostDto postDto) {
     log.debug("레시피 저장 시작 - 제목: {}", postDto.getTitle());
@@ -203,42 +223,119 @@ public class PostService {
     }
   }
 
-  // Entity → DTO 변환 메서드
-  private PostDto convertToDto(PostEntity savedEntity) {
+  // === 교체: Entity → DTO 변환 메서드 ===
+  private PostDto convertToDto(PostEntity e) {
     // 재료 파싱
-    String ingredientsText = savedEntity.getCkgMtrlCn();
+    String ingredientsText = e.getCkgMtrlCn() == null ? "" : e.getCkgMtrlCn();
     List<String> ingredientsList;
     if (ingredientsText.startsWith("[재료] ")) {
-      ingredientsList = Arrays.asList(ingredientsText.substring(4).split(" \\| "));
+      // "[재료] " 제거 후 " | " 기준 split
+      ingredientsList = Arrays.asList(
+          ingredientsText.substring(4).replaceFirst("^\\s", "").split(" \\| "));
     } else {
       ingredientsList = Arrays.asList(ingredientsText.split(" \\| "));
     }
 
     // 조리 단계 파싱
-    List<String> stepsList =
-        Arrays.stream(savedEntity.getRcpSteps().split(" \\| "))
-            .map(step -> step.replaceFirst("^\\d+\\.\\s*", ""))
-            .collect(Collectors.toList());
+    List<String> stepsList = Arrays.stream(
+            (e.getRcpSteps() == null ? "" : e.getRcpSteps()).split(" \\| ")
+        )
+        .map(s -> s.replaceFirst("^\\d+\\.\\s*", ""))  // "1. " 제거
+        .collect(Collectors.toList());
+
+    // 1차: 문자열 컬럼(rcpStepsImg)에 저장돼 있으면 사용
+    List<String> imgsFromString =
+        (e.getRcpStepsImg() == null || e.getRcpStepsImg().isBlank())
+            ? List.of()
+            : Arrays.stream(e.getRcpStepsImg().split(" \\| "))
+                .map(String::trim)
+                .map(this::cleanUrl) // http/https/상대경로만 허용, 나머지 빈문자 처리
+                .collect(Collectors.toList());
+
+    // 2차: 비었으면 엔티티의 번호 컬럼(MANUAL_IMG01 등)에서 스캔
+    List<String> imgs =
+        imgsFromString.isEmpty()
+            ? extractStepImagesFromEntity(e, Math.max(stepsList.size(), 0))
+            : imgsFromString;
+
+    log.debug("[DTO IMG] postId={}, fromStr='{}', scanned={}",
+        e.getPostId(),
+        e.getRcpStepsImg(),
+        extractStepImagesFromEntity(e, Math.max(1, stepsList.size())));
 
     return PostDto.builder()
-        .postId(savedEntity.getPostId())
-        .title(savedEntity.getTitle())
-        .foodName(savedEntity.getFoodName())
-        .ckgMth(savedEntity.getCkgMth().getDescription())
-        .ckgCategory(savedEntity.getCkgCategory().getDescription())
-        .ckgKnd(savedEntity.getCkgKnd().getDescription())
+        .postId(e.getPostId())
+        .title(e.getTitle())
+        .foodName(e.getFoodName())
+        .ckgMth(e.getCkgMth().getDescription())
+        .ckgCategory(e.getCkgCategory().getDescription())
+        .ckgKnd(e.getCkgKnd().getDescription())
         .ckgMtrlCn(ingredientsList)
-        .ckgInbun(savedEntity.getCkgInbun())
-        .ckgLevel(savedEntity.getCkgLevel())
-        .ckgTime(savedEntity.getCkgTime())
-        .rcpImgUrl(savedEntity.getRcpImgUrl())
+        .ckgInbun(e.getCkgInbun())
+        .ckgLevel(e.getCkgLevel())
+        .ckgTime(e.getCkgTime())
+        .rcpImgUrl(e.getRcpImgUrl())
         .rcpSteps(stepsList)
-        .rcpStepsImg(
-            savedEntity.getRcpStepsImg().isEmpty()
-                ? List.of()
-                : Arrays.asList(savedEntity.getRcpStepsImg().split(" \\| ")))
+        .rcpStepsImg(imgs) // ★ 여기 채워서 내려감
         .build();
   }
+
+  // 번호 붙은 이미지 컬럼을 긁어와 배열로 만들기 (MANUAL_IMG01 / manual_img01 / manualImg01 / stepImg01 등)
+  private List<String> extractStepImagesFromEntity(PostEntity e, int stepsCount) {
+    List<String> out = new java.util.ArrayList<>();
+    // 여유 있게 30단계까지 스캔
+    int max = Math.max(stepsCount, 0);
+    if (max == 0) {
+      max = 30;
+    }
+
+    for (int i = 1; i <= max; i++) {
+      String k2 = String.format("%02d", i);
+
+      String v = firstNonBlank(
+          getField(e, "MANUAL_IMG" + k2),
+          getField(e, "MANUAL_IMG_" + k2),
+          getField(e, "manual_img" + k2),
+          getField(e, "manual_img_" + k2),
+          getField(e, "manualImg" + k2),
+          getField(e, "ManualImg" + k2),
+          getField(e, "stepImg" + k2),
+          getField(e, "StepImg" + k2)
+      );
+      out.add(cleanUrl(v));
+    }
+
+    // 뒤쪽 빈값들 정리 (전부 빈 값이면 빈 리스트 리턴)
+    int last = out.size() - 1;
+    while (last >= 0 && (out.get(last) == null || out.get(last).isBlank())) {
+      last--;
+    }
+    if (last < 0) {
+      return java.util.List.of();
+    }
+
+    return out.subList(0, last + 1);
+  }
+
+  // 이미지 URL 정리: http/https/절대/상대만 허용, "//"는 https 붙임. 그 외는 빈값으로.
+  private String cleanUrl(String u) {
+    if (u == null) {
+      return "";
+    }
+    String s = u.trim();
+    if (s.isEmpty()) {
+      return "";
+    }
+    if (s.startsWith("//")) {
+      return "https:" + s;
+    }
+    if (s.startsWith("http://") || s.startsWith("https://") || s.startsWith("/") || s.startsWith(
+        "data:")) {
+      return s;
+    }
+    return "";
+  }
+
 
   // String → Enum 변환 메서드들
   private PostEntity.CookingMethod convertToCookingMethod(String methodStr) {

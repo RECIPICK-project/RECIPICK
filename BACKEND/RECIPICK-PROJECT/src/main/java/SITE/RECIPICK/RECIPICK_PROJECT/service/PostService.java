@@ -257,12 +257,7 @@ public class PostService {
         imgsFromString.isEmpty()
             ? extractStepImagesFromEntity(e, Math.max(stepsList.size(), 0))
             : imgsFromString;
-
-    log.debug("[DTO IMG] postId={}, fromStr='{}', scanned={}",
-        e.getPostId(),
-        e.getRcpStepsImg(),
-        extractStepImagesFromEntity(e, Math.max(1, stepsList.size())));
-
+    
     return PostDto.builder()
         .postId(e.getPostId())
         .title(e.getTitle())

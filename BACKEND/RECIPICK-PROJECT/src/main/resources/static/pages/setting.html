@@ -1,130 +1,298 @@
 <!doctype html>
 <html lang="ko">
 <head>
-  <!-- [설정] 심플 리스트 버전 -->
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-  <title>설정</title>
-  <link rel="stylesheet" href="../css/setting.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>설정 · RECIPICK</title>
+  <!-- 공통 토큰/베이스 -->
+  <link rel="stylesheet" href="../css/profile.css" />
+  <!-- 설정 전용 레이아웃 (네가 준 스타일 그대로) -->
+  <style>
+    a, .link { text-decoration: none; color: inherit; }
+
+    /* 레이아웃 */
+    .wrap{ max-width:360px; margin:0 auto; padding:0 4px; }
+    .header{ text-align:center; font-weight:800; font-size:18px; margin-top:12px; }
+
+    /* 섹션 컨테이너 */
+    .section{ font-size:12px; color:var(--muted); padding:14px 4px 6px; letter-spacing:.2px; }
+    .list{
+      background:#fff;
+      border:1px solid var(--green-500);
+      border-radius:14px;
+      padding:0 14px;
+      margin:10px 0 0;
+      box-shadow:0 1px 0 rgba(0,0,0,.02);
+    }
+
+    /* 행 (간격/정렬/터치 영역) */
+    .row{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:14px;
+      padding:16px 0;
+      border-bottom:1px solid var(--line);
+    }
+    .row:last-child{ border-bottom:none; }
+    .title{ font-weight:600; line-height:1.2; }
+    .sub{ color:var(--muted); font-size:12px; margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .title-col{ display:flex; flex-direction:column; min-width:0; }
+
+    /* 링크 행(> 오른쪽 화살표) */
+    .link{ display:flex; align-items:center; justify-content:space-between; }
+    .chev{ color:#9ca3af; transition:transform .15s ease; }
+    .link:hover .chev{ transform:translateX(2px); }
+
+    /* 스위치 */
+    .switch{ position:relative; cursor:pointer; }
+    .switch input{ position:absolute; opacity:0; pointer-events:none; }
+    .switch .slider{
+      width:52px; height:30px;
+      border-radius:999px; background:#e5e7eb;
+      border:1px solid var(--line);
+      position:relative; flex-shrink:0;
+      transition:background .2s ease, border-color .2s ease, box-shadow .2s ease;
+    }
+    .switch .slider::after{
+      content:""; position:absolute; left:3px; top:3px;
+      width:24px; height:24px; border-radius:50%;
+      background:#fff; box-shadow:0 1px 2px rgba(0,0,0,.12);
+      transition:transform .2s ease;
+    }
+    .switch input:checked + .slider{
+      background:#2E7D32; border-color:#2E7D32;
+      box-shadow:0 0 0 3px rgba(46,125,50,.12);
+    }
+    .switch input:checked + .slider::after{ transform:translateX(22px); }
+
+    /* 라디오 칩 */
+    .radios{ display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+    .chip{
+      display:flex; align-items:center; gap:6px;
+      padding:6px 12px;
+      border:1.5px solid #C8E6C9; border-radius:999px; background: var(--surface);
+      font-size:13px;
+      transition:border-color .15s ease, background .15s ease;
+    }
+    .chip input{ accent-color:#2E7D32; }
+    .chip:hover{ border-color:#4CAF50; background:#F1F8E9; }
+
+    /* 셀렉트 */
+    .select{ position:relative; display:flex; align-items:center; gap:8px; }
+    .select select{
+      appearance:none;
+      border:2px solid #C8E6C9; border-radius:10px;
+      padding:8px 34px 8px 12px; background:#fff; font-size:14px; outline:none;
+      transition:border-color .15s ease, box-shadow .15s ease;
+    }
+    .select select:focus{
+      border-color:#2E7D32;
+      box-shadow:0 0 0 3px rgba(46,125,50,.12);
+    }
+    .select .dd{
+      width:18px; height:18px; position:absolute; right:10px; pointer-events:none;
+      fill:none; stroke:#6b7280;
+    }
+
+    /* 위험 영역 */
+    .list.danger{ border-color:#ffcdd2; }
+    .btn-ghost.full{
+      width:100%; height:52px; border-radius:12px; margin:8px 0 0;
+    }
+    .btn-danger{
+      display:inline-flex; align-items:center; justify-content:center;
+      width:100%; height:52px; border:none; border-radius:12px; font-weight:800;
+      background:#E53935; color:#fff; margin-top:8px;
+    }
+
+    /* 탭바(확정 아이콘 세트 유지) */
+    .tabbar{
+      position:absolute; left:0; right:0; bottom:0; height:72px;
+      background:#fff; border-top-left-radius:20px; border-top-right-radius:20px;
+      box-shadow:var(--elev);
+      display:flex; align-items:center; justify-content:space-around;
+    }
+    .tab{ display:grid; place-items:center; }
+    .tab svg{ width:22px; height:22px; stroke:#6b7280; fill:none; }
+    .tab .ring{
+      width:44px; height:44px; border-radius:9999px;
+      background:#F1F8E9; border:2px solid #4CAF50; display:grid; place-items:center;
+    }
+    .tab.is-active svg{ stroke:#2E7D32; }
+
+    /* 포커스 접근성(키보드) */
+    .row:focus-within, .link:focus-visible, .chip:has(input:focus-visible), .select select:focus-visible {
+      outline: none;
+    }
+  </style>
 </head>
-<body>
-<main class="phone" role="main" aria-label="설정 화면">
-  <!-- 뒤로가기 -->
-  <button class="back" aria-label="뒤로 가기" type="button" onclick="history.back()">
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M15 6l-6 6 6 6" stroke="#111827" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-    </svg>
-  </button>
+<body class="detail">
+<main class="frame" role="main" aria-label="설정">
+  <!-- 헤더 -->
+  <header class="head">
+    <button class="back" aria-label="뒤로 가기" type="button" onclick="history.back()">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M15 6l-6 6 6 6"/>
+      </svg>
+    </button>
+    <h1>설정</h1>
+    <span class="spacer" aria-hidden="true"></span>
+  </header>
 
-  <h1 class="header">설정</h1>
+  <!-- 본문 -->
+  <div class="tab-content" style="padding-bottom:90px;">
+    <div class="wrap">
+      <div class="header">환경 설정</div>
 
-  <div class="wrap">
-    <!-- 계정 -->
-    <section class="list">
-      <h2 class="section">계정</h2>
-
-      <a class="row link" href="#">
-        <div class="title-col">
-          <div class="title">이메일</div>
-          <div class="sub">example@mail.com</div>
+      <!-- 알림 -->
+      <div class="section">알림</div>
+      <div class="list">
+        <div class="row">
+          <div class="title-col">
+            <div class="title">푸시 알림</div>
+            <div class="sub">추천/댓글/좋아요 알림 받기</div>
+          </div>
+          <label class="switch" aria-label="푸시 알림">
+            <input type="checkbox" checked disabled />
+            <span class="slider" aria-hidden="true"></span>
+          </label>
         </div>
-        <span class="chev">›</span>
-      </a>
-
-      <a class="row link" href="#">
-        <div class="title-col">
-          <div class="title">비밀번호</div>
-          <div class="sub">마지막 변경: 2025-08-01</div>
-        </div>
-        <span class="chev">›</span>
-      </a>
-    </section>
-
-    <!-- 알림 -->
-    <section class="list">
-      <h2 class="section">알림</h2>
-
-      <label class="row switch">
-        <span class="title">댓글 알림</span>
-        <input type="checkbox" checked />
-        <span class="slider" aria-hidden="true"></span>
-      </label>
-
-      <label class="row switch">
-        <span class="title">좋아요 알림</span>
-        <input type="checkbox" />
-        <span class="slider" aria-hidden="true"></span>
-      </label>
-
-      <label class="row switch">
-        <span class="title">운영 공지</span>
-        <input type="checkbox" checked />
-        <span class="slider" aria-hidden="true"></span>
-      </label>
-    </section>
-
-    <!-- 표시 -->
-    <section class="list">
-      <h2 class="section">표시</h2>
-
-      <div class="row">
-        <span class="title">테마</span>
-        <div class="radios">
-          <label class="chip"><input type="radio" name="theme" value="light" checked /><span>라이트</span></label>
-          <label class="chip"><input type="radio" name="theme" value="dark" /><span>다크</span></label>
+        <div class="row">
+          <div class="title-col">
+            <div class="title">이메일 알림</div>
+            <div class="sub">주간 요리 소식, 공지사항</div>
+          </div>
+          <label class="switch" aria-label="이메일 알림">
+            <input type="checkbox" disabled />
+            <span class="slider" aria-hidden="true"></span>
+          </label>
         </div>
       </div>
 
-      <div class="row">
-        <span class="title">언어</span>
-        <div class="select">
-          <select aria-label="언어 선택">
-            <option selected>한국어 (ko)</option>
-            <option>English (en)</option>
-            <option>日本語 (ja)</option>
-          </select>
-          <svg viewBox="0 0 24 24" class="dd"><path d="M6 9l6 6 6-6"/></svg>
+      <!-- 계정/보안 -->
+      <div class="section">계정 및 보안</div>
+      <div class="list">
+        <a class="row link" href="#" aria-disabled="true">
+          <div class="title-col">
+            <div class="title">비밀번호 변경</div>
+            <div class="sub">현재 비밀번호 확인 후 변경</div>
+          </div>
+          <svg class="chev" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M9 6l6 6-6 6"/>
+          </svg>
+        </a>
+        <a class="row link" href="#" aria-disabled="true">
+          <div class="title-col">
+            <div class="title">2단계 인증</div>
+            <div class="sub">추가 보안 적용</div>
+          </div>
+          <svg class="chev" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M9 6l6 6-6 6"/>
+          </svg>
+        </a>
+      </div>
+
+      <!-- 표시 언어/테마 -->
+      <div class="section">표시</div>
+      <div class="list">
+        <div class="row">
+          <div class="title-col">
+            <div class="title">언어</div>
+            <div class="sub">서비스 표시 언어</div>
+          </div>
+          <div class="select" aria-label="언어 선택">
+            <select disabled>
+              <option selected>한국어</option>
+              <option>English</option>
+              <option>日本語</option>
+            </select>
+            <svg class="dd" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6 9l6 6 6-6"/>
+            </svg>
+          </div>
+        </div>
+        <div class="row">
+          <div class="title-col">
+            <div class="title">테마</div>
+            <div class="sub">밝게 / 어둡게</div>
+          </div>
+          <div class="radios" role="group" aria-label="테마 선택">
+            <label class="chip"><input type="radio" name="theme" checked disabled /> 라이트</label>
+            <label class="chip"><input type="radio" name="theme" disabled /> 다크</label>
+            <label class="chip"><input type="radio" name="theme" disabled /> 시스템</label>
+          </div>
         </div>
       </div>
-    </section>
 
-    <!-- 정보 -->
-    <section class="list">
-      <h2 class="section">정보</h2>
-      <a class="row link" href="faq.html"><span class="title">자주 묻는 질문</span><span class="chev">›</span></a>
-      <a class="row link" href="terms.html"><span class="title">서비스 이용약관</span><span class="chev">›</span></a>
-      <a class="row link" href="privacy.html"><span class="title">개인정보 처리방침</span><span class="chev">›</span></a>
-      <div class="meta">버전 1.0.0 · RECIPICK</div>
-    </section>
+      <!-- 데이터 -->
+      <div class="section">데이터</div>
+      <div class="list">
+        <a class="row link" href="#" aria-disabled="true">
+          <div class="title-col">
+            <div class="title">캐시 정리</div>
+            <div class="sub">임시 파일 삭제 (권장)</div>
+          </div>
+          <svg class="chev" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M9 6l6 6-6 6"/>
+          </svg>
+        </a>
+        <a class="row link" href="#" aria-disabled="true">
+          <div class="title-col">
+            <div class="title">데이터 내보내기</div>
+            <div class="sub">내 레시피/활동 다운로드</div>
+          </div>
+          <svg class="chev" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M9 6l6 6-6 6"/>
+          </svg>
+        </a>
+      </div>
 
-    <!-- 계정 액션 -->
-    <section class="list danger">
-      <button class="btn-ghost full">로그아웃</button>
-      <button class="btn-danger full">회원탈퇴</button>
-    </section>
-
-    <div style="height:92px"></div>
+      <!-- 위험 영역 -->
+      <div class="section">위험</div>
+      <div class="list danger">
+        <a class="row link" href="#" aria-disabled="true">
+          <div class="title-col">
+            <div class="title" style="color:#E53935;">로그아웃</div>
+            <div class="sub">현재 계정에서 로그아웃</div>
+          </div>
+          <svg class="chev" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#E53935" stroke-width="2" aria-hidden="true">
+            <path d="M9 6l6 6-6 6"/>
+          </svg>
+        </a>
+        <button class="btn-danger" type="button" disabled>회원 탈퇴</button>
+      </div>
+    </div>
   </div>
 
-  <!-- 탭바 (확정 아이콘 세트 / 프로필 활성) -->
-  <nav class="tabbar" aria-label="탭바">
-    <div class="tab"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg></div>
-    <div class="tab">
-      <svg viewBox="0 0 24 24" fill="#E53935">
-        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5
-                 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09
-                 C13.09 3.81 14.76 3 16.5 3
-                 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55
-                 11.54L12 21.35z"/>
+  <!-- 하단 탭바 -->
+  <nav class="tabbar" aria-label="하단 내비게이션">
+    <a class="tab" href="/index.html" aria-label="홈">
+      <svg viewBox="0 0 24 24" width="22" height="22" stroke="#6b7280" stroke-width="2" fill="none" aria-hidden="true">
+        <path d="M3 12l9-8 9 8M5 10v10h14V10"/>
       </svg>
-    </div>
-    <div class="tab">
-      <div class="ring">
-        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
-      </div>
-    </div>
-    <div class="tab"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></div>
-    <div class="tab is-active"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c2-4 14-4 16 0"/></svg></div>
+    </a>
+    <a class="tab" href="/pages/search.html" aria-label="검색">
+      <svg viewBox="0 0 24 24" width="22" height="22" stroke="#6b7280" stroke-width="2" fill="none" aria-hidden="true">
+        <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>
+      </svg>
+    </a>
+    <a class="tab" href="/pages/post_upload.html" aria-label="업로드">
+        <span class="ring" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="22" height="22" stroke="#6b7280" stroke-width="2" fill="none" aria-hidden="true">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+        </span>
+    </a>
+    <a class="tab" href="/pages/profile.html" aria-label="프로필">
+      <svg viewBox="0 0 24 24" width="22" height="22" stroke="#6b7280" stroke-width="2" fill="none" aria-hidden="true">
+        <path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-5 0-8 2.5-8 5v1h16v-1c0-2.5-3-5-8-5z"/>
+      </svg>
+    </a>
+    <a class="tab is-active" href="/pages/setting.html" aria-current="page" aria-label="설정">
+      <svg viewBox="0 0 24 24" width="22" height="22" stroke="#2E7D32" stroke-width="2" fill="none" aria-hidden="true">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09c.7 0 1.32-.4 1.51-1a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06c.5.5 1.2.66 1.82.33h.01c.62.33 1.32.17 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06c-.5.5-.66 1.2-.33 1.82v.01c.33.62.99 1 1.69 1H21a2 2 0 0 1 0 4h-.09c-.7 0-1.32.4-1.51 1z"/>
+      </svg>
+    </a>
   </nav>
 </main>
 </body>

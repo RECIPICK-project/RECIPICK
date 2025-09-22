@@ -398,6 +398,30 @@ async function handleLoadMore() {
   }
 }
 
+// URL 업데이트 함수 추가 ✅
+function updateURL(searchType, query = '', sort = 'latest') {
+  const params = new URLSearchParams();
+  
+  if (searchType === 'title' && query) {
+    params.append('searchType', 'title');
+    params.append('q', query);
+  } else if (searchType === 'ingredients') {
+    params.append('searchType', 'ingredients');
+    currentIngredients.main.forEach(ing => params.append('main', ing));
+    currentIngredients.sub.forEach(ing => params.append('sub', ing));
+  } else if (searchType === 'category') {
+    params.append('searchType', 'category');
+    params.append('category', currentCategory);
+  }
+  
+  if (sort !== 'latest') {
+    params.append('sort', sort);
+  }
+  
+  const newURL = `${window.location.pathname}?${params.toString()}`;
+  window.history.pushState({ searchType, query, sort }, '', newURL);
+}
+
 // 초기화
 async function init() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -471,6 +495,7 @@ async function init() {
 sortSel.addEventListener('change', applySort);
 loadMoreBtn.addEventListener('click', handleLoadMore);
 
+// ✅ 수정된 form submit 이벤트 핸들러 - URL 업데이트 포함
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
   const query = qInput.value.trim();
@@ -489,6 +514,10 @@ form.addEventListener('submit', async (e) => {
 
   try {
     const sort = sortSel.value;
+    
+    // ✅ URL 업데이트 추가
+    updateURL('title', query, sort);
+    
     const response = await searchRecipesByTitle(query, sort, 0, PAGE_SIZE);
     addRecipesToList(response.recipes);
     if (response.recipes.length === 0) {

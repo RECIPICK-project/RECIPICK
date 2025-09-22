@@ -443,16 +443,19 @@ function renderIngredients(ingredientsValue) {
 
   const items = tokens.map(splitNameAmount);
 
-  for (const { name, amount } of items) {
-    if (!name) continue;
-    const safeNameArg = JSON.stringify(String(name));
-    const el = document.createElement("div");
-    el.className = "ingredient-item";
-    el.innerHTML = `
+        const recipeTitle = document.getElementById("recipeTitle").textContent;
+
+        const ingredientItem = document.createElement("div");
+        ingredientItem.className = "ingredient-item";
+        ingredientItem.innerHTML = `
       <span class="ingredient-name">${name}</span>
       <span class="ingredient-amount">${amount}</span>
-      <button class="btn-small btn-substitute" onclick="getSubstituteIngredient(${safeNameArg}, this)">대체</button>
-      <button class="btn-small" onclick="goToCoupang(${safeNameArg})">구매</button>
+      <button class="btn-small btn-substitute"
+                    onclick="getSubstituteIngredient(this)"
+                    data-ingredient-name="${name}"
+                    data-recipe-title="${recipeTitle}"
+                    >대체</button>
+      <button class="btn-small" onclick="goToCoupang('${name}')">구매</button>
     `;
     container.appendChild(el);
   }
@@ -495,26 +498,35 @@ function renderCookingSteps(steps) {
   });
 }
 
+// GPT API를 통한 대체 재료 추천
+function getSubstituteIngredient(buttonElement) {
+    // 버튼을 비활성화하고 로딩 상태 표시
+    buttonElement.innerText = "불러오는 중...";
+    buttonElement.disabled = true;
 
-/* -------------------------------
- * 대체 재료 / 쿠팡
- * ------------------------------- */
-async function getSubstituteIngredient(ingredientName, button) {
-  try {
-    button.disabled = true;
-    button.textContent = "로딩...";
-    // TODO: 서버 연동 시 교체
-    await new Promise((r) => setTimeout(r, 600));
-    alert(
-        `${ingredientName} 대신 쓸 수 있는 대체 재료 예시\n\n1) 비슷한 맛\n2) 영양 유사\n3) 식감 유사`
-    );
-  } catch (e) {
-    console.error(e);
-    alert("대체 재료 추천에 실패했습니다.");
-  } finally {
-    button.disabled = false;
-    button.textContent = "대체";
-  }
+    const ingredientName = buttonElement.dataset.ingredientName;
+    const recipeTitle = buttonElement.dataset.recipeTitle;
+
+    // 스프링 컨트롤러의 URL
+    const serverUrl = `/api/substitute-ingredient?ingredientName=${ingredientName}&title=${recipeTitle}`;
+
+    fetch(serverUrl)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('서버 응답 오류: ' + response.status);
+            }
+            return response.text(); // 응답이 text 형식이므로 .text() 사용
+        })
+        .then(data => {
+            // GPT 응답으로 버튼 텍스트를 변경
+            buttonElement.innerText = data;
+            buttonElement.disabled = false; // 버튼 다시 활성화
+        })
+        .catch(error => {
+            console.error('Fetch 에러:', error);
+            buttonElement.innerText = "오류 발생";
+            buttonElement.disabled = false;
+        });
 }
 
 function goToCoupang(ingredientName) {

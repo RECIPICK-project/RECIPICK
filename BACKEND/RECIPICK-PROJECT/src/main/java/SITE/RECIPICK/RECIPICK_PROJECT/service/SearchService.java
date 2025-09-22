@@ -20,8 +20,11 @@ public class SearchService {
   /**
    * 재료로 레시피 검색 (메인 재료 필수, 서브 재료 우선순위)
    */
-  public Map<String, Object> searchRecipes(List<String> mainIngredients,
-      List<String> subIngredients, String sort, Pageable pageable) {
+  public Map<String, Object> searchRecipes(
+      List<String> mainIngredients,
+      List<String> subIngredients,
+      String sort,
+      Pageable pageable) {
 
     if (mainIngredients == null || mainIngredients.isEmpty()) {
       return Map.of("recipes", List.of(), "totalCount", 0);
@@ -41,16 +44,19 @@ public class SearchService {
       // 1. 전체 레시피 수 조회 (메인 재료 기준만)
       int totalCount = searchRepository.countSearchByIngredients(mainIngredients);
 
-      log.info("재료 검색 - 메인재료: {}, 서브재료: {}, 전체 개수: {}",
-          mainIngredients, subIngredients, totalCount);
+      log.info(
+          "재료 검색 - 메인재료: {}, 서브재료: {}, 전체 개수: {}",
+          mainIngredients,
+          subIngredients,
+          totalCount);
 
       // 2. 페이지네이션된 레시피 목록 조회
-      List<Object[]> results = searchRepository.searchByIngredients(
-          mainIngredients, subIngredients, sort, limit, offset);
+      List<Object[]> results =
+          searchRepository.searchByIngredients(
+              mainIngredients, subIngredients, sort, limit, offset);
 
-      List<SearchPostDto> searchPostDtos = results.stream()
-          .map(this::mapToPostDto)
-          .collect(Collectors.toList());
+      List<SearchPostDto> searchPostDtos =
+          results.stream().map(this::mapToPostDto).collect(Collectors.toList());
 
       log.info("재료 검색 결과 - 반환된 레시피 수: {}", searchPostDtos.size());
 
@@ -58,6 +64,43 @@ public class SearchService {
 
     } catch (Exception e) {
       log.error("재료 검색 중 오류 발생", e);
+      return Map.of("recipes", List.of(), "totalCount", 0);
+    }
+  }
+
+  /**
+   * 카테고리로 레시피 검색 (전체 개수 포함)
+   */
+  public Map<String, Object> searchRecipesByCategory(String category, String sort,
+      Pageable pageable) {
+    if (category == null || category.trim().isEmpty()) {
+      return Map.of("recipes", List.of(), "totalCount", 0);
+    }
+
+    // 정렬 조건 검증 및 변환
+    sort = validateAndConvertSort(sort);
+
+    int limit = pageable.getPageSize();
+    int offset = (int) pageable.getOffset();
+
+    try {
+      // 1. 해당 카테고리의 전체 레시피 개수 조회
+      int totalCount = searchRepository.countSearchByCategory(category);
+
+      log.info("카테고리 검색 - 카테고리: '{}', 전체 개수: {}", category, totalCount);
+
+      // 2. 페이지네이션된 레시피 목록 조회
+      List<Object[]> results = searchRepository.searchByCategory(category, sort, limit, offset);
+
+      List<SearchPostDto> searchPostDtos =
+          results.stream().map(this::mapToPostDto).collect(Collectors.toList());
+
+      log.info("카테고리 검색 결과 - 반환된 레시피 수: {}", searchPostDtos.size());
+
+      return Map.of("recipes", searchPostDtos, "totalCount", totalCount);
+
+    } catch (Exception e) {
+      log.error("카테고리 검색 중 오류 발생", e);
       return Map.of("recipes", List.of(), "totalCount", 0);
     }
   }
@@ -85,9 +128,8 @@ public class SearchService {
       // 2. 페이지네이션된 레시피 목록 조회
       List<Object[]> results = searchRepository.searchByTitle(title, sort, limit, offset);
 
-      List<SearchPostDto> searchPostDtos = results.stream()
-          .map(this::mapToPostDto)
-          .collect(Collectors.toList());
+      List<SearchPostDto> searchPostDtos =
+          results.stream().map(this::mapToPostDto).collect(Collectors.toList());
 
       log.info("제목 검색 결과 - 반환된 레시피 수: {}", searchPostDtos.size());
 
@@ -118,9 +160,8 @@ public class SearchService {
       // 2. 페이지네이션된 레시피 목록 조회
       List<Object[]> results = searchRepository.findPopularRecipes(sort, limit, offset);
 
-      List<SearchPostDto> searchPostDtos = results.stream()
-          .map(this::mapToPostDto)
-          .collect(Collectors.toList());
+      List<SearchPostDto> searchPostDtos =
+          results.stream().map(this::mapToPostDto).collect(Collectors.toList());
 
       log.info("전체/인기 레시피 결과 - 반환된 레시피 수: {}", searchPostDtos.size());
 
@@ -174,7 +215,7 @@ public class SearchService {
    */
   private SearchPostDto mapToPostDto(Object[] row) {
     SearchPostDto dto = new SearchPostDto();
-    dto.setPostId(((Number) row[0]).longValue());
+    dto.setPostId(((Number) row[0]).intValue());
     dto.setTitle((String) row[1]);
     dto.setFoodName((String) row[2]);
 

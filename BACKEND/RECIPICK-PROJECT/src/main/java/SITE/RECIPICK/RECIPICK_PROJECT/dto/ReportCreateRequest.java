@@ -9,6 +9,6 @@ import lombok.Setter;
 public class ReportCreateRequest {
 
   private String targetType; // POST/REVIEW/COMMENT/USER (대소문자 무시)
-  private Long targetId;
+  private Integer targetId;
   private String reason;
 }

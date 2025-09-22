@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>자주 묻는 질문 · RECIPICK</title>
+  <!-- 기존 프로필/마이페이지 CSS 그대로 사용 -->
+  <link rel="stylesheet" href="../css/profile.css" />
+</head>
+<body class="detail">
+<main class="frame" role="main" aria-label="자주 묻는 질문">
+
+  <!-- 헤더 -->
+  <header class="head">
+    <button class="back" aria-label="뒤로 가기" type="button" onclick="history.back()">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M15 6l-6 6 6 6"/>
+      </svg>
+    </button>
+    <h1>자주 묻는 질문</h1>
+    <span class="spacer" aria-hidden="true"></span>
+  </header>
+
+  <!-- 본문 -->
+  <section class="tab-content" style="padding-top:16px;">
+    <!-- 간단 목차 -->
+    <nav aria-label="FAQ 목차" style="margin-bottom:16px;">
+      <ul class="cards" style="grid-template-columns:1fr;">
+        <li class="card" style="display:block;">
+          <div class="meta">
+            <div class="title">카테고리</div>
+            <div class="sub">계정 · 프로필 · 레시피 · 저장/평가 · 신고/안전</div>
+          </div>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- 섹션: 계정 -->
+    <section aria-labelledby="faq-account" style="margin-top:8px;">
+      <h2 id="faq-account" class="sr-only">계정</h2>
+      <ul class="cards" style="grid-template-columns:1fr;">
+        <li class="card" style="display:block;">
+          <div class="meta">
+            <div class="title">회원가입이 안 돼요.</div>
+            <div class="sub">이메일 인증 완료 후 다시 시도해 주세요. 인증 메일은 스팸함도 확인해 주세요.</div>
+          </div>
+        </li>
+        <li class="card" style="display:block;">
+          <div class="meta">
+            <div class="title">비밀번호를 잊어버렸어요.</div>
+            <div class="sub">로그인 화면 &gt; 비밀번호 재설정에서 등록 이메일로 재설정 링크를 받아 변경할 수 있어요.</div>
+          </div>
+        </li>
+        <li class="card" style="display:block;">
+          <div class="meta">
+            <div class="title">로그인이 자꾸 실패해요.</div>
+            <div class="sub">이메일 철자/대소문자, 소셜 로그인 계정 일치 여부를 확인해 주세요. 여러 번 실패 시 잠시 후 재시도.</div>
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <!-- 섹션: 프로필 -->
+    <section aria-labelledby="faq-profile" style="margin-top:12px;">
+      <h2 id="faq-profile" class="sr-only">프로필</h2>
+      <ul class="cards" style="grid-template-columns:1fr;">
+        <li class="card" style="display:block;">
+          <div class="meta">
+            <div class="title">닉네임을 바꾸고 싶어요.</div>
+            <div class="sub">마이페이지 &gt; 프로필 편집에서 변경할 수 있어요. 닉네임은 중복 불가일 수 있어요.</div>
+          </div>
+        </li>
+        <li class="card" style="display:block;">
+          <div class="meta">
+            <div class="title">프로필 이미지는 어떻게 변경하나요?</div>
+            <div class="sub">아바타를 누르면 업로드 창이 열려요. 정사각형 이미지를 권장합니다.</div>
+          </div>
+        </li>
+        <li class="card" style="display:block;">
+          <div class="meta">
+            <div class="title">등급(티어)은 무엇인가요?</div>
+            <div class="sub">활동 지표(레시피, 리뷰, 반응 등)에 따라 BRONZE~DIAMOND로 구분돼요. 주기적으로 갱신됩니다.</div>
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <!-- 섹션: 레시피 작성/관리 -->
+    <section aria-labelledby="faq-recipe" style="margin-top:12px;">
+      <h2 id="faq-recipe" class="sr-only">레시피</h2>
+      <ul class="cards" style="grid-template-columns:1fr;">
+        <li class="card" style="display:block;">
+          <div class="meta">
+            <div class="title">레시피는 어떻게 등록하나요?</div>
+            <div class="sub">작성 페이지에서 제목, 재료, 조리순서를 입력하고 썸네일을 추가해 게시할 수 있어요.</div>
+          </div>
+        </li>
+        <li class="card" style="display:block;">
+          <div class="meta">
+            <div class="title">이미지 업로드가 실패해요.</div>
+            <div class="sub">네트워크 상태와 이미지 용량을 확인해 주세요. 용량 제한을 초과하면 업로드가 차단됩니다.</div>
+          </div>
+        </li>
+        <li class="card" style="display:block;">
+          <div class="meta">
+            <div class="title">작성한 레시피가 보이지 않아요.</div>
+            <div class="sub">임시 저장 상태인지 확인해 주세요. 마이페이지 &gt; 나의 레시피에서 수정/게시 할 수 있어요.</div>
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <!-- 섹션: 저장/평가/댓글 -->
+    <section aria-labelledby="faq-like" style="margin-top:12px;">
+      <h2 id="faq-like" class="sr-only">저장/평가/댓글</h2>
+      <ul class="cards" style="grid-template-columns:1fr;">
+        <li class="card" style="display:block;">
+          <div class="meta">
+            <div class="title">저장한 레시피가 어디에 있나요?</div>
+            <div class="sub">마이페이지 &gt; 저장한 레시피에서 확인할 수 있어요.</div>
+          </div>
+        </li>
+        <li class="card" style="display:block;">
+          <div class="meta">
+            <div class="title">별점이 다르게 보여요.</div>
+            <div class="sub">상세 페이지는 평균 별점을 표시해요. 내 별점은 내 활동 내역에서 확인할 수 있어요.</div>
+          </div>
+        </li>
+        <li class="card" style="display:block;">
+          <div class="meta">
+            <div class="title">이미 댓글을 작성했다고 떠요.</div>
+            <div class="sub">일부 게시물은 댓글 1회 제한일 수 있어요. 수정 기능 여부는 게시물 정책을 따릅니다.</div>
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <!-- 섹션: 신고/안전 -->
+    <section aria-labelledby="faq-safety" style="margin-top:12px;">
+      <h2 id="faq-safety" class="sr-only">신고/안전</h2>
+      <ul class="cards" style="grid-template-columns:1fr;">
+        <li class="card" style="display:block;">
+          <div class="meta">
+            <div class="title">부적절한 콘텐츠를 신고하고 싶어요.</div>
+            <div class="sub">게시물/댓글의 메뉴(⋯)에서 신고를 선택해 주세요. 검토 후 필요한 조치를 진행합니다.</div>
+          </div>
+        </li>
+        <li class="card" style="display:block;">
+          <div class="meta">
+            <div class="title">신고 결과는 어떻게 알 수 있나요?</div>
+            <div class="sub">정책상 상세 결과 안내가 제한될 수 있어요. 필요한 경우 추가 확인을 요청드릴 수 있습니다.</div>
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <!-- 섹션: 기타 -->
+    <section aria-labelledby="faq-etc" style="margin-top:12px;">
+      <h2 id="faq-etc" class="sr-only">기타</h2>
+      <ul class="cards" style="grid-template-columns:1fr;">
+        <li class="card" style="display:block;">
+          <div class="meta">
+            <div class="title">문의하고 싶어요.</div>
+            <div class="sub">서비스 하단의 문의 버튼 또는 공식 이메일로 연락해 주세요. 최대한 빠르게 답변드릴게요.</div>
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <!-- 안내 문구 -->
+    <p class="empty">위 내용은 서비스 업데이트에 따라 변경될 수 있어요.</p>
+  </section>
+
+  <!-- 하단 탭바 (링크는 필요에 맞게 교체) -->
+  <nav class="tabbar" aria-label="하단 내비게이션">
+    <a class="tab" href="/index.html" aria-label="홈">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#6b7280" stroke-width="2" aria-hidden="true">
+        <path d="M3 12l9-8 9 8M5 10v10h14V10"/>
+      </svg>
+    </a>
+    <a class="tab" href="/pages/search.html" aria-label="검색">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#6b7280" stroke-width="2" aria-hidden="true">
+        <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>
+      </svg>
+    </a>
+    <a class="tab" href="/pages/upload.html" aria-label="업로드">
+      <span class="ring" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#6b7280" stroke-width="2" aria-hidden="true">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
+      </span>
+    </a>
+    <a class="tab" href="/pages/profile.html" aria-label="프로필">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#2E7D32" stroke-width="2" aria-hidden="true">
+        <path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-5 0-8 2.5-8 5v1h16v-1c0-2.5-3-5-8-5z"/>
+      </svg>
+    </a>
+    <a class="tab is-active" href="/pages/faq.html" aria-current="page" aria-label="FAQ">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#2E7D32" stroke-width="2" aria-hidden="true">
+        <path d="M12 18h.01M8 9a4 4 0 1 1 6.7 2.8 3 3 0 0 0-1.2 2.2v.5"/>
+      </svg>
+    </a>
+  </nav>
+
+</main>
+</body>
+</html>

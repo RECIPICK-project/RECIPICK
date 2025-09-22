@@ -17,23 +17,23 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "REPORT")
+@Table(name = "report")
 public class ReportEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "report_id")
-  private Long id;
+  private Integer reportid;
 
   @Enumerated(EnumType.STRING)
   @Column(name = "target_type", nullable = false, length = 20)
-  private ReportTargetType targetType;   // POST/REVIEW/COMMENT
+  private ReportTargetType targetType; // POST/REVIEW/COMMENT
 
   @Column(name = "target_id", nullable = false)
-  private Long targetId;                 // 대상 PK
+  private Integer targetId; // 대상 PK
 
   @Column(name = "reason", columnDefinition = "TEXT", nullable = false)
-  private String reason;                 // 신고 사유
+  private String reason; // 신고 사유
 
   @Enumerated(EnumType.STRING)
   @Column(name = "status", nullable = false, length = 20)
@@ -65,35 +65,7 @@ public class ReportEntity {
   }
 
   // ===== getters/setters =====
-  public Long getId() {
-    return id;
-  }
-
-  public ReportTargetType getTargetType() {
-    return targetType;
-  }
-  
-
-  public Long getTargetId() {
-    return targetId;
-  }
-
-
-  public String getReason() {
-    return reason;
-  }
-
-
-  public ReportStatus getStatus() {
-    return status;
-  }
-
-
-  public LocalDateTime getCreatedAt() {
-    return createdAt;
-  }
-
-  public LocalDateTime getUpdatedAt() {
-    return updatedAt;
+  public Integer getId() {
+    return reportid;
   }
 }

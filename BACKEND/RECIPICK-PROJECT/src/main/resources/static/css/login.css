@@ -1,122 +1,321 @@
+:root {
+  --bg: #F1F8E9;
+  --text: #111827;
+  --muted: #6B7280;
+  --field-border: #4CAF50;
+  --field-bg: #ffffff;
+  --cta: #F4B942;
+  --cta-pressed: #d89f36;
+  --divider: #E5E7EB;
+  --link: #374151;
+  --google: #ffffff;
+  --naver: #03C75A;
+  --kakao: #FEE500;
+  --space: 8px;
+}
 
-:root{
-  --bg:#F1F8E9;
-  --text:#111827;
-  --muted:#6B7280;
-  --field-border:#4CAF50;
-  --field-bg:#ffffff;
-  --cta:#F4B942;
-  --cta-pressed:#d89f36;
-  --divider:#E5E7EB;
-  --link:#374151;
-  --google:#ffffff;
-  --naver:#03C75A;
-  --kakao:#FEE500;
-  --space:8px;
+* {
+  box-sizing: border-box
 }
-*{box-sizing:border-box}
-html,body{height:100%}
-body{
-  margin:0; background:var(--bg); color:var(--text);
+
+html,
+body {
+  height: 100%
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans KR", Helvetica, Arial, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
-  display:flex; align-items:center; justify-content:center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.phone{width:375px; max-width:100%; height:812px; max-height:100vh; position:relative; padding:calc(var(--space)*3) calc(var(--space)*2) calc(var(--space)*3)}
-.back{
-  position:absolute; left:calc(var(--space)*2); top:calc(var(--space)*2); width:40px; height:40px; border-radius:9999px;
-  background:#fff; box-shadow:0 1px 2px rgba(0,0,0,.06); display:grid; place-items:center; cursor:pointer; border:1px solid #ececec;
+
+.phone {
+  width: 375px;
+  max-width: 100%;
+  height: 812px;
+  max-height: 100vh;
+  position: relative;
+  padding: calc(var(--space)*3) calc(var(--space)*2) calc(var(--space)*3)
 }
-.back svg{width:18px; height:18px}
-.wrap{margin-top:calc(var(--space)*7); max-width:320px; margin-left:auto; margin-right:auto; display:grid; gap:calc(var(--space)*3)}
-.logo{font-weight:800; font-size:44px; letter-spacing:2px; text-align:center; margin:calc(var(--space)*2) 0 calc(var(--space)*4)}
-.field{display:flex; flex-direction:column; gap:calc(var(--space)*2 - 2px)}
-.input{
-  width:100%; background:var(--field-bg); border:2px solid var(--field-border); border-radius:12px;
-  height:52px; padding:0 14px; font-size:16px; outline:none; transition:border-color .15s ease;
+
+.back {
+  position: absolute;
+  left: calc(var(--space)*2);
+  top: calc(var(--space)*2);
+  width: 40px;
+  height: 40px;
+  border-radius: 9999px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .06);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  border: 1px solid #ececec;
 }
-.input:focus{border-color:#2E7D32}
-.forgot{margin-top:calc(var(--space)*1); font-size:13px; color:var(--muted); line-height:1.2}
-.cta{margin-top:calc(var(--space)*2)}
-.btn{width:100%; display:inline-flex; justify-content:center; align-items:center; gap:8px;
-  background:var(--cta); color:#fff; font-weight:700; font-size:16px; border:none; border-radius:12px; height:56px; cursor:pointer;
-  box-shadow:0 2px 0 rgba(0,0,0,.06) inset; transition: transform .02s ease, background .2s ease;
+
+.back svg {
+  width: 18px;
+  height: 18px
 }
-.btn:active{transform:translateY(1px); background:var(--cta-pressed)}
-.links{display:flex; justify-content:space-between; align-items:center; gap:calc(var(--space)*2); margin:calc(var(--space)*2) 6px calc(var(--space)*1)}
-.links a{color:var(--link); text-decoration:none; font-size:14px; line-height:1}
-.links .bar{flex:0 0 1px; height:16px; background:#D1D5DB}
-.section-title{display:flex; align-items:center; gap:calc(var(--space)*1.5); margin:calc(var(--space)*3) 0 calc(var(--space)*2); color:var(--muted); font-size:14px}
-.section-title .line{height:1px; background:var(--divider); flex:1}
-.socials{display:flex; gap:calc(var(--space)*2); justify-content:center}
-.sbtn{width:56px; height:56px; border-radius:9999px; display:grid; place-items:center; border:1px solid rgba(0,0,0,.05); cursor:pointer}
-.sbtn:active{transform:translateY(1px)}
-.sbtn svg{width:24px; height:24px}
-.google{background:var(--google)}
-.naver{background:var(--naver)}
-.kakao{background:var(--kakao)}
-.phone{
-  width:800px;                 /* 핵심: 800px */
-  max-width:95vw;              /* 작은 화면에서 살짝 줄어듦 */
-  height:auto;                 /* 고정 높이 해제 */
-  max-height:none;
-  padding:0;                   /* 프레임형으로 보이게 패딩 제거 */
-  background:var(--soft, #f9fbe7);
-  border:1px solid var(--divider);
-  border-radius:20px;
-  overflow:hidden;             /* 테두리 안으로 내용 클립 */
-  box-shadow:0 8px 32px rgba(0,0,0,.08);
-  position:relative;
+
+.wrap {
+  margin-top: calc(var(--space)*7);
+  max-width: 320px;
+  margin-left: auto;
+  margin-right: auto;
+  display: grid;
+  gap: calc(var(--space)*3)
+}
+
+.logo {
+  font-weight: 800;
+  font-size: 44px;
+  letter-spacing: 2px;
+  text-align: center;
+  margin: calc(var(--space)*2) 0 calc(var(--space)*4)
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--space)*2 - 2px)
+}
+
+.input {
+  width: 100%;
+  background: var(--field-bg);
+  border: 2px solid var(--field-border);
+  border-radius: 12px;
+  height: 52px;
+  padding: 0 14px;
+  font-size: 16px;
+  outline: none;
+  transition: border-color .15s ease;
+}
+
+.input:focus {
+  border-color: #2E7D32
+}
+
+.forgot {
+  margin-top: calc(var(--space)*1);
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.2
+}
+
+.cta {
+  margin-top: calc(var(--space)*2)
+}
+
+.btn {
+  width: 100%;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  background: var(--cta);
+  color: #fff;
+  font-weight: 700;
+  font-size: 16px;
+  border: none;
+  border-radius: 12px;
+  height: 56px;
+  cursor: pointer;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, .06) inset;
+  transition: transform .02s ease, background .2s ease;
+}
+
+.btn:active {
+  transform: translateY(1px);
+  background: var(--cta-pressed)
+}
+
+/* 링크 영역: 정확히 '링크 | 링크 | 링크' 3등분 */
+.links {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr auto 1fr;
+  /* a | bar | a | bar | a */
+  align-items: center;
+  column-gap: 12px;
+  margin: calc(var(--space)*2) 6px calc(var(--space)*1);
+}
+
+/* 파란색/밑줄 금지 + 가운데 정렬(상태 전부 동일) */
+.links a {
+  display: block;
+  text-align: center;
+  color: var(--link) !important;
+  text-decoration: none !important;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.links a:visited,
+.links a:hover,
+.links a:active,
+.links a:focus {
+  color: var(--link) !important;
+  text-decoration: none !important;
+}
+
+/* 구분 막대 */
+.links .bar {
+  width: 1px;
+  height: 16px;
+  background: #D1D5DB;
+  justify-self: center;
+}
+
+
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--space)*1.5);
+  margin: calc(var(--space)*3) 0 calc(var(--space)*2);
+  color: var(--muted);
+  font-size: 14px
+}
+
+.section-title .line {
+  height: 1px;
+  background: var(--divider);
+  flex: 1
+}
+
+.socials {
+  display: flex;
+  gap: calc(var(--space)*2);
+  justify-content: center
+}
+
+.sbtn {
+  width: 56px;
+  height: 56px;
+  border-radius: 9999px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(0, 0, 0, .05);
+  cursor: pointer
+}
+
+.sbtn:active {
+  transform: translateY(1px)
+}
+
+.sbtn svg {
+  width: 24px;
+  height: 24px
+}
+
+.google {
+  background: var(--google)
+}
+
+.naver {
+  background: var(--naver)
+}
+
+.kakao {
+  background: var(--kakao)
+}
+
+.phone {
+  width: 800px;
+  /* 핵심: 800px */
+  max-width: 95vw;
+  /* 작은 화면에서 살짝 줄어듦 */
+  height: auto;
+  /* 고정 높이 해제 */
+  max-height: none;
+  padding: 0;
+  /* 프레임형으로 보이게 패딩 제거 */
+  background: var(--soft, #f9fbe7);
+  border: 1px solid var(--divider);
+  border-radius: 20px;
+  overflow: hidden;
+  /* 테두리 안으로 내용 클립 */
+  box-shadow: 0 8px 32px rgba(0, 0, 0, .08);
+  position: relative;
 }
 
 /* 헤더 버튼은 고정이 아니라 상단 바 안 아이콘처럼 */
-.back{
-  position:static;
-  margin:18px 20px;
-  border-color:var(--divider);
+.back {
+  position: static;
+  margin: 18px 20px;
+  border-color: var(--divider);
 }
 
 /* 상단 영역(간단 헤더 느낌) */
-.phone::before{
-  content:"";
-  display:block;
-  height:1px;
-  background:var(--divider);
-  opacity:.7;
+.phone::before {
+  content: "";
+  display: block;
+  height: 1px;
+  background: var(--divider);
+  opacity: .7;
 }
-.head-lite{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:18px 20px 0 20px;
+
+.head-lite {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px 0 20px;
 }
 
 /* 내부 컨텐츠 폭 정리 */
-.wrap{
-  margin:0 auto;
-  max-width:760px;             /* 800 - 좌우 20px 패딩 기준 */
-  padding:20px;                /* 내부 여백 부여 */
-  gap:calc(var(--space)*3);
+.wrap {
+  margin: 0 auto;
+  max-width: 760px;
+  /* 800 - 좌우 20px 패딩 기준 */
+  padding: 20px;
+  /* 내부 여백 부여 */
+  gap: calc(var(--space)*3);
 }
 
 /* 행 너비 여유(모바일값 유지해도 되지만 800px에 맞춰 살짝 키움) */
-.row{
-  grid-template-columns:minmax(0,1fr) 112px;
+.row {
+  grid-template-columns: minmax(0, 1fr) 112px;
 }
 
 /* 버튼/폼 요소 살짝 상향 */
-.submit{
-  box-shadow:0 4px 16px rgba(244,185,66,.25);
+.submit {
+  box-shadow: 0 4px 16px rgba(244, 185, 66, .25);
 }
-.submit:hover{ transform:translateY(-1px); }
-.submit:active{ transform:translateY(0); }
+
+.submit:hover {
+  transform: translateY(-1px);
+}
+
+.submit:active {
+  transform: translateY(0);
+}
 
 /* 모바일(<=480px)에서는 기존처럼 꽉 채우기 */
-@media (max-width: 480px){
-  body{ align-items:center; padding:0; }
-  .phone{
-    width:100vw; height:100vh;
-    border-radius:0; border:none; box-shadow:none;
+@media (max-width: 480px) {
+  body {
+    align-items: center;
+    padding: 0;
   }
-  .wrap{ max-width:100%; padding:16px; }
-  .row{ grid-template-columns:minmax(0,1fr) 88px; }
+
+  .phone {
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
+  }
+
+  .wrap {
+    max-width: 100%;
+    padding: 16px;
+  }
+
+  .row {
+    grid-template-columns: minmax(0, 1fr) 88px;
+  }
 }

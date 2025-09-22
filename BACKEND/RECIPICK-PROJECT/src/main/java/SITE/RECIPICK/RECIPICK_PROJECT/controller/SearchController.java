@@ -34,36 +34,45 @@ public class SearchController {
       @RequestParam(required = false) List<String> sub,
       @RequestParam(defaultValue = "latest") String sort,
       @RequestParam(defaultValue = "0") int page,
-      @RequestParam(defaultValue = "20") int size
-  ) {
+      @RequestParam(defaultValue = "20") int size) {
     try {
       List<String> mainIngredients = main;
       List<String> subIngredients = sub;
 
       Pageable pageable = PageRequest.of(page, size);
-      Map<String, Object> searchResult = searchService.searchRecipes(mainIngredients,
-          subIngredients, sort, pageable);
+      Map<String, Object> searchResult =
+          searchService.searchRecipes(mainIngredients, subIngredients, sort, pageable);
 
       @SuppressWarnings("unchecked")
       List<SearchPostDto> recipes = (List<SearchPostDto>) searchResult.get("recipes");
       Integer totalCount = (Integer) searchResult.get("totalCount");
 
-      return ResponseEntity.ok(Map.of(
-          "success", true,
-          "message", "검색이 완료되었습니다.",
-          "mainIngredients", mainIngredients,
-          "subIngredients", subIngredients != null ? subIngredients : List.of(),
-          "recipes", recipes,
-          "recipeCount", totalCount
-      ));
+      return ResponseEntity.ok(
+          Map.of(
+              "success",
+              true,
+              "message",
+              "검색이 완료되었습니다.",
+              "mainIngredients",
+              mainIngredients,
+              "subIngredients",
+              subIngredients != null ? subIngredients : List.of(),
+              "recipes",
+              recipes,
+              "recipeCount",
+              totalCount));
 
     } catch (Exception e) {
       log.error("통합 검색 중 오류 발생", e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
-          "success", false,
-          "message", "검색 중 오류가 발생했습니다.",
-          "recipes", List.of()
-      ));
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .body(
+              Map.of(
+                  "success",
+                  false,
+                  "message",
+                  "검색 중 오류가 발생했습니다.",
+                  "recipes",
+                  List.of()));
     }
   }
 
@@ -72,39 +81,90 @@ public class SearchController {
       @RequestParam String title,
       @RequestParam(defaultValue = "latest") String sort,
       @RequestParam(defaultValue = "0") int page,
-      @RequestParam(defaultValue = "20") int size
-  ) {
+      @RequestParam(defaultValue = "20") int size) {
     try {
       Pageable pageable = PageRequest.of(page, size);
-      Map<String, Object> searchResult = searchService.searchRecipesByTitle(title, sort, pageable);
+      Map<String, Object> searchResult =
+          searchService.searchRecipesByTitle(title, sort, pageable);
 
       @SuppressWarnings("unchecked")
       List<SearchPostDto> recipes = (List<SearchPostDto>) searchResult.get("recipes");
       Integer totalCount = (Integer) searchResult.get("totalCount");
 
-      return ResponseEntity.ok(Map.of(
-          "success", true,
-          "message", "제목으로 검색 완료",
-          "recipes", recipes,
-          "totalCount", totalCount
-      ));
+      return ResponseEntity.ok(
+          Map.of(
+              "success",
+              true,
+              "message",
+              "제목으로 검색 완료",
+              "recipes",
+              recipes,
+              "totalCount",
+              totalCount));
     } catch (Exception e) {
       log.error("제목으로 검색 중 오류 발생", e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
-          "success", false,
-          "message", "제목 검색 중 오류가 발생했습니다.",
-          "recipes", List.of(),
-          "totalCount", 0
-      ));
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .body(
+              Map.of(
+                  "success",
+                  false,
+                  "message",
+                  "제목 검색 중 오류가 발생했습니다.",
+                  "recipes",
+                  List.of(),
+                  "totalCount",
+                  0));
     }
   }
+
+  // 카테고리로 레시피 검색 API
+  @GetMapping("/search/by-category")
+  public ResponseEntity<Map<String, Object>> searchRecipesByCategory(
+      @RequestParam String category,
+      @RequestParam(defaultValue = "latest") String sort,
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "20") int size) {
+    try {
+      Pageable pageable = PageRequest.of(page, size);
+      Map<String, Object> searchResult =
+          searchService.searchRecipesByCategory(category, sort, pageable);
+
+      @SuppressWarnings("unchecked")
+      List<SearchPostDto> recipes = (List<SearchPostDto>) searchResult.get("recipes");
+      Integer totalCount = (Integer) searchResult.get("totalCount");
+
+      return ResponseEntity.ok(
+          Map.of(
+              "success",
+              true,
+              "message",
+              "카테고리로 검색 완료",
+              "recipes",
+              recipes,
+              "totalCount",
+              totalCount));
+    } catch (Exception e) {
+      log.error("카테고리로 검색 중 오류 발생", e);
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .body(
+              Map.of(
+                  "success",
+                  false,
+                  "message",
+                  "카테고리 검색 중 오류가 발생했습니다.",
+                  "recipes",
+                  List.of(),
+                  "totalCount",
+                  0));
+    }
+  }
+
 
   @GetMapping("/search/popular")
   public ResponseEntity<Map<String, Object>> getPopularRecipes(
       @RequestParam(defaultValue = "latest") String sort,
       @RequestParam(defaultValue = "0") int page,
-      @RequestParam(defaultValue = "20") int size
-  ) {
+      @RequestParam(defaultValue = "20") int size) {
     try {
       Pageable pageable = PageRequest.of(page, size);
       Map<String, Object> searchResult = searchService.getPopularRecipes(sort, pageable);
@@ -113,20 +173,29 @@ public class SearchController {
       List<SearchPostDto> recipes = (List<SearchPostDto>) searchResult.get("recipes");
       Integer totalCount = (Integer) searchResult.get("totalCount");
 
-      return ResponseEntity.ok(Map.of(
-          "success", true,
-          "message", "인기 레시피 조회 완료",
-          "recipes", recipes,
-          "totalCount", totalCount
-      ));
+      return ResponseEntity.ok(
+          Map.of(
+              "success",
+              true,
+              "message",
+              "인기 레시피 조회 완료",
+              "recipes",
+              recipes,
+              "totalCount",
+              totalCount));
     } catch (Exception e) {
       log.error("인기 레시피 조회 중 오류 발생", e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
-          "success", false,
-          "message", "인기 레시피 조회 중 오류가 발생했습니다.",
-          "recipes", List.of(),
-          "totalCount", 0
-      ));
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .body(
+              Map.of(
+                  "success",
+                  false,
+                  "message",
+                  "인기 레시피 조회 중 오류가 발생했습니다.",
+                  "recipes",
+                  List.of(),
+                  "totalCount",
+                  0));
     }
   }
 
@@ -137,9 +206,7 @@ public class SearchController {
 
   @GetMapping("/ingredients")
   public ResponseEntity<List<String>> searchIngredients(
-      @RequestParam String keyword,
-      @RequestParam(defaultValue = "10") int limit
-  ) {
+      @RequestParam String keyword, @RequestParam(defaultValue = "10") int limit) {
     try {
       List<String> ingredients = searchService.searchIngredients(keyword, limit);
       return ResponseEntity.ok(ingredients);

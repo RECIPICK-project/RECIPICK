@@ -7,12 +7,12 @@ import lombok.NoArgsConstructor;
 
 /**
  * MyProfileResponse: /me/profile API의 응답을 담는 DTO 클래스.
- * <p>
- * Lombok을 이용해 getter/setter, 생성자 등을 자동 생성한다.
+ *
+ * <p>Lombok을 이용해 getter/setter, 생성자 등을 자동 생성한다.
  */
 @Data
-@AllArgsConstructor   // 모든 필드를 받는 생성자 생성
-@NoArgsConstructor    // 파라미터 없는 기본 생성자 생성
+@AllArgsConstructor // 모든 필드를 받는 생성자 생성
+@NoArgsConstructor // 파라미터 없는 기본 생성자 생성
 @Schema(description = "내 프로필 응답 DTO")
 public class MyProfileResponse {
 
@@ -33,5 +33,5 @@ public class MyProfileResponse {
 
   // 내가 남긴 활동 수 = 내가 쓴 댓글 수 + 내가 쓴 리뷰(별점) 수
   private long activityCount;
-}
 
+}

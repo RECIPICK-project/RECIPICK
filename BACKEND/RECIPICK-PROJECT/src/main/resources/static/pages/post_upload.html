@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="../css/post_upload.css" />
 
   <script defer src="../js/post_upload.js"></script>
+  <script defer src="../js/post_upload.edit-addon.js"></script>
 
 </head>
 
@@ -32,6 +33,10 @@
         <label for="thumbInput" class="thumb" id="thumbBox">
           <input id="thumbInput" type="file" accept="image/*" hidden />
           <div class="thumb-cta">📷</div>
+          <div class="thumb-controls" id="thumbControls" style="display: none;">
+            <button type="button" class="thumb-control-btn change" id="changeThumb">📷 교체</button>
+            <button type="button" class="thumb-control-btn delete" id="deleteThumb">🗑️ 삭제</button>
+          </div>
         </label>
       </section>
 

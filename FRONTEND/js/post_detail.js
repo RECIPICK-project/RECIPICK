@@ -1,390 +1,447 @@
-// 예시 레시피 데이터
-const sampleRecipeData = {
-    title: "소고기콩나물솥밥",
-    author: "맛있는요리사",
-    difficulty: 4,
-    servings: 4,
-    cookingTime: "45 min",
-    thumbnailUrl: "", // 이미지가 있으면 URL 넣기
-    ingredients: "쌀|4컵|콩나물|200g|소고기다짐육|100g|다시마|3조각|부추|넉넉히|설탕|1/2스푼",
-    steps: [
-        {
-            description: "소고기콩나물솥밥을 소개합니다.",
-            imageUrl: "",
-        },
-        {
-            description:
-                "쌀은 깨끗하게 씻어준후 30분간 불린후 다시다 우린물에 밥을 지어주세요.냄비",
-            imageUrl: "",
-        },
-        {
-            description:
-                "소고기다짐육을 후라이팬에 볶아가면서 설탕을 조금 넣어서 볶아주세요.프라이팬,요리스푼",
-            imageUrl: "",
-        },
-        {
-            description:
-                "밥을 지어준후 뜸을 들일때쯤 뚜껑을 열어서 콩나물을 넉넉히 넣어서 뜸을 들여주세요.위생장갑",
-            imageUrl: "",
-        },
-        {
-            description: "10분정도 약불로 뜸을 들여준후 볶은 소고기를 올려주세요.",
-            imageUrl: "",
-        },
-        {
-            description: "부추를 송송송 썰어준후 뚜껑을 닫아주세요.",
-            imageUrl: "",
-        },
-        {
-            description:
-                "주걱을 이용해서 고슬고슬 지어진 밥을 콩나물과 잘 섞이도록 잘 섞어주세요.밥주걱",
-            imageUrl: "",
-        },
-        {
-            description: "부추의 향이 가득 배인 소고기콩나물솥밥 이랍니다.",
-            imageUrl: "",
-        },
-        {
-            description: "소고기콩나물솥밥이 완성이 되었습니다.",
-            imageUrl: "",
-        },
-    ],
-};
+// ====== post_detail.js (live) ======
+// - 상세: GET /post/{postId} (PostRestController#getRecipeById)
+//   응답: { success: true, data: { ...PostDto } }  또는  바로 { ...PostDto }
+// - 좋아요: /post/{postId}/like  (GET: 여부, POST: 좋아요, DELETE: 취소)
 
-// 댓글 데이터 (예시)
-let commentsData = [
-    {
-        id: 1,
-        user: "김요리사",
-        rating: 4.5,
-        text: "정말 맛있었어요! 콩나물이 아삭아삭하고 소고기와 잘 어울리네요. 다만 불 조절을 조심해야 할 것 같아요.",
-        date: "2024-03-15",
-    },
-    {
-        id: 2,
-        user: "박주부",
-        rating: 5,
-        text: "가족들이 너무 좋아해요. 특히 아이들이 맛있다고 하네요. 레시피 감사합니다!",
-        date: "2024-03-14",
-    },
-];
+let isLiked = false;
 
-// 현재 사용자의 댓글 여부 (실제로는 서버에서 확인)
-let hasUserCommented = false;
-let currentUserRating = 0;
+/* -------------------------------
+ * 공통 유틸 (토큰/CSRF/Fetch)
+ * ------------------------------- */
+function getCookie(name) {
+  return document.cookie
+      .split("; ")
+      .map((s) => s.trim())
+      .find((row) => row.startsWith(name + "="))
+      ?.split("=")[1];
+}
 
-// 페이지 로드시 실행
-document.addEventListener("DOMContentLoaded", function () {
-    // URL에서 레시피 ID 추출 (예: /recipe/123)
-    const pathArray = window.location.pathname.split("/");
-    const recipeId = pathArray[pathArray.length - 1];
+function authHeader() {
+  const token = localStorage.getItem("ACCESS_TOKEN");
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
 
-    // 실제 환경에서는 API 호출
-    // loadRecipeData(recipeId);
+function csrfHeaders(method) {
+  const m = (method || "GET").toUpperCase();
+  if (["GET", "HEAD", "OPTIONS", "TRACE"].includes(m)) return {};
+  const xsrf = getCookie("XSRF-TOKEN");
+  return xsrf ? { "X-XSRF-TOKEN": decodeURIComponent(xsrf) } : {};
+}
 
-    // 데모용으로 샘플 데이터 사용
-    renderRecipeData(sampleRecipeData);
-    initializeCommentSystem();
-    renderComments();
-    
-    // 슬라이드 메뉴 이벤트 리스너 추가
-    initializeSlideMenu();
+async function fx(path, { method = "GET", headers = {}, body, credentials = "include" } = {}) {
+  const isForm = typeof FormData !== "undefined" && body instanceof FormData;
+  const h = {
+    Accept: "application/json",
+    ...authHeader(),
+    ...csrfHeaders(method),
+    ...headers,
+  };
+  if (isForm && h["Content-Type"]) delete h["Content-Type"];
+  const res = await fetch(path, { method, headers: h, body, credentials });
+  return res;
+}
+
+/* -------------------------------
+ * URL에서 postId 추출 ( /post_detail/123  또는  ?postId=123 )
+ * ------------------------------- */
+function getPostIdFromUrl() {
+  const p = new URLSearchParams(location.search).get("postId");
+  if (p && /^\d+$/.test(p)) return p;
+  const seg = location.pathname.split("/").filter(Boolean);
+  const last = seg[seg.length - 1];
+  return /^\d+$/.test(last) ? last : null;
+}
+
+/* -------------------------------
+ * DOMContentLoaded
+ * ------------------------------- */
+document.addEventListener("DOMContentLoaded", async function () {
+  const postId = getPostIdFromUrl();
+  if (!postId) {
+    alert("잘못된 접근입니다. (postId 없음)");
+    return;
+  }
+
+  // 상세 불러오기
+  await loadRecipeData(postId);
+
+  // 슬라이드 메뉴
+  initializeSlideMenu();
+
+  // 좋아요 버튼 초기화
+  await initializeLikeButton(postId);
+
+  // 탭바 표시 갱신이 필요하면 setActiveTab('home') 같은 거 호출
 });
 
-// 슬라이드 메뉴 초기화
-function initializeSlideMenu() {
-    const slideMenu = document.getElementById('slideMenu');
-    
-    // 오버레이 클릭 시 메뉴 닫기
-    slideMenu.addEventListener('click', function(e) {
-        if (e.target.classList.contains('slide-menu-overlay')) {
-            closeSlideMenu();
+/* -------------------------------
+ * 상세 불러오기
+ * ------------------------------- */
+async function loadRecipeData(postId) {
+  try {
+    const res = await fx(`/post/${encodeURIComponent(postId)}`);
+    if (res.status === 401) {
+      console.warn("401 Unauthorized");
+      // location.href = '/pages/login.html';
+      // return;
+    }
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json();
+
+    // ★ 응답 래핑/비래핑 모두 지원
+    const dto = (json && typeof json === "object" && "data" in json)
+        ? json.data
+        : json;
+
+    if (!dto || typeof dto !== "object") {
+      throw new Error("응답 형식이 올바르지 않습니다.");
+    }
+
+    // 서버 DTO → 화면 데이터로 정규화
+    const view = normalizeRecipe(dto);
+    renderRecipeData(view);
+  } catch (e) {
+    console.error("레시피 로드 에러:", e);
+    alert("레시피를 불러올 수 없습니다.");
+  }
+}
+
+/* -------------------------------
+ * DTO 정규화  (강화본: 다양한 MANUAL 키/URL 정리)
+ * ------------------------------- */
+function normalizeRecipe(dto) {
+  const title =
+      dto.title ?? dto.foodName ?? "";
+  const author =
+      dto.author ?? dto.nickname ?? dto.userName ?? "";
+  const difficulty =
+      dto.difficulty ?? dto.ckgLevel ?? "";
+  const servings =
+      dto.servings ?? dto.ckgInbun ?? "";
+  const cookingTime =
+      dto.cookingTimeString ?? dto.cookingTime ?? "";
+  const thumbnailUrl =
+      dto.rcpImgUrl ?? dto.imageUrl ?? dto.thumb ?? "";
+
+  const ingredients =
+      dto.ckgMtrlCn ??
+      dto.ingredientsString ??
+      dto.rcpIngredients ??
+      "";
+
+  // 1) 기본 경로 (배열/문자열)
+  let stepsRaw =
+      dto.rcpSteps ??
+      dto.steps ??
+      dto.stepsString ??
+      [];
+
+  let stepImagesRaw =
+      dto.stepImages ??
+      dto.stepsImages ??
+      dto.rcpStepImages ??
+      dto.rcpStepsImg ??
+      dto.stepImagesString ??
+      null;
+
+  // === 유틸: 값 정리(트림 + 비어있으면 "")
+  const clean = (v) => {
+    if (v == null) return "";
+    return String(v).replace(/\s+/g, " ").trim();
+  };
+
+  // === 유틸: 이미지 URL 정리
+  function cleanUrl(u) {
+    const s = clean(u);
+    if (!s) return "";
+    if (s.startsWith("//")) return "https:" + s;           // 프로토콜 없는 경우
+    // data:, http:, https:, / 로 시작하는 상대경로는 허용
+    if (/^(data:|https?:|\/)/i.test(s)) return s;
+    // 그 외 이상한 값은 버림
+    return "";
+  }
+
+  // === 대안 경로: 다양한 키 패턴 스캔
+  function hasManualFields(o) {
+    // 빠르게 1~3개만 스팟 체크
+    for (let i = 1; i <= 3; i++) {
+      const k2 = String(i).padStart(2, "0");
+      if (
+          o["MANUAL" + k2] || o["manual" + k2] ||
+          o["MANUAL_" + k2] || o["manual_" + k2] ||
+          o["Step" + k2] || o["step" + k2] ||
+          o["manual" + k2] || o["manual_" + k2]
+      ) return true;
+      if (
+          o["MANUAL_IMG" + k2] || o["MANUAL_IMG_" + k2] ||
+          o["manual_img" + k2] || o["manual_img_" + k2] ||
+          o["manualImg" + k2] || o["ManualImg" + k2] ||
+          o["stepImg" + k2] || o["StepImg" + k2]
+      ) return true;
+    }
+    // 정 못찾으면 정규식으로 한 번 더
+    const keys = Object.keys(o);
+    return keys.some(k => /^manual[_]?\d{2}$/i.test(k) || /^manual[_]?img[_]?\d{2}$/i.test(k));
+  }
+
+  function getByVariants(o, i, kind) {
+    const k2 = String(i).padStart(2, "0");
+    // 후보 키들(대·소문자/언더스코어/카멜)
+    const stepKeys = [
+      `MANUAL${k2}`, `MANUAL_${k2}`,
+      `manual${k2}`, `manual_${k2}`,
+      `Step${k2}`, `step${k2}`
+    ];
+    const imgKeys = [
+      `MANUAL_IMG${k2}`, `MANUAL_IMG_${k2}`,
+      `manual_img${k2}`, `manual_img_${k2}`,
+      `manualImg${k2}`, `ManualImg${k2}`,
+      `stepImg${k2}`, `StepImg${k2}`
+    ];
+    const candidates = kind === "img" ? imgKeys : stepKeys;
+    for (const k of candidates) {
+      if (o[k] != null && clean(o[k])) return clean(o[k]);
+    }
+    // 정규식 폴백(완전히 다른 케이스까지 긁기)
+    const re = kind === "img"
+        ? new RegExp(`^manual[_]?img[_]?${k2}$`, "i")
+        : new RegExp(`^manual[_]?${k2}$|^step${k2}$`, "i");
+    for (const k of Object.keys(o)) {
+      if (re.test(k) && clean(o[k])) return clean(o[k]);
+    }
+    return "";
+  }
+
+  function collectManualFields(o) {
+    const stepsList = [];
+    const imgList = [];
+    // 여유 있게 30단계까지 허용
+    for (let i = 1; i <= 30; i++) {
+      const s = getByVariants(o, i, "step");
+      const img = getByVariants(o, i, "img");
+      if (!s) continue; // 내용 없는 단계는 스킵
+      stepsList.push(s);
+      imgList.push(cleanUrl(img));
+    }
+    return { stepsList, imgList };
+  }
+
+  const isStepsEmpty =
+      stepsRaw == null ||
+      (Array.isArray(stepsRaw) && stepsRaw.length === 0) ||
+      (typeof stepsRaw === "string" && !stepsRaw.trim());
+
+  if (isStepsEmpty && hasManualFields(dto)) {
+    const { stepsList, imgList } = collectManualFields(dto);
+    stepsRaw = stepsList;
+    // 하나라도 이미지가 있으면 배열 전달, 전부 빈값이면 null → parseSteps 보조 주입 사용
+    stepImagesRaw = imgList.some(Boolean) ? imgList : null;
+  }
+
+  const steps = parseSteps(stepsRaw, stepImagesRaw);
+
+  // 디버그: 실제 매핑 결과 확인(필요 없으면 주석)
+  console.debug("[RECIPICK] steps:", steps);
+
+  return {
+    title,
+    author,
+    difficulty,
+    servings,
+    cookingTime,
+    thumbnailUrl,
+    ingredients,
+    steps,
+  };
+}
+
+
+
+// 교체: parseSteps (번호 제거 + 이미지 매칭 강화: 배열/문자열/JSON/콤마 모두 지원)
+function parseSteps(stepsRaw, stepImagesRaw) {
+  const stripLeadingNumber = (txt) =>
+      String(txt).replace(/^\s*\d+[.)]\s*/, "").trim();
+
+  const explodePipe = (txt) =>
+      String(txt)
+          .split("|")
+          .map((t) => t.trim())
+          .filter(Boolean)
+          .map((t) => ({ description: stripLeadingNumber(t), imageUrl: "" }));
+
+  // 이미지 목록을 어떤 형태든 배열로 정규화
+  function normalizeImages(imgRaw) {
+    if (!imgRaw) return [];
+    if (Array.isArray(imgRaw)) {
+      return imgRaw.map((s) => String(s ?? "").trim()).filter(Boolean);
+    }
+    const s = String(imgRaw).trim();
+    // JSON 문자열 ["url1","url2"]
+    if (s.startsWith("[") && s.endsWith("]")) {
+      try {
+        const arr = JSON.parse(s);
+        if (Array.isArray(arr)) {
+          return arr.map((x) => String(x ?? "").trim()).filter(Boolean);
         }
-    });
-}
-
-// 댓글 시스템 초기화
-function initializeCommentSystem() {
-    const stars = document.querySelectorAll(".star");
-    const ratingText = document.getElementById("ratingText");
-    const submitButton = document.getElementById("submitComment");
-
-    // 별점 클릭 이벤트
-    stars.forEach((star, index) => {
-        star.addEventListener("click", function (e) {
-            const rect = star.getBoundingClientRect();
-            const clickX = e.clientX - rect.left;
-            const starWidth = rect.width;
-
-            // 클릭 위치에 따라 0.5 또는 1점 결정
-            const isHalf = clickX < starWidth / 2;
-            const rating = index + (isHalf ? 0.5 : 1);
-
-            setRating(rating);
-            updateRatingText(rating);
-        });
-
-        // 호버 효과
-        star.addEventListener("mouseenter", function (e) {
-            const rect = star.getBoundingClientRect();
-            const mouseX = e.clientX - rect.left;
-            const starWidth = rect.width;
-            const isHalf = mouseX < starWidth / 2;
-            const hoverRating = index + (isHalf ? 0.5 : 1);
-
-            previewRating(hoverRating);
-        });
-
-        star.addEventListener("mousemove", function (e) {
-            const rect = star.getBoundingClientRect();
-            const mouseX = e.clientX - rect.left;
-            const starWidth = rect.width;
-            const isHalf = mouseX < starWidth / 2;
-            const hoverRating = index + (isHalf ? 0.5 : 1);
-
-            previewRating(hoverRating);
-        });
-    });
-
-    // 별점 영역을 벗어날 때 원래 상태로 복원
-    document.getElementById("starRating").addEventListener("mouseleave", function () {
-        setRating(currentUserRating);
-    });
-
-    // 댓글 제출
-    submitButton.addEventListener("click", function () {
-        submitComment();
-    });
-
-    // 이미 댓글을 작성했는지 확인 (실제로는 서버에서)
-    checkUserCommentStatus();
-}
-
-// 별점 설정
-function setRating(rating) {
-    const stars = document.querySelectorAll(".star");
-
-    stars.forEach((star, index) => {
-        const starRating = index + 1;
-        star.classList.remove("filled", "half-filled");
-
-        if (rating >= starRating) {
-            star.classList.add("filled");
-        } else if (rating >= starRating - 0.5) {
-            star.classList.add("half-filled");
-        }
-    });
-}
-
-// 별점 미리보기
-function previewRating(rating) {
-    setRating(rating);
-    updateRatingText(rating);
-}
-
-// 별점 텍스트 업데이트
-function updateRatingText(rating) {
-    const ratingText = document.getElementById("ratingText");
-    if (rating === 0) {
-        ratingText.textContent = "별점을 선택해주세요";
-    } else {
-        const ratingTexts = {
-            0.5: "별로예요",
-            1: "별로예요",
-            1.5: "그저 그래요",
-            2: "그저 그래요",
-            2.5: "괜찮아요",
-            3: "괜찮아요",
-            3.5: "좋아요",
-            4: "좋아요",
-            4.5: "훌륭해요",
-            5: "최고예요!",
-        };
-        ratingText.textContent = `${rating}점 - ${ratingTexts[rating]}`;
+      } catch (_) {}
     }
+    // | 또는 , 로 구분된 문자열
+    return s.split(/[|,]/).map((t) => t.trim()).filter(Boolean);
+  }
+
+  const imgArr = normalizeImages(stepImagesRaw);
+
+  // 1) 배열로 온 경우
+  if (Array.isArray(stepsRaw)) {
+    const out = [];
+    for (const s of stepsRaw) {
+      if (s == null) continue;
+
+      if (typeof s === "string") {
+        if (s.includes("|")) out.push(...explodePipe(s));
+        else out.push({ description: stripLeadingNumber(s), imageUrl: "" });
+      } else if (typeof s === "object") {
+        const desc =
+            s.description ?? s.desc ?? s.text ?? s.step ?? s.content ?? "";
+        const img =
+            s.imageUrl ?? s.img ?? s.image ?? s.photoUrl ?? s.photo ?? s.url ?? "";
+        const cleaned = stripLeadingNumber(desc || "");
+        if (cleaned) out.push({ description: cleaned, imageUrl: img || "" });
+      } else {
+        out.push({ description: stripLeadingNumber(String(s)), imageUrl: "" });
+      }
+    }
+    // 비어있는 이미지 칸에만 보조 배열로 주입
+    for (let i = 0; i < out.length; i++) {
+      if (!out[i].imageUrl && imgArr[i]) out[i].imageUrl = imgArr[i];
+    }
+    return out;
+  }
+
+  // 2) 문자열로 온 경우 ("1. 준비|2. 확인 필요" 등)
+  if (typeof stepsRaw === "string") {
+    const out = explodePipe(stepsRaw);
+    for (let i = 0; i < out.length; i++) {
+      if (!out[i].imageUrl && imgArr[i]) out[i].imageUrl = imgArr[i];
+    }
+    return out;
+  }
+
+  return [];
 }
 
-// 사용자 댓글 작성 여부 확인
-function checkUserCommentStatus() {
-    // 실제로는 서버 API 호출
-    // 여기서는 데모용으로 localStorage 사용
-    const recipeId = "sample-recipe"; // 실제로는 현재 레시피 ID
-    const userComment = localStorage.getItem(`comment_${recipeId}`);
 
-    if (userComment) {
-        hasUserCommented = true;
-        showAlreadyCommentedMessage();
-    }
+
+
+/* -------------------------------
+ * 렌더링
+ * ------------------------------- */
+// 헬퍼: 여러 후보 셀렉터 중 첫 매칭
+function getEl(...selectors) {
+  for (const s of selectors) {
+    const el = document.querySelector(s);
+    if (el) return el;
+  }
+  return null;
 }
-
-// 이미 댓글 작성 완료 메시지 표시
-function showAlreadyCommentedMessage() {
-    const commentForm = document.getElementById("commentForm");
-    commentForm.innerHTML = `
-    <div class="already-commented">
-      이미 이 레시피에 댓글을 작성하셨습니다.
-    </div>
-  `;
-    commentForm.classList.add("disabled");
-}
-
-// 댓글 제출
-function submitComment() {
-    if (hasUserCommented) {
-        alert("이미 댓글을 작성하셨습니다.");
-        return;
-    }
-
-    const rating = currentUserRating;
-    const commentText = document.getElementById("commentText").value.trim();
-
-    if (rating === 0) {
-        alert("별점을 선택해주세요.");
-        return;
-    }
-
-    if (commentText === "") {
-        alert("댓글을 입력해주세요.");
-        return;
-    }
-
-    // 실제로는 서버에 전송
-    const newComment = {
-        id: Date.now(),
-        user: "현재사용자", // 실제로는 로그인된 사용자 정보
-        rating: rating,
-        text: commentText,
-        date: new Date().toISOString().split("T")[0],
-    };
-
-    // 댓글 추가
-    commentsData.unshift(newComment);
-
-    // localStorage에 저장 (실제로는 서버 처리)
-    const recipeId = "sample-recipe";
-    localStorage.setItem(`comment_${recipeId}`, JSON.stringify(newComment));
-
-    // 댓글 작성 완료 처리
-    hasUserCommented = true;
-    showAlreadyCommentedMessage();
-    renderComments();
-
-    alert("댓글이 등록되었습니다!");
-}
-
-// 댓글 목록 렌더링
-function renderComments() {
-    const container = document.getElementById("commentsList");
-
-    if (commentsData.length === 0) {
-        container.innerHTML = '<div class="no-comments">첫 댓글을 작성해보세요!</div>';
-        return;
-    }
-
-    container.innerHTML = "";
-
-    commentsData.forEach((comment) => {
-        const commentItem = document.createElement("div");
-        commentItem.className = "comment-item";
-        commentItem.innerHTML = `
-      <div class="comment-header">
-        <span class="comment-user">${comment.user}</span>
-        <div class="comment-rating">${renderCommentStars(comment.rating)}</div>
-        <span class="comment-date">${comment.date}</span>
-      </div>
-      <div class="comment-text">${comment.text}</div>
-    `;
-        container.appendChild(commentItem);
-    });
-}
-
-// 댓글의 별점 렌더링
-function renderCommentStars(rating) {
-    let starsHtml = "";
-
-    for (let i = 1; i <= 5; i++) {
-        let starClass = "comment-star";
-        if (rating >= i) {
-            starClass += " filled";
-        } else if (rating >= i - 0.5) {
-            starClass += " half-filled";
-        }
-
-        starsHtml += `
-      <div class="${starClass}">
-        <svg viewBox="0 0 24 24">
-          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-        </svg>
-      </div>
-    `;
-    }
-
-    return starsHtml;
-}
-
-// 별점 클릭 시 현재 선택값 저장
-document.addEventListener("click", function (e) {
-    if (e.target.closest(".star")) {
-        const star = e.target.closest(".star");
-        const stars = document.querySelectorAll(".star");
-        const index = Array.from(stars).indexOf(star);
-
-        const rect = star.getBoundingClientRect();
-        const clickX = e.clientX - rect.left;
-        const starWidth = rect.width;
-        const isHalf = clickX < starWidth / 2;
-
-        currentUserRating = index + (isHalf ? 0.5 : 1);
-    }
-});
-
-// 실제 레시피 데이터 로드 함수
-async function loadRecipeData(recipeId) {
-    try {
-        const response = await fetch(`/api/recipes/${recipeId}`);
-        if (!response.ok) {
-            throw new Error("레시피를 불러올 수 없습니다.");
-        }
-        const recipeData = await response.json();
-        renderRecipeData(recipeData);
-    } catch (error) {
-        console.error("레시피 로드 에러:", error);
-        alert("레시피를 불러오는데 실패했습니다: " + error.message);
-    }
-}
-
-// 레시피 데이터 렌더링
 function renderRecipeData(data) {
-    // 기본 정보 업데이트
-    document.getElementById("recipeTitle").textContent = data.title;
-    document.getElementById("authorName").textContent = data.author;
-    document.getElementById("difficulty").textContent = data.difficulty;
-    document.getElementById("servings").textContent = data.servings;
-    document.getElementById("cookingTime").textContent = data.cookingTime;
+  // 제목/작성자/난이도/인분/시간 — id가 다르면 data-field나 클래스도 시도
+  const titleEl = getEl('#recipeTitle', '[data-field="title"]', '.recipe-title');
+  const authorEl = getEl('#authorName', '[data-field="author"]', '.recipe-author');
+  const diffEl   = getEl('#difficulty', '[data-field="difficulty"]', '.recipe-difficulty');
+  const servEl   = getEl('#servings',   '[data-field="servings"]',   '.recipe-servings');
+  const timeEl   = getEl('#cookingTime','[data-field="cookingTime"]','.recipe-time');
 
-    // 썸네일 이미지
+  if (titleEl)  titleEl.textContent = data.title || '';
+  if (authorEl) authorEl.textContent = data.author || '';
+  if (diffEl)   diffEl.textContent   = data.difficulty || '';
+  if (servEl)   servEl.textContent   = data.servings || '';
+  if (timeEl)   timeEl.textContent   = data.cookingTime || '';
+
+  // 썸네일
+  const thumbBox = getEl('#thumbnailBox', '.thumbnail-box', '[data-field="thumbnail"]');
+  if (thumbBox) {
     if (data.thumbnailUrl) {
-        const thumbnail = document.getElementById("thumbnailBox");
-        thumbnail.innerHTML = `<img src="${data.thumbnailUrl}" alt="레시피 이미지">`;
-        thumbnail.classList.add("has-img");
+      thumbBox.innerHTML = `<img src="${data.thumbnailUrl}" alt="레시피 이미지">`;
+      thumbBox.classList.add('has-img');
+    } else {
+      thumbBox.innerHTML = '';
+      thumbBox.classList.remove('has-img');
     }
+  }
 
-    // 재료 렌더링
-    renderIngredients(data.ingredients);
-
-    // 조리순서 렌더링
-    renderCookingSteps(data.steps);
+  renderIngredients(data.ingredients);
+  renderCookingSteps(data.steps);
 }
 
-// 재료 리스트 렌더링
-function renderIngredients(ingredientsString) {
-    const ingredientsArray = ingredientsString.split("|");
-    const container = document.getElementById("ingredientsList");
-    container.innerHTML = "";
+// === 교체: renderIngredients (분수/붙어쓰기 대응) ===
+function renderIngredients(ingredientsValue) {
+  const container = document.getElementById("ingredientsList");
+  if (!container) return;
+  container.innerHTML = "";
+  if (!ingredientsValue) return;
 
-    for (let i = 0; i < ingredientsArray.length; i += 2) {
-        const name = ingredientsArray[i];
-        const amount = ingredientsArray[i + 1] || "";
+  // 0) 유니코드 분수 → ASCII "a/b" 로 정규화
+  const FRAC_MAP = {
+    "½": "1/2", "⅓": "1/3", "⅔": "2/3",
+    "¼": "1/4", "¾": "3/4",
+    "⅕": "1/5", "⅖": "2/5", "⅗": "3/5", "⅘": "4/5",
+    "⅙": "1/6", "⅚": "5/6",
+    "⅛": "1/8", "⅜": "3/8", "⅝": "5/8", "⅞": "7/8"
+  };
+  function normalizeFractions(s) {
+    return s.replace(/[\u00BC-\u00BE\u2150-\u215E]/g, (ch) => FRAC_MAP[ch] || ch);
+  }
+
+  // 1) 구분자 통합 (대괄호 라벨을 구분자로 취급, 콤마/중점류를 |로)
+  const normalized = normalizeFractions(String(ingredientsValue))
+      .replace(/[\x00-\x1F\x7F]/g, "")
+      .replace(/\[재료\]/g, "")
+      .replace(/\[[^\]]*\]/g, "|")
+      .replace(/[,\u3001\uFF0C\u00B7\u2022\u2219;]/g, "|")
+      .replace(/}$/g, "")
+      .replace(/^\|+|\|+$/g, "");
+
+  const tokens = normalized.split("|").map(s => s.trim()).filter(Boolean);
+
+  // 2) 단위/수량 인식 (분수/범위/소수/붙어쓰기)
+  //   - UNIT에 'T' 추가
+  const UNIT_RE = "(장|개|g|kg|mg|L|l|ml|컵|스푼|큰술|작은술|tsp|tbsp|T|모|줌|쪽|꼬집|알|대|봉|팩|마리|줄|공기|조각|덩이|스틱)";
+  //   - 수(소수 가능) [ / 수 ] 가능, 또는 (이미 normalize된) a/b 단독도 허용
+  const NUM_PART = String.raw`[0-9]+(?:[.,][0-9]+)?(?:\s*[\/⁄]\s*[0-9]+)?`;
+  const AMOUNT_RE = new RegExp(
+      String.raw`^\s*(.+?)\s*(${NUM_PART}(?:\s*~\s*${NUM_PART})?\s*${UNIT_RE}?)\s*$`
+  );
+
+  // 숫자/분수 시작 인덱스 찾기 (이름과 수량이 붙은 경우: "두부1/4모")
+  const FIRST_NUMBER_OR_FRAC = /[0-9]/; // 유니코드 분수는 위에서 ASCII로 변환됨
+
+  function splitNameAmount(raw) {
+    const s = normalizeFractions(String(raw).replace(/\s+/g, " ").trim());
+    if (!s) return { name: "", amount: "" };
+
+    // 1) 정규식으로 먼저 시도 (이름/수량 사이 공백 유무 상관없이 동작)
+    const m = s.match(AMOUNT_RE);
+    if (m) {
+      return { name: m[1].trim(), amount: m[2].replace(/\s+/g, " ").trim() };
+    }
+
+    // 2) 숫자/분수가 등장하는 첫 위치로 분리 (붙어쓰기 케이스)
+    const idx = s.search(FIRST_NUMBER_OR_FRAC);
+    if (idx > 0) {
+      const name = s.slice(0, idx).trim();
+      const amount = s.slice(idx).trim();
+      return { name, amount };
+    }
+
+    // 3) 마지막 공백 기준 분리(최후의 보루)
+    const k = s.lastIndexOf(" ");
+    if (k > 0) return { name: s.slice(0, k).trim(), amount: s.slice(k + 1).trim() };
+
+    return { name: s, amount: "" };
+  }
+
+  const items = tokens.map(splitNameAmount);
 
         const recipeTitle = document.getElementById("recipeTitle").textContent;
 
@@ -399,36 +456,45 @@ function renderIngredients(ingredientsString) {
                     data-recipe-title="${recipeTitle}"
                     >대체</button>
       <button class="btn-small" onclick="goToCoupang('${name}')">구매</button>
-    `;
-
-        container.appendChild(ingredientItem);
-    }
+    container.appendChild(el);
+  }
 }
 
-// 조리순서 렌더링
-function renderCookingSteps(steps) {
-    const container = document.getElementById("cookingStepsList");
-    container.innerHTML = "";
 
-    steps.forEach((step, index) => {
-        const stepItem = document.createElement("div");
-        stepItem.className = "step-item";
-        stepItem.innerHTML = `
-      <div class="step-header">${index + 1}단계</div>
+
+
+function renderCookingSteps(steps) {
+  const container = document.getElementById("cookingStepsList");
+  if (!container) return;
+  container.innerHTML = "";
+
+  (steps || []).forEach((step, idx) => {
+    const desc = step?.description ?? String(step ?? "");
+    const img = step?.imageUrl ?? "";
+
+    const el = document.createElement("div");
+    el.className = "step-item";
+    el.innerHTML = `
+      <div class="step-header">${idx + 1}단계</div>
       <div class="step-content">
-        <div class="step-description">${step.description}</div>
-        <div class="step-image">
-          ${
-              step.imageUrl
-                  ? `<img src="${step.imageUrl}" alt="${index + 1}단계 이미지">`
-                  : '<div class="step-image-placeholder">사진</div>'
-          }
-        </div>
+        <div class="step-description">${desc}</div>
+        <div class="step-image">${
+        img
+            ? `<img src="${img}" alt="${idx + 1}단계 이미지">`
+            : '<div class="step-image-placeholder">사진</div>'
+    }</div>
       </div>
     `;
-
-        container.appendChild(stepItem);
-    });
+    // onerror 대체
+    const imgEl = el.querySelector(".step-image img");
+    if (imgEl) {
+      imgEl.addEventListener("error", () => {
+        console.warn("[image error]", img);
+        el.querySelector(".step-image").innerHTML = '<div class="step-image-placeholder">사진</div>';
+      });
+    }
+    container.appendChild(el);
+  });
 }
 
 // GPT API를 통한 대체 재료 추천
@@ -460,70 +526,107 @@ function getSubstituteIngredient(buttonElement) {
             buttonElement.innerText = "오류 발생";
             buttonElement.disabled = false;
         });
-}
 
-// 쿠팡 구매 링크로 이동
 function goToCoupang(ingredientName) {
-    const coupangUrl = `https://www.coupang.com/np/search?component=&q=${encodeURIComponent(
-        ingredientName
-    )}`;
-    window.open(coupangUrl, "_blank");
+  const url =
+      "https://www.coupang.com/np/search?component=&q=" + encodeURIComponent(ingredientName);
+  window.open(url, "_blank");
 }
 
-// 슬라이드 메뉴 열기
+/* -------------------------------
+ * 슬라이드 메뉴
+ * ------------------------------- */
+function initializeSlideMenu() {
+  const slideMenu = document.getElementById("slideMenu");
+  if (!slideMenu) return;
+  slideMenu.addEventListener("click", function (e) {
+    if (e.target.classList.contains("slide-menu-overlay")) {
+      closeSlideMenu();
+    }
+  });
+}
+
 function toggleSlideMenu() {
-    const slideMenu = document.getElementById('slideMenu');
-    slideMenu.classList.toggle('active');
-    
-    // body 스크롤 방지
-    if (slideMenu.classList.contains('active')) {
-        document.body.style.overflow = 'hidden';
-    } else {
-        document.body.style.overflow = '';
-    }
+  const slideMenu = document.getElementById("slideMenu");
+  if (!slideMenu) return;
+  slideMenu.classList.toggle("active");
+  document.body.style.overflow = slideMenu.classList.contains("active") ? "hidden" : "";
 }
 
-// 슬라이드 메뉴 닫기
 function closeSlideMenu() {
-    const slideMenu = document.getElementById('slideMenu');
-    slideMenu.classList.remove('active');
-    document.body.style.overflow = '';
+  const slideMenu = document.getElementById("slideMenu");
+  if (!slideMenu) return;
+  slideMenu.classList.remove("active");
+  document.body.style.overflow = "";
 }
 
-// 로그아웃 처리
-function handleLogout() {
-    if (confirm('로그아웃하시겠습니까?')) {
-        // 실제로는 로그아웃 API 호출
-        // 예: await logout();
-        
-        // 데모용으로 로컬스토리지 정리 및 리다이렉트
-        localStorage.clear();
-        alert('로그아웃되었습니다.');
-        window.location.href = '/login';
-    }
-}
-
-// 페이지 이동 함수
-function goToPage(url) {
-    closeSlideMenu(); // 메뉴 먼저 닫기
-    window.location.href = url;
-}
-
-// 탭바 활성화 상태 변경
-function setActiveTab(tabName) {
-    const tabItems = document.querySelectorAll(".tab-item");
-    tabItems.forEach((item) => {
-        if (item.dataset.tab === tabName) {
-            item.classList.add("active");
-        } else {
-            item.classList.remove("active");
-        }
-    });
-}
-
-// ESC 키로 메뉴 닫기
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        closeSlideMenu();
-    }
+document.addEventListener("keydown", function (e) {
+  if (e.key === "Escape") closeSlideMenu();
 });
+
+function handleLogout() {
+  if (confirm("로그아웃하시겠습니까?")) {
+    localStorage.clear();
+    alert("로그아웃되었습니다.");
+    location.href = "/login";
+  }
+}
+
+function goToPage(url) {
+  closeSlideMenu();
+  location.href = url;
+}
+
+function setActiveTab(tabName) {
+  document.querySelectorAll(".tab-item").forEach((el) => {
+    el.classList.toggle("active", el.dataset.tab === tabName);
+  });
+}
+
+/* -------------------------------
+ * 좋아요 (서버 연동)
+ * ------------------------------- */
+async function initializeLikeButton(postId) {
+  try {
+    const res = await fx(`/post/${encodeURIComponent(postId)}/like`, { method: "GET" });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    isLiked = await res.json(); // 서버: true/false
+  } catch (e) {
+    console.warn("좋아요 상태 조회 실패(비로그인 또는 오류):", e);
+    isLiked = false;
+  } finally {
+    updateLikeButtonState();
+    const likeButton = document.getElementById("likeButton");
+    if (likeButton) {
+      likeButton.onclick = () => toggleLike(postId);
+    }
+  }
+}
+
+async function toggleLike(postId) {
+  // 낙관적 UI 적용
+  isLiked = !isLiked;
+  updateLikeButtonState();
+
+  try {
+    const method = isLiked ? "POST" : "DELETE";
+    const res = await fx(`/post/${encodeURIComponent(postId)}/like`, { method });
+    if (res.status === 401) {
+      // location.href = '/pages/login.html';
+      throw new Error("401 Unauthorized");
+    }
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  } catch (e) {
+    console.error("좋아요 처리 실패:", e);
+    // 롤백
+    isLiked = !isLiked;
+    updateLikeButtonState();
+    alert("좋아요 처리 중 오류가 발생했습니다.");
+  }
+}
+
+function updateLikeButtonState() {
+  const likeButton = document.getElementById("likeButton");
+  if (!likeButton) return;
+  likeButton.classList.toggle("liked", !!isLiked);
+}

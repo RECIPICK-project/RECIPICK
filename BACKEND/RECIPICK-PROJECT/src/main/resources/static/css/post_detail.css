@@ -17,6 +17,15 @@
 * {
     box-sizing: border-box;
 }
+/* 재료 컨테이너: 아이템 단위로만 줄바꿈 */
+#ingredientsList {
+  display: grid;
+  grid-auto-rows: minmax(44px, auto);
+  gap: 12px;
+}
+
+/* 혹시 상위 스타일 영향 받으면 폭 보장 */
+#ingredientsList .ingredient-item { width: 100%; }
 
 html,
 body {
@@ -98,7 +107,7 @@ body.detail {
 
 /* 메인 콘텐츠 */
 .wrap {
-    padding: 20px;
+    padding: 20px 20px 100px 20px;
     display: flex;
     flex-direction: column;
     gap: 18px;
@@ -164,12 +173,63 @@ body.detail {
 }
 
 /* 레시피 정보 */
+.recipe-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
 .recipe-title {
     font-size: 28px;
     font-weight: 800;
     color: var(--text);
-    margin: 0 0 16px 0;
+    margin: 0;
     text-align: left;
+    flex: 1;
+}
+
+.like-button {
+    background: var(--soft);
+    border: 1px solid var(--line);
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.like-button:hover {
+    background: #fff;
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.heart-icon {
+    width: 24px;
+    height: 24px;
+    color: #9ca3af;
+    transition: all 0.3s ease;
+}
+
+.like-button.liked .heart-icon {
+    color: #e53935;
+}
+
+.like-button.liked .heart-outline {
+    display: none;
+}
+
+.like-button.liked .heart-filled {
+    display: block !important;
+}
+
+.like-button:not(.liked) .heart-filled {
+    display: none;
 }
 
 .author-info {

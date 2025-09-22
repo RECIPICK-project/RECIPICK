@@ -8,7 +8,7 @@ import lombok.Data;
 @Data
 public class SearchPostDto {
 
-  private Long postId;
+  private Integer postId;
   private Integer userId;
   private String title;
   private String foodName;
@@ -22,5 +22,4 @@ public class SearchPostDto {
   // 기본 생성자
   public SearchPostDto() {
   }
-
 }

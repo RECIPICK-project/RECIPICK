@@ -1,0 +1,21 @@
+.btn-delete-review {
+  background: none;
+  border: none;
+  color: #dc2626;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.btn-delete-review:hover {
+  background-color: #fee2e2;
+}
+
+.btn-delete-review svg {
+  width: 16px;
+  height: 16px;
+}

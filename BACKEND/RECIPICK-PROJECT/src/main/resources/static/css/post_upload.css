@@ -171,6 +171,56 @@ body.detail {
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
     z-index: 1;
     font-size: 22px;
+    transition: opacity 0.3s ease;
+}
+
+.thumb.has-img .thumb-cta {
+    opacity: 0.1;
+}
+
+/* 썸네일 컨트롤 버튼 */
+.thumb-controls {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    display: flex;
+    gap: 8px;
+    z-index: 2;
+}
+
+.thumb-control-btn {
+    padding: 8px 12px;
+    border-radius: 20px;
+    border: none;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    opacity: 0.5;
+}
+
+.thumb-control-btn.change {
+    background: rgba(76, 175, 80, 0.9);
+    color: white;
+}
+
+.thumb-control-btn.change:hover {
+    background: var(--green-600);
+    transform: translateY(-1px);
+    opacity: 1;
+}
+
+.thumb-control-btn.delete {
+    background: rgba(239, 68, 68, 0.9);
+    color: white;
+}
+
+.thumb-control-btn.delete:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
+    opacity: 1;
 }
 
 /* 입력 필드 */
@@ -443,12 +493,51 @@ body.detail {
     transition: all 0.2s ease;
     order: 1; /* 버튼이 사진 위에 오도록 */
     gap: 6px;
+    text-align: center;
 }
 
 .photo-btn:hover {
     background: var(--soft);
     border-color: var(--amber);
     color: var(--amber);
+}
+
+/* 단계별 이미지 컨트롤 버튼 */
+.photo-controls {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.photo-control-btn {
+    flex: 1;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: none;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.photo-control-btn.change {
+    background: var(--green-500);
+    color: white;
+}
+
+.photo-control-btn.change:hover {
+    background: var(--green-600);
+    transform: translateY(-1px);
+}
+
+.photo-control-btn.delete {
+    background: #ef4444;
+    color: white;
+}
+
+.photo-control-btn.delete:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
 }
 
 /* 저장 버튼 */

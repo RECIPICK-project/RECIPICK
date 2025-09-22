@@ -2,140 +2,126 @@ package SITE.RECIPICK.RECIPICK_PROJECT.service;
 
 import SITE.RECIPICK.RECIPICK_PROJECT.dto.MyProfileResponse;
 import SITE.RECIPICK.RECIPICK_PROJECT.dto.NicknameUpdateRequest;
-import SITE.RECIPICK.RECIPICK_PROJECT.repository.CommentRepository;
+import SITE.RECIPICK.RECIPICK_PROJECT.dto.PostDto;
+import SITE.RECIPICK.RECIPICK_PROJECT.dto.ReviewDto;
 import SITE.RECIPICK.RECIPICK_PROJECT.repository.PostRepository;
 import SITE.RECIPICK.RECIPICK_PROJECT.repository.ProfileRepository;
 import SITE.RECIPICK.RECIPICK_PROJECT.repository.ReviewRepository;
-import java.time.LocalDateTime;
+import SITE.RECIPICK.RECIPICK_PROJECT.repository.UserRepository;
+import SITE.RECIPICK.RECIPICK_PROJECT.util.PostMapper;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 /**
- * 📌 마이페이지 관련 서비스
- * <p>
- * 컨트롤러(MyPageController)에서 호출되며, - 프로필 조회 - 닉네임 변경 기능을 제공한다.
- * <p>
- * 조회 시에는 게시글/리뷰/댓글 집계까지 포함된 DTO(MyProfileResponse)를 반환한다.
+ * 📌 마이페이지 관련 서비스 - 프로필 조회, 닉네임 변경, 좋아요 목록 조회
  */
-@Service                   // 스프링 컴포넌트 스캔 시 Bean 등록
-@RequiredArgsConstructor   // final 필드 생성자 자동 생성(생성자 주입)
+@Service
+@RequiredArgsConstructor
 public class MyPageService {
 
-  // ===== 의존 Repository =====
-  private final ProfileRepository profileRepo;   // 프로필 정보 조회/수정
-  private final PostRepository postRepo;         // 내가 올린 정식 레시피/좋아요 집계
-  private final ReviewRepository reviewRepo;     // 내가 쓴 리뷰 집계
-  private final CommentRepository commentRepo;   // 내가 쓴 댓글 집계
+  private final ProfileRepository profileRepo;
+  private final PostRepository postRepo;
+  private final ReviewRepository reviewRepo;
+  private final UserRepository userRepo;
 
-  /**
-   * ✅ [GET /me/profile]
-   * <p>
-   * 특정 사용자(me)의 마이페이지 프로필 데이터를 조회한다.
-   *
-   * @param me 사용자 ID (현재는 임시로 Integer, 로그인 붙이면 Security 컨텍스트에서 가져옴)
-   * @return MyProfileResponse DTO (JSON 직렬화되어 클라이언트 응답)
-   * <p>
-   * 1. PROFILE 테이블에서 닉네임/등급/이미지 조회 (없으면 예외) 2. POST 테이블에서 내가 올린 정식 레시피 개수 + 좋아요 총합 집계 3. REVIEW /
-   * COMMENT 테이블에서 내가 작성한 개수 집계 4. MyProfileResponse DTO로 묶어 반환
-   */
+
   @Transactional(readOnly = true)
-  public MyProfileResponse getMyProfile(Integer me) {
-    // 1) 프로필 조회 (없으면 404 대신 IllegalArgumentException 발생)
-    var pr = profileRepo.findById(me)
+  public MyProfileResponse getMyProfile(Integer userId) {
+    var pr = profileRepo.findById(userId)
         .orElseThrow(() -> new IllegalArgumentException("PROFILE_NOT_FOUND"));
+    var ur = userRepo.findById(userId)
+        .orElseThrow(() -> new RuntimeException("USER_NOT_FOUND"));
 
-    // 2) 게시글 집계
-    long myRecipeCount = postRepo.countPublishedByAuthor(me); // 정식 레시피 개수
-    long totalLikesOnMyPosts = postRepo.sumLikesOnUsersPublished(me); // 좋아요 합계
+    long myRecipeCount = postRepo.countPublishedByAuthor(userId);
+    long totalLikesOnMyPosts = postRepo.sumLikesOnUsersPublished(userId);
 
-    // 3) 리뷰 + 댓글 집계
-    long reviewCount = reviewRepo.countByUser_UserId(me);
-    long commentCount;
-    try {
-      commentCount = commentRepo.countByAuthor_userId(me);
-    } catch (Exception e) {
-      commentCount = 0; // COMMENT 테이블이 없거나 초기화 전이면 안전하게 0 처리
-    }
+    long reviewCount = reviewRepo.countByUserUserId(userId);
+    long commentCount = 0; // TODO: commentRepo 생기면 교체
 
-    // 4) DTO로 반환
     return new MyProfileResponse(
-        pr.getNickname(),          // 닉네임
-        pr.getGrade().name(),      // 등급 (enum → 문자열)
-        pr.getProfileImg(),        // 프로필 이미지
-        myRecipeCount,             // 내가 올린 정식 레시피 개수
-        totalLikesOnMyPosts,       // 좋아요 총합
-        reviewCount + commentCount // 활동 수
+        ur.getNickname(),              // ✅ USERS.nickname
+        pr.getGrade().name(),          // ✅ PROFILE.grade
+        pr.getProfileImg(),
+        myRecipeCount,
+        totalLikesOnMyPosts,
+        reviewCount + commentCount
     );
   }
 
-  /**
-   * ✅ [PATCH /me/profile/nickname]
-   * <p>
-   * 닉네임 변경 기능 (7일 쿨다운 적용)
-   * <p>
-   * 규칙: - 닉네임은 공백 불가 / 50자 이내 - 기존 닉네임과 동일하면 변경 없음 - updated_at 기준 7일 이내 변경 시도 →
-   * 거부(NICKNAME_CHANGE_COOLDOWN) - 이미 존재하는 닉네임이면 거부(NICKNAME_DUPLICATED) - 위 조건 통과 시 닉네임 변경 +
-   * updated_at 갱신
-   */
+
   @Transactional
   public void changeNickname(Integer me, NicknameUpdateRequest req) {
-    // 0) 입력값 검증
     String raw = req.getNewNickname();
     if (raw == null || raw.trim().isEmpty()) {
-      throw new IllegalArgumentException("NICKNAME_REQUIRED");
+      throw new IllegalArgumentException("닉네임은 공백일 수 없습니다.");
     }
     String newNickname = raw.trim();
     if (newNickname.length() > 50) {
-      throw new IllegalArgumentException("NICKNAME_TOO_LONG");
+      throw new IllegalArgumentException("닉네임이 너무 깁니다.");
     }
 
-    // 1) 프로필 로딩
     var pr = profileRepo.findById(me)
-        .orElseThrow(() -> new IllegalArgumentException("PROFILE_NOT_FOUND"));
+        .orElseThrow(() -> new IllegalArgumentException("프로필을 찾을 수 없습니다."));
 
-    // 2) 동일 닉네임이면 변경 없음
     if (newNickname.equals(pr.getNickname())) {
       return;
     }
 
-    // 3) 7일 제한 확인
-    LocalDateTime lastUpdated = pr.getUpdatedAt();
-    if (lastUpdated != null) {
-      LocalDateTime allowedAt = lastUpdated.plusDays(7);
-      if (LocalDateTime.now().isBefore(allowedAt)) {
-        throw new IllegalStateException("NICKNAME_CHANGE_COOLDOWN");
-      }
+    var lastUpdated = pr.getUpdatedAt();
+    if (lastUpdated != null && lastUpdated.isAfter(java.time.LocalDateTime.now().minusDays(7))) {
+      throw new IllegalStateException("닉네임은 일주일에 한 번만 변경할 수 있습니다.");
     }
 
-    // 4) 중복 닉네임 검사
     if (profileRepo.existsByNickname(newNickname)) {
-      throw new IllegalStateException("NICKNAME_DUPLICATED");
+      throw new IllegalStateException("이미 사용 중인 닉네임입니다.");
     }
 
-    // 5) 변경 실행
     pr.setNickname(newNickname);
-    pr.setUpdatedAt(LocalDateTime.now());
+    pr.setUpdatedAt(java.time.LocalDateTime.now());
+    profileRepo.save(pr);
+
+    var user = userRepo.findById(me)
+        .orElseThrow(() -> new IllegalArgumentException("프로필을 찾을 수 없습니다."));
+    user.setNickname(newNickname);
+    userRepo.save(user);
   }
 
-  @RestControllerAdvice  // 전역 예외 처리기
-  public class GlobalExceptionHandler {
+  @Transactional(readOnly = true)
+  public List<PostDto> getMyLikedPosts(Integer me, int offset, int limit) {
+    var pageable = PageRequest.of(offset / Math.max(1, limit), Math.max(1, limit));
+    return postRepo.findLikedPosts(me, pageable)
+        .stream()
+        .map(PostMapper::toDto)
+        .toList();
+  }
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<String> handleIllegalArgument(IllegalArgumentException e) {
-      if ("PROFILE_NOT_FOUND".equals(e.getMessage())) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-      }
-      return ResponseEntity.badRequest().body(e.getMessage());
-    }
+  @Transactional(readOnly = true)
+  public List<ReviewDto> getMyReviews(Integer userId, int offset, int limit) {
+    var reviews = reviewRepo.findByUserUserIdOrderByCreatedAtDesc(userId);
 
-    @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<String> handleIllegalState(IllegalStateException e) {
-      return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
-    }
+    // 페이징 처리
+    int startIndex = Math.max(0, offset);
+    int endIndex = Math.min(reviews.size(), startIndex + limit);
+
+    var pagedReviews = reviews.subList(startIndex, endIndex);
+
+    return pagedReviews.stream()
+        .map(review -> ReviewDto.builder()
+            .reviewId(review.getReviewId())
+            .postId(review.getPost().getPostId())
+            .reviewRating(review.getReviewRating())
+            .comment(review.getComment())
+            .createdAt(review.getCreatedAt())
+            .post(PostDto.builder()
+                .postId(review.getPost().getPostId())
+                .title(review.getPost().getTitle())
+                .foodName(review.getPost().getFoodName())
+                .rcpImgUrl(review.getPost().getRcpImgUrl())
+                .build())
+            .build())
+        .toList();
   }
 }

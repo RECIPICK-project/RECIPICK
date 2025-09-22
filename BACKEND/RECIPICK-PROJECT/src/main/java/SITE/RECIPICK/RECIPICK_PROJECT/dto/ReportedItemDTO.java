@@ -10,6 +10,6 @@ import lombok.Getter;
 @AllArgsConstructor
 public class ReportedItemDTO {
 
-  private Long targetId;
+  private Integer targetId;
   private long count;
 }

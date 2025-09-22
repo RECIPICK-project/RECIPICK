@@ -157,4 +157,18 @@ public class MyPostCommandService {
 
     postRepo.delete(p);
   }
+
+  @Transactional(readOnly = true)
+  public PostDto getMyTempPost(Integer me, Integer postId) {
+    PostEntity p = postRepo.findById(postId)
+        .orElseThrow(() -> new IllegalArgumentException("POST_NOT_FOUND"));
+    if (!Objects.equals(p.getUserId(), me)) {
+      throw new IllegalStateException("FORBIDDEN");
+    }
+    if (p.getRcpIsOfficial() != null && p.getRcpIsOfficial() == 1) {
+      throw new IllegalStateException("ONLY_TEMP_READABLE_ON_EDIT");
+    }
+    return toDto(p);
+  }
+
 }

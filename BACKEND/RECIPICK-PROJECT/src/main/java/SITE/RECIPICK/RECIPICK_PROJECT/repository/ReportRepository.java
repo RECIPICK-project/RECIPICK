@@ -11,31 +11,30 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-public interface ReportRepository extends JpaRepository<ReportEntity, Long> {
+public interface ReportRepository extends JpaRepository<ReportEntity, Integer> {
 
-  long countByCreatedAtBetween(LocalDateTime start, LocalDateTime end);   // 오늘 접수 건수
+  long countByCreatedAtBetween(LocalDateTime start, LocalDateTime end); // 오늘 접수 건수
 
-  long countByStatus(ReportStatus status);                                // 미처리 건수
+  long countByStatus(ReportStatus status); // 미처리 건수
 
   List<ReportEntity> findByStatusAndTargetTypeOrderByCreatedAtDesc(
       ReportStatus status, ReportTargetType type, Pageable pageable);
 
-  @Query("""
-        select r.targetId as targetId, count(r.id) as cnt
-          from ReportEntity r
-         where r.targetType = SITE.RECIPICK.RECIPICK_PROJECT.entity.ReportTargetType.POST
-           and r.createdAt between :from and :to
-         group by r.targetId
-         order by count(r.id) desc
-      """)
+  @Query(
+      """
+            select r.targetId as targetId, count(r.reportid) as cnt
+              from ReportEntity r
+             where r.targetType = SITE.RECIPICK.RECIPICK_PROJECT.entity.ReportTargetType.POST
+               and r.createdAt between :from and :to
+             group by r.targetId
+             order by count(r.reportid) desc
+          """)
   List<TopAgg> topReportedPosts(LocalDateTime from, LocalDateTime to, Pageable pageable);
-
 
   Page<ReportEntity> findByStatus(ReportStatus status, Pageable pageable);
 
-  Page<ReportEntity> findByStatusAndTargetType(ReportStatus status,
-      ReportTargetType type,
-      Pageable pageable);
+  Page<ReportEntity> findByStatusAndTargetType(
+      ReportStatus status, ReportTargetType type, Pageable pageable);
 
   // 최근 신고 N개
   @Query("""
@@ -51,8 +50,8 @@ public interface ReportRepository extends JpaRepository<ReportEntity, Long> {
 
   interface TopAgg {
 
-    Long getTargetId();
+    Integer getTargetId();
 
-    long getCnt();
+    Integer getCnt();
   }
 }

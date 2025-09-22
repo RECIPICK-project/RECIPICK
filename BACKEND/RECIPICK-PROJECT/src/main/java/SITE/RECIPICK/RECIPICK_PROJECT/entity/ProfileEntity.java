@@ -19,7 +19,7 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-@Table(name = "profiles")
+@Table(name = "profile")
 public class ProfileEntity {
 
   @Id
@@ -40,6 +40,10 @@ public class ProfileEntity {
   @Column(name = "updated_at")
   private LocalDateTime updatedAt;
 
+  @Column(name = "latest_at")
+  private LocalDateTime latestAt;
+
+
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 20)
   private UserGrade grade = UserGrade.BRONZE;
@@ -47,5 +51,4 @@ public class ProfileEntity {
   public void changeGrade(UserGrade grade) {
     this.grade = grade;
   }
-
 }

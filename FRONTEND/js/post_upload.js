@@ -1,11 +1,12 @@
-// 대표 썸네일 미리보기
+// 대표 인네일 미리보기
 const thumbInput = document.getElementById("thumbInput");
 const thumbBox = document.getElementById("thumbBox");
+const thumbControls = document.getElementById("thumbControls");
+const changeThumbBtn = document.getElementById("changeThumb");
+const deleteThumbBtn = document.getElementById("deleteThumb");
 
-thumbInput.addEventListener("change", (e) => {
-    const f = e.target.files?.[0];
-    if (!f) return;
-    const url = URL.createObjectURL(f);
+function showThumbImage(file) {
+    const url = URL.createObjectURL(file);
     // 기존 이미지 제거
     thumbBox.querySelector("img")?.remove();
     // 새 이미지 삽입
@@ -14,6 +15,40 @@ thumbInput.addEventListener("change", (e) => {
     img.src = url;
     thumbBox.appendChild(img);
     thumbBox.classList.add("has-img");
+    // 컨트롤 버튼 표시
+    thumbControls.style.display = "flex";
+}
+
+function hideThumbImage() {
+    // 이미지 제거
+    thumbBox.querySelector("img")?.remove();
+    thumbBox.classList.remove("has-img");
+    // 컨트롤 버튼 숨기기
+    thumbControls.style.display = "none";
+    // 파일 input 초기화
+    thumbInput.value = "";
+}
+
+thumbInput.addEventListener("change", (e) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    showThumbImage(f);
+});
+
+// 인네일 교체 버튼
+changeThumbBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    thumbInput.click();
+});
+
+// 인네일 삭제 버튼
+deleteThumbBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (confirm("인네일 이미지를 삭제하시겠습니까?")) {
+        hideThumbImage();
+    }
 });
 
 // 재료
@@ -62,11 +97,15 @@ function makeStepItem(index) {
         <div class="step-body">
             <textarea class="textarea" rows="3" placeholder="${index}단계 설명을 적어주세요" data-desc></textarea>
             <div class="step-photo">
-                <label class="photo-btn">
+                <label class="photo-btn" data-photo-btn>
                     <input type="file" accept="image/*" hidden data-photo />
                     📷 단계 사진 추가
                 </label>
                 <div class="photo-preview" data-preview></div>
+                <div class="photo-controls" data-photo-controls style="display: none;">
+                    <button type="button" class="photo-control-btn change" data-change-photo>📷 교체</button>
+                    <button type="button" class="photo-control-btn delete" data-delete-photo>🗑️ 삭제</button>
+                </div>
             </div>
         </div>
     `;
@@ -79,19 +118,57 @@ function makeStepItem(index) {
         }
     });
 
-    // 사진 미리보기
+    // 사진 관련 요소들
     const fileInput = li.querySelector("[data-photo]");
     const preview = li.querySelector("[data-preview]");
+    const photoBtn = li.querySelector("[data-photo-btn]");
+    const photoControls = li.querySelector("[data-photo-controls]");
+    const changePhotoBtn = li.querySelector("[data-change-photo]");
+    const deletePhotoBtn = li.querySelector("[data-delete-photo]");
 
-    fileInput.addEventListener("change", (e) => {
-        const f = e.target.files?.[0];
-        if (!f) return;
-        const url = URL.createObjectURL(f);
+    function showStepImage(file) {
+        const url = URL.createObjectURL(file);
         preview.querySelector("img")?.remove();
         const img = document.createElement("img");
         img.alt = `${index}단계 사진 미리보기`;
         img.src = url;
         preview.appendChild(img);
+        // 컨트롤 버튼 표시, 추가 버튼 숨기기
+        photoControls.style.display = "flex";
+        photoBtn.style.display = "none";
+    }
+
+    function hideStepImage() {
+        // 이미지 제거
+        preview.querySelector("img")?.remove();
+        // 컨트롤 버튼 숨기기, 추가 버튼 표시
+        photoControls.style.display = "none";
+        photoBtn.style.display = "flex";
+        // 파일 input 초기화
+        fileInput.value = "";
+    }
+
+    // 사진 미리보기
+    fileInput.addEventListener("change", (e) => {
+        const f = e.target.files?.[0];
+        if (!f) return;
+        showStepImage(f);
+    });
+
+    // 사진 교체 버튼
+    changePhotoBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        fileInput.click();
+    });
+
+    // 사진 삭제 버튼
+    deletePhotoBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (confirm("단계 사진을 삭제하시겠습니까?")) {
+            hideStepImage();
+        }
     });
 
     return li;
@@ -183,28 +260,39 @@ document.getElementById("uploadForm").addEventListener("submit", async (e) => {
             submitBtn.textContent = "레시피 저장 중...";
         }
 
-        // 재료 데이터 수집
-        const ingredients = [];
+        // 재료 데이터 수집 - 3개 배열로 분리
+        const ingredients = [];           // Post 저장용 (기존 유지)
+        const ingredientNames = [];       // Ingredient 테이블용
+        const ingredientQuantities = [];  // RecipeIngredient amount용
+        const ingredientUnits = [];       // RecipeIngredient amount용
+
         const rows = document.querySelectorAll("[data-row]");
         rows.forEach((row) => {
             const name = row.querySelector("[data-name]").value.trim();
             const quantity = row.querySelector("[data-quantity]").value.trim();
             const unit = row.querySelector("[data-unit]").value.trim();
-            if (name && quantity && unit) {
+
+            if (name) { // 재료명만 있으면 추가
+                // Post용 - 기존 형태 유지 (레시피 표시용)
                 ingredients.push(`${name} ${quantity}${unit}`);
+
+                // 분리된 데이터 - Ingredient, RecipeIngredient용
+                ingredientNames.push(name);
+                ingredientQuantities.push(quantity);
+                ingredientUnits.push(unit);
             }
         });
 
-        // 썸네일 이미지 업로드 (필수)
+        // 인네일 이미지 업로드 (필수)
         const thumbFile = document.getElementById("thumbInput").files?.[0];
         if (!thumbFile) {
-            alert("썸네일 이미지를 선택해주세요!");
+            alert("인네일 이미지를 선택해주세요!");
             return;
         }
 
-        console.log("썸네일 이미지 업로드 중...");
+        console.log("인네일 이미지 업로드 중...");
         const thumbnailUrl = await uploadImageToS3(thumbFile, "recipe-thumbnails");
-        console.log("썸네일 업로드 완료:", thumbnailUrl);
+        console.log("인네일 업로드 완료:", thumbnailUrl);
 
         // 단계별 이미지 업로드
         const stepImageUrls = [];
@@ -257,12 +345,23 @@ document.getElementById("uploadForm").addEventListener("submit", async (e) => {
         formData.append("ckgLevel", levelSelect?.value || "1"); // 기본: 1 (★)
         formData.append("ckgTime", timeSelect?.value || "30"); // 기본: 30분이내
 
-        // 재료 (List<String> 형태로)
+        // 재료 (List<String> 형태로) - Post 표시용
         ingredients.forEach((ingredient) => {
             formData.append("ckgMtrlCn", ingredient);
         });
 
-        // 썸네일 이미지 URL (빈 문자열이면 기본 이미지로 대체)
+        // 분리된 재료 데이터 - Ingredient, RecipeIngredient용
+        ingredientNames.forEach((name) => {
+            formData.append("ingredientNames", name);
+        });
+        ingredientQuantities.forEach((quantity) => {
+            formData.append("ingredientQuantities", quantity);
+        });
+        ingredientUnits.forEach((unit) => {
+            formData.append("ingredientUnits", unit);
+        });
+
+        // 인네일 이미지 URL (빈 문자열이면 기본 이미지로 대체)
         formData.append(
             "rcpImgUrl",
             thumbnailUrl || "https://via.placeholder.com/300x200?text=No+Image"
@@ -278,6 +377,13 @@ document.getElementById("uploadForm").addEventListener("submit", async (e) => {
             formData.append("rcpStepsImg", imageUrl);
         });
 
+        // 디버깅을 위한 로그
+        console.log("수집된 재료 데이터:");
+        console.log("- Post용 ingredients:", ingredients);
+        console.log("- 재료명 배열:", ingredientNames);
+        console.log("- 수량 배열:", ingredientQuantities);
+        console.log("- 단위 배열:", ingredientUnits);
+
         console.log("저장할 레시피 데이터:", Object.fromEntries(formData));
 
         // 백엔드 API로 레시피 저장 (올바른 엔드포인트 사용)
@@ -291,11 +397,32 @@ document.getElementById("uploadForm").addEventListener("submit", async (e) => {
         }
 
         const result = await saveResponse.json();
-        alert("레시피가 성공적으로 저장되었습니다!");
-        console.log("저장된 레시피:", result);
 
-        // 폼 초기화 또는 다른 페이지로 리다이렉트
-        // window.location.href = '/recipes';
+        let postId;
+        if (result && result.data && result.data.postId) {
+            postId = result.data.postId;
+        } else if (result && result.data && result.data.id) {
+            // PostDto의 getId() 메서드로 반환되는 경우
+            postId = result.data.id;
+        } else {
+            console.error("응답에서 postId를 찾을 수 없습니다:", result);
+            postId = null;
+        }
+
+        console.log("추출된 postId:", postId);
+        console.log("전체 응답 데이터:", result);
+
+        alert("레시피가 성공적으로 저장되었습니다!");
+
+        // 리다이렉트 처리
+        if (postId) {
+            window.location.href = `/pages/post_detail.html?postId=${postId}`;
+        } else {
+            // postId가 없으면 메인 페이지로 이동
+            console.warn("postId를 찾을 수 없어 메인 페이지로 이동합니다.");
+            window.location.href = '/pages/main.html';
+        }
+
     } catch (error) {
         console.error("레시피 저장 에러:", error);
         alert("레시피 저장에 실패했습니다: " + error.message);

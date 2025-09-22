@@ -14,31 +14,27 @@ public record AdminDashboardResponse(
     List<CategoryCount> categoryUploads,
     // 테이블 섹션
     List<RecentReportItem> recentReports,
-    List<RecentSignupItem> recentSignups
-) {
+    List<RecentSignupItem> recentSignups) {
 
-  public record Series(
-      List<LocalDate> labels,
-      List<Long> data
-  ) {
+  public record Series(List<LocalDate> labels, List<Long> data) {
 
   }
 
-  public record CategoryCount(
-      String category, long count
-  ) {
+  public record CategoryCount(String category, long count) {
 
   }
 
   public record RecentReportItem(
-      Long id, String targetType, Long targetId, String reason, String status, LocalDate createdAt
-  ) {
+      Integer id,
+      String targetType,
+      Integer targetId,
+      String reason,
+      String status,
+      LocalDate createdAt) {
 
   }
 
-  public record RecentSignupItem(
-      Integer userId, String nicknameOrEmail, LocalDate createdAt
-  ) {
+  public record RecentSignupItem(Integer userId, String nicknameOrEmail, LocalDate createdAt) {
 
   }
 }

@@ -386,12 +386,18 @@ function renderIngredients(ingredientsString) {
         const name = ingredientsArray[i];
         const amount = ingredientsArray[i + 1] || "";
 
+        const recipeTitle = document.getElementById("recipeTitle").textContent;
+
         const ingredientItem = document.createElement("div");
         ingredientItem.className = "ingredient-item";
         ingredientItem.innerHTML = `
       <span class="ingredient-name">${name}</span>
       <span class="ingredient-amount">${amount}</span>
-      <button class="btn-small btn-substitute" onclick="getSubstituteIngredient('${name}', this)">대체</button>
+      <button class="btn-small btn-substitute"
+                    onclick="getSubstituteIngredient(this)"
+                    data-ingredient-name="${name}"
+                    data-recipe-title="${recipeTitle}"
+                    >대체</button>
       <button class="btn-small" onclick="goToCoupang('${name}')">구매</button>
     `;
 
@@ -426,49 +432,34 @@ function renderCookingSteps(steps) {
 }
 
 // GPT API를 통한 대체 재료 추천
-async function getSubstituteIngredient(ingredientName, button) {
-    try {
-        button.disabled = true;
-        button.textContent = "로딩...";
+function getSubstituteIngredient(buttonElement) {
+    // 버튼을 비활성화하고 로딩 상태 표시
+    buttonElement.innerText = "불러오는 중...";
+    buttonElement.disabled = true;
 
-        // 데모용 대체 재료 추천 (실제로는 API 호출)
-        // const response = await fetch("/api/gpt/substitute", {
-        const response = await new Promise(resolve => {
-            setTimeout(() => {
-                resolve({
-                    ok: true,
-                    json: () => Promise.resolve({
-                        substitute: `${ingredientName} 대신 사용할 수 있는 대체 재료:\n\n1. 비슷한 맛의 재료\n2. 영양가가 비슷한 재료\n3. 식감이 비슷한 재료`
-                    })
-                });
-            }, 1000);
+    const ingredientName = buttonElement.dataset.ingredientName;
+    const recipeTitle = buttonElement.dataset.recipeTitle;
+
+    // 스프링 컨트롤러의 URL
+    const serverUrl = `/api/substitute-ingredient?ingredientName=${ingredientName}&title=${recipeTitle}`;
+
+    fetch(serverUrl)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('서버 응답 오류: ' + response.status);
+            }
+            return response.text(); // 응답이 text 형식이므로 .text() 사용
+        })
+        .then(data => {
+            // GPT 응답으로 버튼 텍스트를 변경
+            buttonElement.innerText = data;
+            buttonElement.disabled = false; // 버튼 다시 활성화
+        })
+        .catch(error => {
+            console.error('Fetch 에러:', error);
+            buttonElement.innerText = "오류 발생";
+            buttonElement.disabled = false;
         });
-        
-        /*
-        const response = await fetch("/api/gpt/substitute", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                ingredient: ingredientName,
-            }),
-        });
-        */
-
-        if (!response.ok) {
-            throw new Error("대체 재료 추천을 받을 수 없습니다.");
-        }
-
-        const result = await response.json();
-        alert(`${ingredientName} 대체 재료 추천:\n\n${result.substitute}`);
-    } catch (error) {
-        console.error("대체 재료 추천 에러:", error);
-        alert("대체 재료 추천에 실패했습니다: " + error.message);
-    } finally {
-        button.disabled = false;
-        button.textContent = "대체";
-    }
 }
 
 // 쿠팡 구매 링크로 이동

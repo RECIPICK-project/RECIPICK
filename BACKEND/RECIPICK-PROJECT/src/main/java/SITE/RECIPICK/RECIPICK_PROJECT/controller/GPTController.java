@@ -1,4 +1,4 @@
-package src.main.java.SITE.RECIPICK.RECIPICK_PROJECT.controller;
+package SITE.RECIPICK.RECIPICK_PROJECT.controller;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -7,86 +7,121 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@CrossOrigin(origins = "*")
 public class GPTController {
+
   final static String OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
-  final static String OPENAI_API_KEY = System.getenv("OPENAI_API_KEY");
-  final static String MODEL_NAME = "gpt-3.5-turbo"; // chat/completions 모델 사용
+  final static String MODEL_NAME = "gpt-3.5-turbo";
   final static double TEMPERATURE = 0.1;
-  final static int MAX_TOKEN = 30;
-  final static String systemMessageContent = "당신은 요리 전문가로서 재료의 대체품을 추천합니다. '아삭한 식감', '비슷한 맛' 등 재료의 핵심 특성을 고려하여, 재료의 원래 특징을 대체할 수 있는 다른 재료들을 찾아주세요. 답변은 항상 '단어1, 단어2, 단어3' 형식으로 제공합니다. 접속사, 조사, 마침표(.)는 사용하지 마세요.";
+  final static int MAX_TOKEN = 50; // 토큰 수를 조금 늘림
+  final static String systemMessageContent = "당신은 식재료 대체 추천 AI입니다. 당신의 유일한 임무는 사용자가 요청한 재료를 대체할 수 있는 다른 재료의 이름을 쉼표(,)로 구분하여 나열하는 것입니다. 절대로 설명, 문장, 인사, 마침표를 포함하지 마세요. 오직 '재료1, 재료2, 재료3' 형식으로만 응답해야 합니다. 예시: 사용자가 '상추'를 요청하면, 당신의 응답은 '양상추, 치커리, 로메인' 이어야 합니다.";
+  @Value("${openai.api.key:}")
+  private String openaiApiKey;
 
   @GetMapping("/api/substitute-ingredient")
-  public String getSubstituteIngredient(@RequestParam String ingredientName, @RequestParam String title) {
-    String PROMPT = title + "의 재료 중 " + ingredientName + "을(를) 대체할 수 있는 재료를 추천해줘.";
-    String returnAiStr = openai_api_chat_worker(OPENAI_API_URL, OPENAI_API_KEY, MODEL_NAME
-        , TEMPERATURE, MAX_TOKEN, systemMessageContent, PROMPT);
-    return returnAiStr;
-  }
+  public ResponseEntity<String> getSubstituteIngredient(
+      @RequestParam String ingredientName,
+      @RequestParam String title) {
 
-  private String openai_api_chat_worker(String openaiApiUrl, String openaiApiKey, String model
-      , double temperature, int maxToken, String systemMessageContent, String prompt){
     try {
-      URL url = new URL(openaiApiUrl);  //URL 객체는 단순히 주소 정보만을 담고 있으며, 실제로 네트워크 연결을 수행하지는 않습니다.(통신대상을 정의)
-      HttpURLConnection connection = (HttpURLConnection) url.openConnection();  //HttpURLConnection은 그 대상과 통신하는 모든 과정을 제어합니다.
-      connection.setRequestMethod("POST");
-      connection.setRequestProperty("Content-Type", "application/json");
-      connection.setRequestProperty("Authorization", "Bearer " + openaiApiKey);
-      connection.setDoOutput(true);
-
-      // 최신 API 요청 형식에 맞게 변경
-      String requestData = String.format(
-          "{\"model\": \"%s\", \"temperature\": %f, \"max_tokens\": %d, \"messages\": [{\"role\": \"system\", \"content\": \"%s\"},{\"role\": \"user\", \"content\": \"%s\"}]}"
-          , model, temperature, maxToken, systemMessageContent, prompt
-      );
-
-      try (OutputStream os = connection.getOutputStream()) {  //일반적인 try-catch-finally 구문(소괄호없음)과 달리, try-with-resources는 try (...) 괄호 안에 선언된 자원(리소스)을 try 블록이 종료될 때 자동으로 닫아줍니다.
-        byte[] input = requestData.getBytes(StandardCharsets.UTF_8);  //문자열을 바이트배열로 변환 (문자열=model,temp,maxtoken,...)
-        os.write(input, 0, input.length); //input 배열의 시작부터 끝까지 모든 바이트 데이터를 os가 가리키는 네트워크 스트림에 전송
+      // API KEY 확인
+      if (openaiApiKey == null || openaiApiKey.isEmpty()) {
+        System.err.println("OpenAI API 키가 설정되지 않았습니다. .env 파일을 확인하세요.");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body("API 키 설정 오류");
       }
 
-      if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+      System.out.println("재료 대체 요청: " + ingredientName + " (레시피: " + title + ")");
+
+      String PROMPT = title + "의 재료 중 " + ingredientName + "을(를) 대체할 수 있는 재료를 추천해줘.";
+      String returnAiStr = openai_api_chat_worker(OPENAI_API_URL, openaiApiKey, MODEL_NAME,
+          TEMPERATURE, MAX_TOKEN, systemMessageContent, PROMPT);
+
+      // 에러 메시지 체크
+      if (returnAiStr.startsWith("[에러]") || returnAiStr.startsWith("[예외 발생]")) {
+        System.err.println("OpenAI API 오류: " + returnAiStr);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("AI 서비스 오류");
+      }
+
+      System.out.println("AI 응답: " + returnAiStr);
+      return ResponseEntity.ok(returnAiStr);
+
+    } catch (Exception e) {
+      System.err.println("서버 오류: " + e.getMessage());
+      e.printStackTrace();
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .body("서버 내부 오류");
+    }
+  }
+
+  private String openai_api_chat_worker(String openaiApiUrl, String apiKey, String model,
+      double temperature, int maxToken, String systemMessageContent, String prompt) {
+    try {
+      URL url = new URL(openaiApiUrl);
+      HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+      connection.setRequestMethod("POST");
+      connection.setRequestProperty("Content-Type", "application/json");
+      connection.setRequestProperty("Authorization", "Bearer " + apiKey);
+      connection.setDoOutput(true);
+      connection.setConnectTimeout(15000); // 15초 타임아웃
+      connection.setReadTimeout(30000); // 30초 읽기 타임아웃
+
+      // JSON 문자열에서 특수문자 이스케이프 처리
+      String escapedSystemMessage = systemMessageContent.replace("\"", "\\\"").replace("\n", "\\n");
+      String escapedPrompt = prompt.replace("\"", "\\\"").replace("\n", "\\n");
+
+      String requestData = String.format(
+          "{\"model\": \"%s\", \"temperature\": %.1f, \"max_tokens\": %d, \"messages\": [{\"role\": \"system\", \"content\": \"%s\"},{\"role\": \"user\", \"content\": \"%s\"}]}",
+          model, temperature, maxToken, escapedSystemMessage, escapedPrompt
+      );
+
+      System.out.println("OpenAI API 요청 전송중...");
+
+      try (OutputStream os = connection.getOutputStream()) {
+        byte[] input = requestData.getBytes(StandardCharsets.UTF_8);
+        os.write(input, 0, input.length);
+      }
+
+      int responseCode = connection.getResponseCode();
+      System.out.println("OpenAI API 응답 코드: " + responseCode);
+
+      if (responseCode == HttpURLConnection.HTTP_OK) {
         try (BufferedReader br = new BufferedReader(
-            new InputStreamReader(
-                connection.getInputStream(), StandardCharsets.UTF_8
-            )
-        )) {  //바이트 스트림(InputStream)을 문자 스트림(Reader)으로 변환
+            new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
           StringBuilder response = new StringBuilder();
           String responseLine;
-          while ((responseLine = br.readLine()) != null) {  //br 객체로부터 데이터를 한 줄씩 읽어옴 -> responseLine에 대입 -> 이 값이 null(데이터스트림의 끝)이 아닐 때 실행
-            response.append(responseLine.trim()); //responseLine을 StringBuilder 객체인 response의 끝에 추가
+          while ((responseLine = br.readLine()) != null) {
+            response.append(responseLine.trim());
           }
           String jsonString = response.toString();
           JSONObject jsonResponse = new JSONObject(jsonString);
 
-          // 'choices' 배열의 첫 번째 요소에 접근
-          // 'message' 객체에 접근
-          // 'content' 키의 값 추출
           String content = jsonResponse
               .getJSONArray("choices")
               .getJSONObject(0)
               .getJSONObject("message")
               .getString("content");
 
-          return content; // 순수한 텍스트만 반환
+          return content.trim();
         }
       } else {
         try (BufferedReader br = new BufferedReader(
-            new InputStreamReader(
-                connection.getErrorStream(), StandardCharsets.UTF_8
-            )
-        )) {
+            new InputStreamReader(connection.getErrorStream(), StandardCharsets.UTF_8))) {
           StringBuilder errorResponse = new StringBuilder();
           String errorLine;
           while ((errorLine = br.readLine()) != null) {
             errorResponse.append(errorLine.trim());
           }
-          return "[에러] 응답 코드: " + connection.getResponseCode() + ", 에러 메시지: "
-              + errorResponse.toString();
+          return "[에러] 응답 코드: " + responseCode + ", 에러 메시지: " + errorResponse;
         }
       }
     } catch (Exception e) {

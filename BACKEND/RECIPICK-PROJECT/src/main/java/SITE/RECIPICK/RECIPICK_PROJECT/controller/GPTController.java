@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class GPTController {
   final static String OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
-  final static String OPENAI_API_KEY = "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"; // <<-- 여기에 실제 API 키를 넣으세요.
+  final static String OPENAI_API_KEY = ""; // <<-- 여기에 실제 API 키를 넣으세요.
   final static String MODEL_NAME = "gpt-3.5-turbo"; // chat/completions 모델 사용
   final static double TEMPERATURE = 0.1;
   final static int MAX_TOKEN = 30;

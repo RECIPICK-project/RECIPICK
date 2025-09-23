@@ -3,10 +3,13 @@
   <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_17" inherit-compiler-output="true">
     <exclude-output />
     <content url="file://$MODULE_DIR$/../../BACKEND/RECIPICK-PROJECT">
+      <sourceFolder url="file://$MODULE_DIR$/../../BACKEND/RECIPICK-PROJECT" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/../../BACKEND/RECIPICK-PROJECT/.gradle" />
       <excludeFolder url="file://$MODULE_DIR$/../../BACKEND/RECIPICK-PROJECT/build" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="Gradle: com.vaadin.external.google:android-json:0.0.20131108.vaadin1" level="project" />
+    <orderEntry type="library" name="Gradle: org.springframework:spring-web:6.2.9" level="project" />
   </component>
 </module>

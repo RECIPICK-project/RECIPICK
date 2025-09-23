@@ -1,4 +1,4 @@
-package src.main.java.SITE.RECIPICK.RECIPICK_PROJECT.controller;
+package SITE.RECIPICK.RECIPICK_PROJECT.controller;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;

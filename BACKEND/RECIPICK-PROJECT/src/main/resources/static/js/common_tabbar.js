@@ -151,8 +151,8 @@
     sheet.innerHTML = `
       <div class="sheet-handle" aria-hidden="true"></div>
       <nav class="sheet-list" aria-label="메뉴 목록">
+        <a href="/pages/main.html" class="item">홈으로</a>
         <a href="/pages/faq.html" class="item">자주 묻는 질문</a>
-        <a href="/pages/profile.html#activity" class="item">내 리뷰</a>
         <a href="/pages/official_recipes.html" class="item">정식 레시피</a>
         <a href="/pages/setting.html" class="item">설정</a>
         <button id="commonLogoutBtn" class="item danger" type="button">로그아웃</button>

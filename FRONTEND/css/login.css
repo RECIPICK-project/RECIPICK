@@ -58,12 +58,12 @@ body {
 
 /* 컨텐츠 래퍼 */
 .wrap {
-  margin-top: calc(var(--space) * 6);
+  margin-top: 0;
   max-width: 100%;
   margin-left: auto;
   margin-right: auto;
   display: grid;
-  gap: calc(var(--space) * 3);
+  gap: 0;
   padding: 0 32px;
 }
 
@@ -80,7 +80,7 @@ body {
 .field {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 8px;
 }
 
 .input {
@@ -108,7 +108,7 @@ body {
 
 /* 버튼 */
 .cta {
-  margin-top: calc(var(--space) * 2);
+  margin-top: 4px;
 }
 
 .btn {
@@ -141,7 +141,7 @@ body {
   /* a | bar | a | bar | a */
   align-items: center;
   column-gap: 12px;
-  margin: 20px 32px 8px;
+  margin: 2px 32px 6px;
 }
 
 .links a {
@@ -173,7 +173,7 @@ body {
   display: flex;
   align-items: center;
   gap: calc(var(--space) * 1.5);
-  margin: calc(var(--space) * 3) 0 calc(var(--space) * 2);
+  margin: 14px 0 10px;
   color: var(--muted);
   font-size: 14px;
 }
@@ -284,15 +284,13 @@ body {
 
 /* 로고 1.5배 키우기 */
 .logo-img {
-  width: 210px;
-  /* 140px × 1.5 */
+  width: 300px;
   height: auto;
   display: block;
-  margin: 32px auto 40px;
-  /* 위아래 여백도 조금 넉넉하게 */
+  margin: 0 auto 0;
 }
 
-/* phone 컨테이너 세로 꽉 채우기 */
+
 .phone {
   min-height: 100vh;
   /* 브라우저 높이 전체 사용 */

@@ -20,7 +20,9 @@
 
     <!-- 헤더 -->
     <header class="top">
-      <h1 class="logo">RECIPICK</h1>
+       <div class="logo">
+    	<img src="/image/logo-main.png" class="logo-img" alt="로고" />
+       </div>
       <button class="notif" aria-label="알림">
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 0 0-12 0v3.2c0 .5-.2 1-.6 1.4L4 17h5" />
@@ -38,13 +40,13 @@
     </section>
 
     <!-- 오늘의 추천 -->
-    <section class="section" id="featuredSection">
+        <section class="section" id="featuredSection">
       <div class="sec-head">
         <h2>오늘의 추천</h2>
         <a class="more" href="search_home.html?sort=hot">더보기</a>
       </div>
 
-      <div class="hero is-17x" id="hero">
+      <div class="hero" id="hero">
         <div class="slides" id="slides" aria-live="polite"></div>
         <div class="dots" role="tablist" aria-label="추천 슬라이드"></div>
       </div>
@@ -145,7 +147,7 @@
     function resetAutoSlide() { clearInterval(autoSlideInterval); if (totalSlides > 1) { autoSlideInterval = setInterval(nextSlide, 4000); } }
 
     /* 오늘의 추천 */
-    (async () => {
+        (async () => {
       try {
         const r = await fetch(`${BASE}/api/main/today`, { cache: 'no-store' });
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
@@ -159,20 +161,23 @@
           const href = id ? `/post_detail/${id}` : 'javascript:void(0)';
           return `
         <article class="slide" data-i="${i}">
-        <a href="${href}" class="hero-link">
-        <div class="hero-thumb"></div>
-        <div class="hero-meta">
-          <div class="hero-title">${it.title}</div>
-          <div class="hero-sub">❤️ ${it.likeCount} · 👁️ ${it.viewCount}</div>
-        </div>
-      </a>
-      </article>
+          <a href="${href}" class="hero-link">
+            <div class="hero-thumb" data-i="${i}"></div>
+            <div class="hero-meta">
+              <div class="hero-title">${it.title}</div>
+              <div class="hero-sub">❤️ ${it.likeCount} · 👁️ ${it.viewCount}</div>
+            </div>
+          </a>
+        </article>
       `;
         }).join('');
 
         await Promise.all(list.map(async (it, idx) => {
           const good = await pickWorkingImage(it.rcpImgUrl);
-          slidesEl.querySelector(`.slide[data-i="${idx}"] .hero-thumb`).style.backgroundImage = `url('${good}')`;
+          const thumbEl = slidesEl.querySelector(`.hero-thumb[data-i="${idx}"]`);
+          if (thumbEl) {
+            thumbEl.style.backgroundImage = `url('${good}')`;
+          }
         }));
 
         const dotsWrap = document.querySelector('.dots');
@@ -189,11 +194,13 @@
         const slides = document.getElementById('slides');
         slides.innerHTML = `
       <article class="slide">
-        <div class="hero-thumb" style="background-image:url('${PLACEHOLDER}')"></div>
-        <div class="hero-meta">
-          <div class="hero-title">추천을 불러오지 못했어요</div>
-          <div class="hero-sub">네트워크 또는 데이터 문제일 수 있어요</div>
-        </div>
+        <a href="javascript:void(0)" class="hero-link">
+          <div class="hero-thumb" style="background-image:url('${PLACEHOLDER}')"></div>
+          <div class="hero-meta">
+            <div class="hero-title">추천을 불러오지 못했어요</div>
+            <div class="hero-sub">네트워크 또는 데이터 문제일 수 있어요</div>
+          </div>
+        </a>
       </article>`;
         document.querySelector('.dots').innerHTML = `<button class="dot is-active" data-i="0" aria-label="1번"></button>`;
         totalSlides = 1; currentSlide = 0; updateSlide();
@@ -292,74 +299,17 @@
       const input = document.querySelector('.search-input');
       if (!form || !input) return;
 
-      // 현재 페이지 상단에서 렌더에 쓰던 카테고리 목록과 동기화 (필요 시 추가)
-      const CATEGORIES = [
-        '소고기', '돼지고기', '닭고기', '달걀/유제품', '곡류', '과일류', '가공식품류',
-        '건어물류', '버섯류', '밀가루', '채소류', '콩/견과류', '해물류'
-      ];
-
-      // 간단 동의어/영문 매핑 (원하면 계속 추가하세요)
-      const SYNONYM = {
-        'beef': '소고기',
-        '소': '소고기',
-        '한우': '소고기',
-        'pork': '돼지고기',
-        'chicken': '닭고기',
-        'egg': '달걀/유제품',
-        'eggs': '달걀/유제품',
-        'dairy': '달걀/유제품',
-        'grain': '곡류',
-        'grains': '곡류',
-        'fruit': '과일류',
-        'fruits': '과일류',
-        'mushroom': '버섯류',
-        'mushrooms': '버섯류',
-        'seafood': '해물류',
-        'nut': '콩/견과류',
-        'nuts': '콩/견과류',
-        'flour': '밀가루',
-        'veggie': '채소류',
-        'veggies': '채소류',
-        'vegetable': '채소류',
-        'vegetables': '채소류',
-      };
-
-      const norm = (s) => String(s || '')
-        .trim()
-        .toLowerCase()
-        .replace(/\s+/g, '');
-
-      // 카테고리 셋/매핑 준비
-      const catSet = new Set(CATEGORIES.map(norm));
-      const synMap = new Map(Object.entries(SYNONYM).map(([k, v]) => [norm(k), v]));
-
+      // form의 submit 이벤트를 가로채서 항상 제목 검색으로 보냅니다.
       form.addEventListener('submit', (e) => {
+        e.preventDefault(); // 기본 동작(action으로 이동)을 막습니다.
+
         const raw = input.value || '';
-        const n = norm(raw);
-        if (!n) return; // 빈 검색은 기본 action 그대로 진행
+        if (!raw.trim()) return; // 빈 검색어는 무시합니다.
 
-        // 1) 동의어 매핑이 있으면 그 카테고리로
-        let category = synMap.get(n);
-
-        // 2) 사용자가 카테고리 이름을 그대로 쳤다면 그걸로
-        if (!category && catSet.has(n)) {
-          // 원래 형태(대소문자/띄어쓰기) 보존 위해 CATEGORIES에서 찾아 매칭
-          category = CATEGORIES.find((c) => norm(c) === n);
-        }
-
-        // 라우팅
-        if (category) {
-          e.preventDefault();
-          // 상단에서 쓰던 상수와 동일하게 사용 (PAGES가 정의돼 있으면 그대로 사용)
-          const target = (typeof PAGES !== 'undefined' ? PAGES : '') + `/search_home.html?category=${encodeURIComponent(category)}`;
-          location.href = target;
-        } else {
-          // 일반 검색어는 기존처럼 q 파라미터로
-          // form.action이 상대경로라면 PAGES 기준으로 바꿔주는 게 안전
-          e.preventDefault();
-          const base = (typeof PAGES !== 'undefined' ? PAGES : '');
-          location.href = `${base}/search_home.html?searchType=title&q=${encodeURIComponent(raw)}`;
-        }
+        // 상단 스크립트에 정의된 PAGES 변수를 사용합니다.
+        const base = (typeof PAGES !== 'undefined' ? PAGES : '');
+        // 어떤 검색어든 searchType=title 과 q 파라미터를 사용하여 검색 페이지로 이동시킵니다.
+        location.href = `${base}/search_home.html?searchType=title&q=${encodeURIComponent(raw)}`;
       });
     })();
   </script>

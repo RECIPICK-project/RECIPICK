@@ -74,6 +74,7 @@ body {
   letter-spacing: 2px;
   text-align: center;
   margin: calc(var(--space) * 2) 0 calc(var(--space) * 4);
+  padding : 10px;
 }
 
 /* 입력 필드 */
@@ -282,12 +283,11 @@ body {
   transform: translateY(0);
 }
 
-/* 로고 1.5배 키우기 */
 .logo-img {
-  width: 300px;
+  width: 250px;
   height: auto;
   display: block;
-  margin: 0 auto 0;
+  margin: 40px auto 0;
 }
 
 

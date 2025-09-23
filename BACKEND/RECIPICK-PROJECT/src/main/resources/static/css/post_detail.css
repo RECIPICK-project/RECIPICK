@@ -116,12 +116,12 @@ body.detail {
 }
 
 /* 로고 */
-.logo {
-    text-align: center;
-    font-size: 36px;
+.logo-img {
+    display: block;
+    width:10%;
     font-weight: 900;
     color: var(--text);
-    margin: 20px 0;
+    margin: 30px auto;
     letter-spacing: 2px;
 }
 

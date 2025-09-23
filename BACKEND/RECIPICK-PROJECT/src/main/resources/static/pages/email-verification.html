@@ -1,147 +1,182 @@
 <!doctype html>
 <html lang="ko">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <title>이메일 인증</title>
   <link rel="stylesheet" href="../css/email-verification.css">
 </head>
+
 <body>
 
-<main class="phone" role="main" aria-label="이메일 인증 화면">
-  <button class="back" aria-label="뒤로 가기" type="button" onclick="history.back()">
-    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M15 6l-6 6 6 6" stroke="#111827" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-  </button>
+  <main class="phone" role="main" aria-label="이메일 인증 화면">
+    <button class="back" aria-label="뒤로 가기" type="button" onclick="history.back()">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M15 6l-6 6 6 6" stroke="#111827" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+    </button>
 
-  <div class="wrap">
-    <div class="title">이메일 인증</div>
-    <div id="desc" class="desc">회원가입완료를 위해 인증을 진행해주세요</div>
+    <div class="wrap">
+      <div class="title">이메일 인증</div>
+      <div id="desc" class="desc">회원가입완료를 위해 인증을 진행해주세요</div>
 
-    <div class="icon">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><path d="M22 6l-10 7L2 6" fill="#fff"/></svg>
+      <div class="icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+          <path d="M22 6l-10 7L2 6" fill="#fff" />
+        </svg>
+      </div>
+
+      <div class="label">이메일 인증 번호 적는 곳</div>
+
+      <div class="code-box" id="codeBox">
+        <input class="digit" type="text" maxlength="1" inputmode="numeric">
+        <input class="digit" type="text" maxlength="1" inputmode="numeric">
+        <input class="digit" type="text" maxlength="1" inputmode="numeric">
+        <input class="digit" type="text" maxlength="1" inputmode="numeric">
+        <input class="digit" type="text" maxlength="1" inputmode="numeric">
+        <input class="digit" type="text" maxlength="1" inputmode="numeric">
+      </div>
+
+      <div style="text-align:center; margin:8px 0;">
+        <button id="resendBtn" class="resend" type="button">코드 재전송</button>
+      </div>
+
+      <div class="cta">
+        <button id="verifyBtn" class="submit" type="button">가입하기</button>
+      </div>
+
+      <p id="msg" style="text-align:center;"></p>
     </div>
+  </main>
 
-    <div class="label">이메일 인증 번호 적는 곳</div>
+  <script>
+    const BASE_API = "";
 
-    <div class="code-box" id="codeBox">
-      <input class="digit" type="text" maxlength="1" inputmode="numeric">
-      <input class="digit" type="text" maxlength="1" inputmode="numeric">
-      <input class="digit" type="text" maxlength="1" inputmode="numeric">
-      <input class="digit" type="text" maxlength="1" inputmode="numeric">
-      <input class="digit" type="text" maxlength="1" inputmode="numeric">
-      <input class="digit" type="text" maxlength="1" inputmode="numeric">
-    </div>
+    // 쿼리에서 이메일
+    const params = new URLSearchParams(location.search);
+    const email = (params.get("email") || "").toLowerCase();
 
-    <div style="text-align:center; margin:8px 0;">
-      <button id="resendBtn" type="button">코드 재전송</button>
-    </div>
+    // 가입 정보(비번/닉네임)는 sessionStorage에서 읽기
+    const saved = JSON.parse(sessionStorage.getItem("pendingSignup") || "{}");
+    const pendingEmail = (saved.email || "").toLowerCase();
 
-    <div class="cta">
-      <button id="verifyBtn" class="submit" type="button">가입하기</button>
-    </div>
+    const desc = document.getElementById("desc");
+    const msg = document.getElementById("msg");
 
-    <p id="msg" style="text-align:center;"></p>
-  </div>
-</main>
+    if (!email || email !== pendingEmail) {
+      desc.innerHTML = '이메일 정보가 없습니다. <a href="signup.html">회원가입 화면</a>에서 다시 시도해주세요.';
+      document.getElementById("codeBox").style.display = "none";
+      document.getElementById("verifyBtn").disabled = true;
+      document.getElementById("resendBtn").disabled = true;
+    } else {
+      desc.textContent = "";
+    }
 
-<script>
-  const BASE_API = "http://localhost:8080";
-
-  // 쿼리에서 이메일
-  const params = new URLSearchParams(location.search);
-  const email = (params.get("email") || "").toLowerCase();
-
-  // 가입 정보(비번/닉네임)는 sessionStorage에서 읽기
-  const saved = JSON.parse(sessionStorage.getItem("pendingSignup") || "{}");
-  const pendingEmail = (saved.email || "").toLowerCase();
-
-  const desc = document.getElementById("desc");
-  const msg  = document.getElementById("msg");
-
-  if (!email || email !== pendingEmail) {
-    desc.innerHTML = '이메일 정보가 없습니다. <a href="signup.html">회원가입 화면</a>에서 다시 시도해주세요.';
-    document.getElementById("codeBox").style.display = "none";
-    document.getElementById("verifyBtn").disabled = true;
-    document.getElementById("resendBtn").disabled = true;
-  } else {
-    desc.textContent = `인증 메일을 보냈어요: ${email}`;
-  }
-
-  // 6칸 자동 이동
-  const inputs = Array.from(document.querySelectorAll(".digit"));
-  inputs.forEach((input, idx) => {
-    input.addEventListener("input", () => {
-      input.value = input.value.replace(/\D/g, "").slice(0,1);
-      if (input.value && idx < inputs.length - 1) inputs[idx+1].focus();
+    // 6칸 자동 이동
+    const inputs = Array.from(document.querySelectorAll(".digit"));
+    inputs.forEach((input, idx) => {
+      input.addEventListener("input", () => {
+        input.value = input.value.replace(/\D/g, "").slice(0, 1);
+        if (input.value && idx < inputs.length - 1) inputs[idx + 1].focus();
+      });
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Backspace" && !input.value && idx > 0) inputs[idx - 1].focus();
+      });
     });
-    input.addEventListener("keydown", (e) => {
-      if (e.key === "Backspace" && !input.value && idx > 0) inputs[idx-1].focus();
-    });
-  });
 
-  function getCode() {
-    return inputs.map(i => i.value).join("");
-  }
+    function getCode() {
+      return inputs.map(i => i.value).join("");
+    }
+    // 코드 재전송
+    document.getElementById("resendBtn").addEventListener("click", async () => {
+      try {
+        const res = await fetch(`${BASE_API}/api/auth/email/resend`, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+          body: new URLSearchParams({ email })
+        });
 
-  // 코드 재전송
-  document.getElementById("resendBtn").addEventListener("click", async () => {
-    try {
-      const res = await fetch(`${BASE_API}/api/auth/email/send?email=${encodeURIComponent(email)}`, { method: "POST" });
-      if (res.ok) {
-        msg.textContent = "코드를 재전송했습니다.";
-        msg.style.color = "green";
-      } else {
-        const t = await res.text();
-        msg.textContent = t || `재전송 실패 (HTTP ${res.status})`;
+        if (res.ok) {
+          msg.textContent = "코드를 재전송했습니다.";
+          msg.style.color = "green";
+        } else if (res.status === 429) {
+          msg.textContent = "요청이 너무 잦습니다. 잠시 후 다시 시도하세요.";
+          msg.style.color = "red";
+
+          // ⏱ 버튼 60초 비활성화
+          const btn = document.getElementById("resendBtn");
+          btn.disabled = true;
+          let left = 60;
+          const timer = setInterval(() => {
+            left--;
+            btn.textContent = `코드 재전송 (${left})`;
+            if (left <= 0) {
+              clearInterval(timer);
+              btn.disabled = false;
+              btn.textContent = "코드 재전송";
+            }
+          }, 1000);
+        } else {
+          const t = await res.text();
+          msg.textContent = t || `재전송 실패 (HTTP ${res.status})`;
+          msg.style.color = "red";
+        }
+      } catch (e) {
+        msg.textContent = "재전송 중 네트워크 오류가 발생했습니다.";
         msg.style.color = "red";
       }
-    } catch (e) {
-      msg.textContent = "재전송 중 네트워크 오류가 발생했습니다.";
-      msg.style.color = "red";
-    }
-  });
+    });
 
-  // 인증 + 회원가입
-  document.getElementById("verifyBtn").addEventListener("click", async () => {
-    const code = getCode();
-    if (!/^\d{6}$/.test(code)) {
-      msg.textContent = "6자리 숫자 코드를 입력하세요.";
-      msg.style.color = "red";
-      return;
-    }
-
-    try {
-      const vres = await fetch(`${BASE_API}/api/auth/email/verify?email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`, { method: "POST" });
-      const vtext = await vres.text();
-      if (!vres.ok) {
-        msg.textContent = vtext || "인증 실패";
+    // 인증 + 회원가입
+    document.getElementById("verifyBtn").addEventListener("click", async () => {
+      const code = getCode();
+      if (!/^\d{6}$/.test(code)) {
+        msg.textContent = "6자리 숫자 코드를 입력하세요.";
         msg.style.color = "red";
         return;
       }
 
-      // 인증 성공 → 회원가입
-      const { password, nickname } = saved;
-      const sres = await fetch(`${BASE_API}/api/users/signup`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, nickname })
-      });
+      try {
+        const vres = await fetch(`${BASE_API}/api/auth/email/verify`, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+          body: new URLSearchParams({ email, code })
+        });
 
-      if (sres.ok) {
-        sessionStorage.removeItem("pendingSignup");
-        alert("회원가입 완료! 로그인 페이지로 이동합니다.");
-        location.href = "login.html";
-      } else {
-        const t = await sres.text();
-        msg.textContent = "회원가입 실패: " + (t || sres.status);
+        if (!vres.ok) {
+          const vtext = await vres.text();
+          msg.textContent = vtext || "인증 실패";
+          msg.style.color = "red";
+          return;
+        }
+
+        // 인증 성공 → 회원가입
+        const { password, nickname } = saved;
+        const sres = await fetch(`${BASE_API}/api/users/signup`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password, nickname })
+        });
+
+        if (sres.ok) {
+          sessionStorage.removeItem("pendingSignup");
+          alert("회원가입 완료! 로그인 페이지로 이동합니다.");
+          location.href = "login.html";
+        } else {
+          const t = await sres.text();
+          msg.textContent = "회원가입 실패: " + (t || sres.status);
+          msg.style.color = "red";
+        }
+      } catch (e) {
+        msg.textContent = "인증/가입 중 네트워크 오류가 발생했습니다.";
         msg.style.color = "red";
       }
-    } catch (e) {
-      msg.textContent = "인증/가입 중 네트워크 오류가 발생했습니다.";
-      msg.style.color = "red";
-    }
-  });
-</script>
+    });
+
+  </script>
 
 </body>
+
 </html>

@@ -377,6 +377,7 @@ function renderIngredients(ingredientsValue) {
       <button class="btn-small btn-substitute"
               onclick="getSubstituteIngredient(this)"
               data-ingredient-name="${name}"
+              data-ingredient-amount="${amount}"
               data-recipe-title="${recipeTitle}">대체</button>
       <button class="btn-small" onclick="goToCoupang('${name}')">구매</button>
     `;
@@ -424,11 +425,13 @@ function getSubstituteIngredient(buttonElement) {
     buttonElement.disabled = true;
 
     const ingredientName = buttonElement.dataset.ingredientName;
+    const amount = buttonElement.dataset.ingredientAmount;
     const recipeTitle = buttonElement.dataset.recipeTitle;
 
     // URL 파라미터 안전하게 인코딩
     const params = new URLSearchParams({
         ingredientName: ingredientName,
+        amount: amount,
         title: recipeTitle
     });
     

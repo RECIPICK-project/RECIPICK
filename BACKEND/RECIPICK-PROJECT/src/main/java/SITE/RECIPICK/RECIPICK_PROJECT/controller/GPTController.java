@@ -23,13 +23,14 @@ public class GPTController {
   final static String MODEL_NAME = "gpt-3.5-turbo";
   final static double TEMPERATURE = 0.1;
   final static int MAX_TOKEN = 50; // 토큰 수를 조금 늘림
-  final static String systemMessageContent = "당신은 식재료 대체 추천 AI입니다. 당신의 유일한 임무는 사용자가 요청한 재료를 대체할 수 있는 다른 재료의 이름을 쉼표(,)로 구분하여 나열하는 것입니다. 절대로 설명, 문장, 인사, 마침표를 포함하지 마세요. 오직 '재료1, 재료2, 재료3' 형식으로만 응답해야 합니다. 예시: 사용자가 '상추'를 요청하면, 당신의 응답은 '양상추, 치커리, 로메인' 이어야 합니다.";
+  final static String systemMessageContent = "당신은 식재료 대체 추천 AI입니다. 당신의 유일한 임무는 사용자가 요청한 재료를 대체할 수 있는 다른 재료와 그 양을 쉼표(,)로 구분하여 나열하는 것입니다. 절대로 설명, 문장, 인사, 마침표를 포함하지 마세요. 중복 재료를 알려주지 마세요. 오직 '재료1 양, 재료2 양, 재료3 양' 형식으로만 응답해야 합니다. 예시: 사용자가 '상추 1장'을 요청하면, 당신의 응답은 '양상추 2장, 치커리 1장, 로메인 1.5장' 이어야 합니다.";
   @Value("${openai.api.key:}")
   private String openaiApiKey;
 
   @GetMapping("/api/substitute-ingredient")
   public ResponseEntity<String> getSubstituteIngredient(
       @RequestParam String ingredientName,
+      @RequestParam String amount,
       @RequestParam String title) {
 
     try {
@@ -42,7 +43,9 @@ public class GPTController {
 
       System.out.println("재료 대체 요청: " + ingredientName + " (레시피: " + title + ")");
 
-      String PROMPT = title + "의 재료 중 " + ingredientName + "을(를) 대체할 수 있는 재료를 추천해줘.";
+      String amountText =
+          (amount == null || amount.isEmpty() || amount.equals("undefined")) ? "" : " " + amount;
+      String PROMPT = title + "의 재료 중 " + ingredientName + amount + "을(를) 대체할 수 있는 재료를 추천해줘.";
       String returnAiStr = openai_api_chat_worker(OPENAI_API_URL, openaiApiKey, MODEL_NAME,
           TEMPERATURE, MAX_TOKEN, systemMessageContent, PROMPT);
 

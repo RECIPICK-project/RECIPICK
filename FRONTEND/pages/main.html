@@ -32,12 +32,8 @@
     <!-- 검색 -->
     <section class="search">
       <form class="search-row" action="search_home.html" method="get">
-        <svg class="icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#6b7280" stroke-width="2">
-          <circle cx="11" cy="11" r="7"></circle>
-          <path d="M20 20l-3.5-3.5"></path>
-        </svg>
         <input class="search-input" type="search" name="q" placeholder="레시피, 재료, 태그 검색" autocomplete="off" />
-        <button class="filter" type="button" onclick="location.href='filter.html'">필터</button>
+        <button class="btn-go" type="submit">검색</button>
       </form>
     </section>
 
@@ -45,7 +41,7 @@
     <section class="section" id="featuredSection">
       <div class="sec-head">
         <h2>오늘의 추천</h2>
-        <a class="more" href="search.html?sort=hot">더보기</a>
+        <a class="more" href="search_home.html?sort=hot">더보기</a>
       </div>
 
       <div class="hero is-17x" id="hero">
@@ -289,6 +285,85 @@
       }
     });
   </script>
+  <script>
+    // 🔎 검색 입력값을 카테고리로 인식하면 category 파라미터로 리다이렉트
+    (function enableCategorySmartSearch() {
+      const form = document.querySelector('form.search-row');
+      const input = document.querySelector('.search-input');
+      if (!form || !input) return;
+
+      // 현재 페이지 상단에서 렌더에 쓰던 카테고리 목록과 동기화 (필요 시 추가)
+      const CATEGORIES = [
+        '소고기', '돼지고기', '닭고기', '달걀/유제품류', '곡류', '과일류', '가공식품류',
+        '건어물류', '버섯류', '밀가루', '채소류', '콩/견과류', '해물류'
+      ];
+
+      // 간단 동의어/영문 매핑 (원하면 계속 추가하세요)
+      const SYNONYM = {
+        'beef': '소고기',
+        '소': '소고기',
+        '한우': '소고기',
+        'pork': '돼지고기',
+        'chicken': '닭고기',
+        'egg': '달걀/유제품류',
+        'eggs': '달걀/유제품류',
+        'dairy': '달걀/유제품류',
+        'grain': '곡류',
+        'grains': '곡류',
+        'fruit': '과일류',
+        'fruits': '과일류',
+        'mushroom': '버섯류',
+        'mushrooms': '버섯류',
+        'seafood': '해물류',
+        'nut': '콩/견과류',
+        'nuts': '콩/견과류',
+        'flour': '밀가루',
+        'veggie': '채소류',
+        'veggies': '채소류',
+        'vegetable': '채소류',
+        'vegetables': '채소류',
+      };
+
+      const norm = (s) => String(s || '')
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, '');
+
+      // 카테고리 셋/매핑 준비
+      const catSet = new Set(CATEGORIES.map(norm));
+      const synMap = new Map(Object.entries(SYNONYM).map(([k, v]) => [norm(k), v]));
+
+      form.addEventListener('submit', (e) => {
+        const raw = input.value || '';
+        const n = norm(raw);
+        if (!n) return; // 빈 검색은 기본 action 그대로 진행
+
+        // 1) 동의어 매핑이 있으면 그 카테고리로
+        let category = synMap.get(n);
+
+        // 2) 사용자가 카테고리 이름을 그대로 쳤다면 그걸로
+        if (!category && catSet.has(n)) {
+          // 원래 형태(대소문자/띄어쓰기) 보존 위해 CATEGORIES에서 찾아 매칭
+          category = CATEGORIES.find((c) => norm(c) === n);
+        }
+
+        // 라우팅
+        if (category) {
+          e.preventDefault();
+          // 상단에서 쓰던 상수와 동일하게 사용 (PAGES가 정의돼 있으면 그대로 사용)
+          const target = (typeof PAGES !== 'undefined' ? PAGES : '') + `/search_home.html?category=${encodeURIComponent(category)}`;
+          location.href = target;
+        } else {
+          // 일반 검색어는 기존처럼 q 파라미터로
+          // form.action이 상대경로라면 PAGES 기준으로 바꿔주는 게 안전
+          e.preventDefault();
+          const base = (typeof PAGES !== 'undefined' ? PAGES : '');
+          location.href = `${base}/search_home.html?q=${encodeURIComponent(raw)}`;
+        }
+      });
+    })();
+  </script>
+
 
 
 </body>

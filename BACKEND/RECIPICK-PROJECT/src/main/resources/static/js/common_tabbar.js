@@ -170,9 +170,8 @@
     logoutBtn.addEventListener('click', handleLogout);
   }
 
-  // 통합 CSS 스타일 추가
-  function injectUnifiedStyles() {
-    // 기존 스타일이 있으면 제거
+
+function injectUnifiedStyles() {
     const existingStyle = document.getElementById('unified-tabbar-styles');
     if (existingStyle) {
       existingStyle.remove();
@@ -193,7 +192,6 @@
         --soft: #f9fbe7;
       }
 
-      /* 하단 고정 탭바 */
       .bottom-tabbar {
         position: fixed;
         bottom: 0;
@@ -239,27 +237,27 @@
         fill: var(--green-700);
       }
 
-.tab-icon {
-  width: 28px;
-  height: 28px;
-  stroke: var(--muted);
-  fill: none !important; 
-  stroke-width: 2;
-  transition: all 0.2s ease;
-}
+      .tab-icon {
+        width: 28px;
+        height: 28px;
+        stroke: var(--muted);
+        fill: none !important; 
+        stroke-width: 2;
+        transition: all 0.2s ease;
+      }
 
-.tab-icon.search {
-  stroke: var(--green-700) !important;
-  fill: none !important; 
-  padding: 12px !important;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: var(--mint-200);
-  display: grid;
-  place-items: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
+      .tab-icon.search {
+        stroke: var(--green-700) !important;
+        fill: none !important; 
+        padding: 12px !important;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: var(--mint-200);
+        display: grid;
+        place-items: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
 
       .tab-label {
         font-size: 12px;
@@ -273,7 +271,6 @@
         font-weight: 600;
       }
 
-      /* 바텀 시트 스타일 */
       .sheet[aria-hidden="true"] { display: none; }
       .sheet {
         position: fixed;
@@ -301,11 +298,13 @@
       .sheet-list .item {
         display: block;
         padding: 14px 8px;
-        border-bottom: 1px solid var(--line);
         color: var(--text);
         text-decoration: none;
         background: transparent;
         transition: background-color 0.2s ease;
+        border-radius: 8px; 
+        margin: 2px 0; 
+        border: none; 
       }
 
       .sheet-list .item:hover {
@@ -330,6 +329,9 @@
         cursor: pointer;
         color: inherit;
         transition: background-color 0.2s ease;
+        border-radius: 8px;
+        margin: 2px 0;
+        border: none; 
       }
       
       .sheet-list button.item:focus-visible {
@@ -427,6 +429,16 @@
   // ESC 키로 메뉴 시트 닫기
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
+      closeMenuSheet();
+    }
+  });
+
+  // 메뉴 외부 클릭으로 닫기 기능 추가
+  document.addEventListener('click', (e) => {
+    const sheet = document.getElementById('commonMenuSheet');
+    const menuButton = e.target.closest('[data-tab="menu"]');
+    if (sheet && sheet.getAttribute('aria-hidden') === 'false' && 
+        !menuButton && !sheet.contains(e.target)) {
       closeMenuSheet();
     }
   });

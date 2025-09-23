@@ -195,26 +195,200 @@
     return null;
   }
 
+  function showAdminBtn() {
+    const btn = document.getElementById('adminBtn');
+    if (!btn) return;
+    btn.hidden = false;                 // property
+    btn.removeAttribute('hidden');      // attribute 확실히 제거
+    // 혹시 CSS로 display:none 걸렸다면 비워서 되돌림
+    btn.style.display = '';
+  }
+  function hideAdminBtn() {
+    const btn = document.getElementById('adminBtn');
+    if (!btn) return;
+    btn.hidden = true;
+    btn.setAttribute('hidden', '');
+  }
+
+
   /* ================================
    * 1) 데이터 로더들
    * ================================ */
+  // === ADMIN 버튼 표시/판단 유틸 (교체본) ===
+  function getAdminStatus(userLike) {
+    if (!userLike) return null;
+
+    // 0) 명시적 boolean
+    if (userLike.isAdmin === true)  return true;
+    if (userLike.isAdmin === false) return false;
+
+    const toU = (v) => String(v ?? '').toUpperCase();
+    const isAdminStr = (v) => toU(v).includes('ADMIN'); // ROLE_ADMIN, ADMINISTRATOR 등 전부 OK
+    const asNum = (v) => { const n = Number(v); return Number.isFinite(n) ? n : null; };
+
+    // 1) 숫자 코드 (조직마다 다름) — 필요시 규칙 바꿔
+    const numRole =
+        asNum(userLike.role) ??
+        asNum(userLike.userRole) ??
+        asNum(userLike.authLevel) ??
+        asNum(userLike.roleCode) ??
+        null;
+    if (numRole !== null) return (numRole === 1 || numRole >= 9);
+
+    // 2) 단일 문자열 role
+    const strRole =
+        userLike.role ??
+        userLike.userRole ??
+        userLike.roleName ??
+        userLike.roleType ??
+        userLike.memberRole ??
+        userLike.userType ??
+        userLike.authority ??
+        null;
+    if (typeof strRole === 'string' && isAdminStr(strRole)) return true;
+
+    // 2.5) grade 로 ADMIN 주는 백엔드도 대응
+    if (typeof userLike.grade === 'string' && isAdminStr(userLike.grade)) return true;
+
+    // 3) 중첩 객체 role { name: 'ROLE_ADMIN' } 같은 패턴
+    if (userLike.role && typeof userLike.role === 'object') {
+      const cand = userLike.role.name ?? userLike.role.type ?? userLike.role.code;
+      if (isAdminStr(cand)) return true;
+    }
+
+    // 4) roles/권한 배열 (문자열/객체 혼용)
+    const arrRoles =
+        userLike.roles ??
+        userLike.roleList ??
+        userLike.scopes ??
+        userLike.permissions ??
+        null;
+    if (Array.isArray(arrRoles)) {
+      if (arrRoles.some(r => isAdminStr(r?.name ?? r?.code ?? r))) return true;
+    }
+
+    const auths = userLike.authorities || userLike.auths || userLike.grantedAuthorities;
+    if (Array.isArray(auths)) {
+      if (auths.some((a) => isAdminStr(a?.authority ?? a?.name ?? a))) return true;
+      return false;
+    }
+
+    return null;
+  }
+
+
+
+  function applyAdminButtonFrom(userLike) {
+    const status = getAdminStatus(userLike);
+    if (status === true)  showAdminBtn();
+    if (status === false) hideAdminBtn();
+    return status; // true / false / null
+  }
+
+
+  // === JWT 페이로드에서 권한 읽기 (fallback) ===
+  function decodeJwt(token) {
+    if (!token || typeof token !== 'string') return null;
+    const parts = token.split('.');
+    if (parts.length < 2) return null;
+    try {
+      const b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+      const json = decodeURIComponent(atob(b64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+      return JSON.parse(json);
+    } catch (_) { return null; }
+  }
+
+  // 로컬/세션스토리지에서 JWT를 "스캔"해서 찾아내기
+  function findJwtPayload() {
+    const stripBearer = (v) => (v || '').replace(/^Bearer\s+/i, '').trim();
+    const looksJwt = (v) => typeof v === 'string' && v.split('.').length === 3;
+
+    // 1) 우선 ACCESS_TOKEN 키 시도
+    let raw = localStorage.getItem('ACCESS_TOKEN') || sessionStorage.getItem('ACCESS_TOKEN');
+    raw = stripBearer(raw);
+    if (looksJwt(raw)) {
+      const p = decodeJwt(raw);
+      if (p) return p;
+    }
+
+    // 2) 스토리지 전체 스캔 (키명이 달라도 찾도록)
+    for (const store of [localStorage, sessionStorage]) {
+      for (let i = 0; i < store.length; i++) {
+        const k = store.key(i);
+        const v = stripBearer(store.getItem(k));
+        if (looksJwt(v)) {
+          const p = decodeJwt(v);
+          if (p) return p;
+        }
+      }
+    }
+    return null;
+  }
+
+  function applyAdminButtonFromJwt() {
+    const btn = document.getElementById('adminBtn');
+    if (!btn) return null;
+
+    const payload = findJwtPayload();
+    if (!payload) return null;
+
+    // 권한 후보 모으기 (문자열/배열/객체 모두 대응)
+    const cand =
+        payload.roles ||
+        payload.authorities ||
+        payload.auth ||
+        payload.scope ||
+        payload.scopes ||
+        payload.permissions ||
+        null;
+
+    let userLike = {};
+    if (typeof cand === 'string') userLike.roles = cand.split(/\s|,/).filter(Boolean);
+    else if (Array.isArray(cand)) userLike.roles = cand;
+    else if (Array.isArray(payload.authorities)) userLike.authorities = payload.authorities;
+
+    // 최종 판정 및 표시/숨김
+    return applyAdminButtonFrom(userLike);
+  }
+
+
+
+
   async function loadProfile() {
     try {
       const res = await fx('/me/profile');
       if (res.status === 401) { location.href = '/pages/login.html'; return; }
       if (res.status === 404) { console.warn('PROFILE_NOT_FOUND'); return; }
-      if (res.status === 405) { console.warn('PROFILE_ENDPOINT_NO_GET'); return; } // GET 미지원일 때 스킵
+      if (res.status === 405) { console.warn('PROFILE_ENDPOINT_NO_GET'); return; }
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
       const p = await res.json();
+      if (JSON.stringify(p).toUpperCase().includes('ROLE_ADMIN')) {
+        const el = document.getElementById('adminBtn');
+        if (el) { el.hidden = false; el.removeAttribute('hidden'); el.style.display = ''; }
+      }
+
+
+
       window.initProfile?.({
         nickname: p.nickname,
         avatarUrl: p.profileImg || 'https://placehold.co/128x128?text=User',
         grade: p.grade,
       });
+
+      // 1) /me/profile 응답으로 관리자 판정 (정수/문자열/배열 모두 대응)
+      let status = applyAdminButtonFrom(p);
+
+      // 2) 그래도 모르면 JWT에서 권한 읽어 판정
+      if (status === null) {
+        applyAdminButtonFromJwt();
+      }
     } catch (err) {
       console.error('프로필 로드 실패:', err);
     }
   }
+
+
 
   async function loadMine() {
     try {
@@ -336,6 +510,32 @@
 
   function buildProfileModal() {
     const wrap = document.createElement('div');
+    // === a11y focus management ===
+    let lastFocus = null;
+
+    function openModal() {
+      lastFocus = document.activeElement;
+      wrap.setAttribute('aria-hidden', 'false');
+      document.querySelector('main.frame')?.setAttribute('inert', '');
+      // 첫 포커스는 닉네임 입력으로
+      const input = wrap.querySelector('#editName');
+      setTimeout(() => input?.focus(), 0);
+    }
+
+    function closeModal() {
+      // 모달 내부 포커스 먼저 해제
+      if (wrap.contains(document.activeElement)) {
+        document.activeElement.blur?.();
+      }
+      document.querySelector('main.frame')?.removeAttribute('inert');
+      wrap.setAttribute('aria-hidden', 'true');
+      // 원래 트리거로 포커스 복귀
+      setTimeout(() => {
+        (lastFocus && lastFocus.focus) ? lastFocus.focus()
+            : document.getElementById('openEdit')?.focus();
+      }, 0);
+    }
+
     wrap.className = 'modal';
     wrap.setAttribute('aria-hidden', 'true');
     wrap.innerHTML = `
@@ -358,16 +558,18 @@
 
     wrap.addEventListener('click', (e) => {
       if (e.target && e.target.dataset.close !== undefined) {
-        wrap.setAttribute('aria-hidden', 'true');
+        closeModal();
       }
     });
+
 
     document.getElementById('openEdit')?.addEventListener('click', () => {
       const cur = document.getElementById('userName')?.textContent?.trim() || '';
       const input = wrap.querySelector('#editName');
       if (input) input.value = cur;
-      wrap.setAttribute('aria-hidden', 'false');
+      openModal();
     });
+
 
     wrap.addEventListener('change', (e) => {
       if (e.target && e.target.id === 'editAvatar') {
@@ -430,7 +632,7 @@
           document.getElementById('userName').textContent = typedNickname;
         }
 
-        wrap.setAttribute('aria-hidden', 'true');
+        closeModal();
         loadProfile();
         toast('저장되었습니다.');
       } catch (err) {

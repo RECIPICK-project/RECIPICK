@@ -34,4 +34,6 @@ public class MyProfileResponse {
   // 내가 남긴 활동 수 = 내가 쓴 댓글 수 + 내가 쓴 리뷰(별점) 수
   private long activityCount;
 
+  private String role;
+
 }

@@ -21,6 +21,8 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -51,17 +53,34 @@ public class MyPageController {
           - 내가 올린 정식 레시피 개수
           - 내 정식 레시피의 총 좋아요 수
           - 활동 수(리뷰 + 댓글)
+          - role (ROLE_USER/ROLE_ADMIN)
           """
   )
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "성공",
           content = @Content(schema = @Schema(implementation = MyProfileResponse.class))),
-      @ApiResponse(responseCode = "404", description = "프로필 없음(PROFILE_NOT_FOUND) — 테스트 계정 세팅 전일 수 있음"),
+      @ApiResponse(responseCode = "404", description = "프로필 없음(PROFILE_NOT_FOUND)"),
       @ApiResponse(responseCode = "500", description = "서버 오류")
   })
-  public MyProfileResponse getProfile() {
-    return myPageService.getMyProfile(currentUser.userId());
+  public MyProfileResponse getProfile(Authentication auth) {
+    // 서비스에서 기본 프로필 구성
+    MyProfileResponse dto = myPageService.getMyProfile(currentUser.userId());
+
+    // 기본값
+    String role = "ROLE_USER";
+
+    // 스프링 시큐리티 인증에서 ROLE_ADMIN 보유 여부 확인
+    if (auth != null && auth.getAuthorities() != null) {
+      boolean isAdmin = auth.getAuthorities().stream()
+          .map(GrantedAuthority::getAuthority)
+          .anyMatch("ROLE_ADMIN"::equals);
+      role = isAdmin ? "ROLE_ADMIN" : "ROLE_USER";
+    }
+
+    dto.setRole(role);
+    return dto;
   }
+
 
   @PatchMapping(value = "/profile/nickname", consumes = "application/json")
   @Operation(

@@ -15,42 +15,36 @@
 }
 
 * {
-  box-sizing: border-box
+  box-sizing: border-box;
 }
 
 html,
 body {
-  height: 100%
+  height: 100%;
 }
 
 body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans KR", Helvetica, Arial, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
+    "Noto Sans KR", Helvetica, Arial, "Apple SD Gothic Neo", "Malgun Gothic",
+    sans-serif;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.phone {
-  width: 375px;
-  max-width: 100%;
-  height: 812px;
-  max-height: 100vh;
-  position: relative;
-  padding: calc(var(--space)*3) calc(var(--space)*2) calc(var(--space)*3)
-}
-
+/* 뒤로가기 버튼 */
 .back {
   position: absolute;
-  left: calc(var(--space)*2);
-  top: calc(var(--space)*2);
+  left: calc(var(--space) * 2);
+  top: calc(var(--space) * 2);
   width: 40px;
   height: 40px;
   border-radius: 9999px;
   background: #fff;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, .06);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
   display: grid;
   place-items: center;
   cursor: pointer;
@@ -59,30 +53,34 @@ body {
 
 .back svg {
   width: 18px;
-  height: 18px
+  height: 18px;
 }
 
+/* 컨텐츠 래퍼 */
 .wrap {
-  margin-top: calc(var(--space)*7);
-  max-width: 320px;
+  margin-top: calc(var(--space) * 6);
+  max-width: 100%;
   margin-left: auto;
   margin-right: auto;
   display: grid;
-  gap: calc(var(--space)*3)
+  gap: calc(var(--space) * 3);
+  padding: 0 32px;
 }
 
+/* 로고 */
 .logo {
   font-weight: 800;
-  font-size: 44px;
+  font-size: 88px;
   letter-spacing: 2px;
   text-align: center;
-  margin: calc(var(--space)*2) 0 calc(var(--space)*4)
+  margin: calc(var(--space) * 2) 0 calc(var(--space) * 4);
 }
 
+/* 입력 필드 */
 .field {
   display: flex;
   flex-direction: column;
-  gap: calc(var(--space)*2 - 2px)
+  gap: 20px;
 }
 
 .input {
@@ -94,22 +92,23 @@ body {
   padding: 0 14px;
   font-size: 16px;
   outline: none;
-  transition: border-color .15s ease;
+  transition: border-color 0.15s ease;
 }
 
 .input:focus {
-  border-color: #2E7D32
+  border-color: #2e7d32;
 }
 
 .forgot {
-  margin-top: calc(var(--space)*1);
+  margin-top: calc(var(--space) * 1);
   font-size: 13px;
   color: var(--muted);
-  line-height: 1.2
+  line-height: 1.2;
 }
 
+/* 버튼 */
 .cta {
-  margin-top: calc(var(--space)*2)
+  margin-top: calc(var(--space) * 2);
 }
 
 .btn {
@@ -126,26 +125,25 @@ body {
   border-radius: 12px;
   height: 56px;
   cursor: pointer;
-  box-shadow: 0 2px 0 rgba(0, 0, 0, .06) inset;
-  transition: transform .02s ease, background .2s ease;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.06) inset;
+  transition: transform 0.02s ease, background 0.2s ease;
 }
 
 .btn:active {
   transform: translateY(1px);
-  background: var(--cta-pressed)
+  background: var(--cta-pressed);
 }
 
-/* 링크 영역: 정확히 '링크 | 링크 | 링크' 3등분 */
+/* 링크 영역 */
 .links {
   display: grid;
   grid-template-columns: 1fr auto 1fr auto 1fr;
   /* a | bar | a | bar | a */
   align-items: center;
   column-gap: 12px;
-  margin: calc(var(--space)*2) 6px calc(var(--space)*1);
+  margin: 20px 32px 8px;
 }
 
-/* 파란색/밑줄 금지 + 가운데 정렬(상태 전부 동일) */
 .links a {
   display: block;
   text-align: center;
@@ -163,35 +161,33 @@ body {
   text-decoration: none !important;
 }
 
-/* 구분 막대 */
 .links .bar {
   width: 1px;
   height: 16px;
-  background: #D1D5DB;
+  background: #d1d5db;
   justify-self: center;
 }
 
-
-
+/* 소셜 영역 */
 .section-title {
   display: flex;
   align-items: center;
-  gap: calc(var(--space)*1.5);
-  margin: calc(var(--space)*3) 0 calc(var(--space)*2);
+  gap: calc(var(--space) * 1.5);
+  margin: calc(var(--space) * 3) 0 calc(var(--space) * 2);
   color: var(--muted);
-  font-size: 14px
+  font-size: 14px;
 }
 
 .section-title .line {
   height: 1px;
   background: var(--divider);
-  flex: 1
+  flex: 1;
 }
 
 .socials {
   display: flex;
-  gap: calc(var(--space)*2);
-  justify-content: center
+  gap: calc(var(--space) * 2);
+  justify-content: center;
 }
 
 .sbtn {
@@ -200,31 +196,32 @@ body {
   border-radius: 9999px;
   display: grid;
   place-items: center;
-  border: 1px solid rgba(0, 0, 0, .05);
-  cursor: pointer
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  cursor: pointer;
 }
 
 .sbtn:active {
-  transform: translateY(1px)
+  transform: translateY(1px);
 }
 
 .sbtn svg {
   width: 24px;
-  height: 24px
+  height: 24px;
 }
 
 .google {
-  background: var(--google)
+  background: var(--google);
 }
 
 .naver {
-  background: var(--naver)
+  background: var(--naver);
 }
 
 .kakao {
-  background: var(--kakao)
+  background: var(--kakao);
 }
 
+/* 프레임 */
 .phone {
   width: 800px;
   /* 핵심: 800px */
@@ -240,7 +237,7 @@ body {
   border-radius: 20px;
   overflow: hidden;
   /* 테두리 안으로 내용 클립 */
-  box-shadow: 0 8px 32px rgba(0, 0, 0, .08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
   position: relative;
 }
 
@@ -251,13 +248,13 @@ body {
   border-color: var(--divider);
 }
 
-/* 상단 영역(간단 헤더 느낌) */
+/* 상단 영역 */
 .phone::before {
   content: "";
   display: block;
   height: 1px;
   background: var(--divider);
-  opacity: .7;
+  opacity: 0.7;
 }
 
 .head-lite {
@@ -267,24 +264,14 @@ body {
   padding: 18px 20px 0 20px;
 }
 
-/* 내부 컨텐츠 폭 정리 */
-.wrap {
-  margin: 0 auto;
-  max-width: 760px;
-  /* 800 - 좌우 20px 패딩 기준 */
-  padding: 20px;
-  /* 내부 여백 부여 */
-  gap: calc(var(--space)*3);
-}
-
-/* 행 너비 여유(모바일값 유지해도 되지만 800px에 맞춰 살짝 키움) */
+/* 행 너비 */
 .row {
   grid-template-columns: minmax(0, 1fr) 112px;
 }
 
-/* 버튼/폼 요소 살짝 상향 */
+/* 버튼/폼 요소 강조 */
 .submit {
-  box-shadow: 0 4px 16px rgba(244, 185, 66, .25);
+  box-shadow: 0 4px 16px rgba(244, 185, 66, 0.25);
 }
 
 .submit:hover {
@@ -295,27 +282,30 @@ body {
   transform: translateY(0);
 }
 
-/* 모바일(<=480px)에서는 기존처럼 꽉 채우기 */
-@media (max-width: 480px) {
-  body {
-    align-items: center;
-    padding: 0;
-  }
+/* 로고 1.5배 키우기 */
+.logo-img {
+  width: 210px;
+  /* 140px × 1.5 */
+  height: auto;
+  display: block;
+  margin: 32px auto 40px;
+  /* 위아래 여백도 조금 넉넉하게 */
+}
 
-  .phone {
-    width: 100vw;
-    height: 100vh;
-    border-radius: 0;
-    border: none;
-    box-shadow: none;
-  }
+/* phone 컨테이너 세로 꽉 채우기 */
+.phone {
+  min-height: 100vh;
+  /* 브라우저 높이 전체 사용 */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  /* 세로 가운데 정렬 */
+  padding: 0 24px 40px;
+  /* 좌우 24px, 하단은 조금 더 */
+}
 
-  .wrap {
-    max-width: 100%;
-    padding: 16px;
-  }
 
-  .row {
-    grid-template-columns: minmax(0, 1fr) 88px;
-  }
+/* 3) 링크 텍스트와 구분 바 사이 여백 */
+.links a {
+  padding: 0 8px;
 }

@@ -23,6 +23,13 @@ public class EmailVerificationController {
         return ResponseEntity.ok().build();
     }
 
+    // ✅ 재전송 추가
+    @PostMapping("/resend")
+    public ResponseEntity<?> resend(@RequestParam String email) {
+        service.sendVerificationCode(email); // 내부에서 쿨다운 처리(409/429)
+        return ResponseEntity.ok().build();
+    }
+
     // 코드 검증
     @PostMapping("/verify")
     public ResponseEntity<?> verify(@RequestParam String email, @RequestParam String code) {

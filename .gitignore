@@ -12,6 +12,9 @@ BACKEND/RECIPICK-PROJECT/bin/
 !BACKEND/RECIPICK-PROJECT/src/test/**/build/
 BACKEND/RECIPICK-PROJECT/.env
 
+# Spring Boot 설정 파일 무시
+BACKEND/RECIPICK-PROJECT/src/main/resources/application.properties
+
 # 🧪 IDE 설정
 **/.idea/
 **/.vscode/

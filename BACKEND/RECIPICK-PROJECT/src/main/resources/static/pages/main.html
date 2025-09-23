@@ -358,7 +358,7 @@
           // form.action이 상대경로라면 PAGES 기준으로 바꿔주는 게 안전
           e.preventDefault();
           const base = (typeof PAGES !== 'undefined' ? PAGES : '');
-          location.href = `${base}/search_home.html?q=${encodeURIComponent(raw)}`;
+          location.href = `${base}/search_home.html?searchType=title&q=${encodeURIComponent(raw)}`;
         }
       });
     })();

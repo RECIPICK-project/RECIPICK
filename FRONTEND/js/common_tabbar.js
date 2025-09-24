@@ -1,4 +1,3 @@
-
 (function() {
   'use strict';
 
@@ -71,6 +70,97 @@
     setTimeout(() => (t.style.opacity = '0'), 1800);
   }
 
+  // === 로그인 상태 체크 함수들 (무한루프 방지) ===
+  let isCheckingLogin = false; // 중복 체크 방지 플래그
+  let lastLoginState = null; // 마지막 로그인 상태 캐시
+
+  async function getCurrentUserInfo() {
+    try {
+      const res = await fx('/api/users/review_check');
+      
+      if (res.ok) {
+        const userProfile = await res.json();
+        return {
+          loggedIn: true,
+          email: userProfile.email,
+          role: userProfile.role,
+          userId: userProfile.userId,
+          nickname: userProfile.nickname
+        };
+      } else if (res.status === 401) {
+        // 401 응답 시 토큰 정리
+        localStorage.removeItem('ACCESS_TOKEN');
+        sessionStorage.removeItem('ACCESS_TOKEN');
+        return { loggedIn: false };
+      } else {
+        return { loggedIn: false };
+      }
+    } catch (error) {
+      // 네트워크 오류 등의 경우 토큰 정리
+      localStorage.removeItem('ACCESS_TOKEN');
+      sessionStorage.removeItem('ACCESS_TOKEN');
+    }
+    return { loggedIn: false };
+  }
+
+  function hasValidToken() {
+    const token = localStorage.getItem('ACCESS_TOKEN') || sessionStorage.getItem('ACCESS_TOKEN');
+    if (!token) return false;
+    
+    // 간단한 JWT 형식 체크 (3개 부분으로 나뉘어진 구조)
+    const parts = token.replace(/^Bearer\s+/i, '').trim().split('.');
+    const isValid = parts.length === 3;
+    return isValid;
+  }
+
+  async function checkLoginStatus() {
+    // 중복 체크 방지
+    if (isCheckingLogin) {
+      return lastLoginState || false;
+    }
+
+    isCheckingLogin = true;
+    
+    try {
+      // 서버에 실제 로그인 상태 확인 (가장 확실한 방법)
+      const userInfo = await getCurrentUserInfo();
+      lastLoginState = userInfo.loggedIn;
+      return userInfo.loggedIn;
+    } catch (error) {
+      lastLoginState = false;
+      return false;
+    } finally {
+      isCheckingLogin = false;
+    }
+  }
+
+  // === 로그인 상태에 따른 메뉴 업데이트 (무한루프 방지) ===
+  function updateMenuButtonOnly(sheet, isLoggedIn) {
+    
+    const authButton = sheet.querySelector('#commonAuthBtn');
+    
+    if (authButton) {
+      if (isLoggedIn) {
+        authButton.textContent = '로그아웃';
+        authButton.className = 'item danger';
+        authButton.onclick = handleLogout;
+      } else {
+        authButton.textContent = '로그인';
+        authButton.className = 'item';
+        authButton.onclick = handleLogin;
+      }
+    }
+  }
+
+  async function updateMenuForLoginState(sheet) {
+    // 캐시 무효화하여 최신 상태 확인
+    lastLoginState = null;
+    isCheckingLogin = false;
+    
+    const loggedIn = await checkLoginStatus();
+    updateMenuButtonOnly(sheet, loggedIn);
+  }
+
   // 통합 하단 탭바 생성 함수
   function createUnifiedTabbar() {
     // 기존 탭바가 있으면 제거
@@ -135,8 +225,8 @@
     document.body.appendChild(tabbar);
   }
 
-  // 통합 메뉴 시트 생성 함수
-  function createUnifiedMenuSheet() {
+  // 통합 메뉴 시트 생성 함수 (로그인 상태 반영) - 수정된 버전
+  async function createUnifiedMenuSheet() {
     // 기존 시트가 있으면 제거
     const existingSheet = document.getElementById('commonMenuSheet');
     if (existingSheet) {
@@ -148,6 +238,14 @@
     sheet.className = 'sheet';
     sheet.setAttribute('aria-hidden', 'true');
     
+    // 초기 로그인 상태 확인 - 캐시 무효화하여 최신 상태 확인
+    lastLoginState = null;
+    isCheckingLogin = false;
+    const loggedIn = await checkLoginStatus();
+    
+    const authButtonText = loggedIn ? '로그아웃' : '로그인';
+    const authButtonClass = loggedIn ? 'item danger' : 'item';
+    
     sheet.innerHTML = `
       <div class="sheet-handle" aria-hidden="true"></div>
       <nav class="sheet-list" aria-label="메뉴 목록">
@@ -155,23 +253,22 @@
         <a href="/pages/faq.html" class="item">자주 묻는 질문</a>
         <a href="/pages/official_recipes.html" class="item">정식 레시피</a>
         <a href="/pages/setting.html" class="item">설정</a>
-        <button id="commonLogoutBtn" class="item danger" type="button">로그아웃</button>
+        <button id="commonAuthBtn" class="${authButtonClass}" type="button">${authButtonText}</button>
       </nav>
     `;
 
     document.body.appendChild(sheet);
 
-    // 이벤트 리스너 등록 - 바깥 영역 클릭으로 닫기
+    // 이벤트 리스너 등록
     sheet.addEventListener('click', (e) => {
       if (e.target === sheet) closeMenuSheet();
     });
 
-    const logoutBtn = sheet.querySelector('#commonLogoutBtn');
-    logoutBtn.addEventListener('click', handleLogout);
+    // 버튼 클릭 이벤트 설정
+    updateMenuButtonOnly(sheet, loggedIn);
   }
 
-
-function injectUnifiedStyles() {
+  function injectUnifiedStyles() {
     const existingStyle = document.getElementById('unified-tabbar-styles');
     if (existingStyle) {
       existingStyle.remove();
@@ -365,9 +462,12 @@ function injectUnifiedStyles() {
     document.head.appendChild(style);
   }
 
+  // 메뉴 시트 열기 - 로그인 상태 강제 재확인
   function openMenuSheet() {
     const sheet = document.getElementById('commonMenuSheet');
     if (sheet) {
+      // 메뉴를 열 때마다 로그인 상태 다시 체크하여 버튼 업데이트
+      updateMenuForLoginState(sheet);
       sheet.setAttribute('aria-hidden', 'false');
     }
   }
@@ -379,18 +479,47 @@ function injectUnifiedStyles() {
     }
   }
 
+  // 로그아웃 처리 - 개선된 버전
   async function handleLogout() {
     try {
+      // 1. 서버에 로그아웃 요청
       const res = await fx('/logout', { method: 'POST' });
+      
+      // 2. 클라이언트 토큰 정리 (서버 응답과 관계없이)
       localStorage.removeItem('ACCESS_TOKEN');
+      sessionStorage.removeItem('ACCESS_TOKEN');
+      
+      // 3. 로그인 상태 캐시 초기화
+      lastLoginState = false;
+      isCheckingLogin = false;
+      
       toast('로그아웃 되었습니다.');
+      
+      // 4. 메뉴 시트 업데이트 (로그인 버튼으로 변경)
+      const sheet = document.getElementById('commonMenuSheet');
+      if (sheet) {
+        updateMenuButtonOnly(sheet, false);
+      }
+      
+      // 5. 페이지 이동
       setTimeout(() => {
         location.href = '/pages/login.html';
       }, 1000);
+      
     } catch (err) {
-      console.error('로그아웃 오류:', err);
+      // 오류가 발생해도 클라이언트 상태는 정리
       localStorage.removeItem('ACCESS_TOKEN');
+      sessionStorage.removeItem('ACCESS_TOKEN');
+      lastLoginState = false;
+      isCheckingLogin = false;
+      
       toast('로그아웃 되었습니다.');
+      
+      const sheet = document.getElementById('commonMenuSheet');
+      if (sheet) {
+        updateMenuButtonOnly(sheet, false);
+      }
+      
       setTimeout(() => {
         location.href = '/pages/login.html';
       }, 1000);
@@ -398,11 +527,17 @@ function injectUnifiedStyles() {
     closeMenuSheet();
   }
 
+  // 로그인 페이지로 이동
+  function handleLogin() {
+    closeMenuSheet();
+    location.href = '/pages/login.html';
+  }
+
   // 전역 함수들
-  window.toggleSlideMenu = function() {
+  window.toggleSlideMenu = async function() {
     const sheet = document.getElementById('commonMenuSheet');
     if (!sheet) {
-      createUnifiedMenuSheet();
+      await createUnifiedMenuSheet();
       openMenuSheet();
     } else {
       const isHidden = sheet.getAttribute('aria-hidden') === 'true';
@@ -443,11 +578,45 @@ function injectUnifiedStyles() {
     }
   });
 
+  // 페이지 포커스 시 로그인 상태 다시 체크 (다른 탭에서 로그인/아웃 했을 경우 대응) - 개선
+  window.addEventListener('focus', async () => {
+    // 캐시 초기화하여 새로 체크하도록 함
+    lastLoginState = null;
+    isCheckingLogin = false;
+    
+    const sheet = document.getElementById('commonMenuSheet');
+    if (sheet && sheet.getAttribute('aria-hidden') === 'false') {
+      await updateMenuForLoginState(sheet);
+    }
+  });
+
+  // 로그인 상태 캐시 무효화 함수 (다른 스크립트에서 호출 가능) - 개선
+  window.refreshLoginState = function() {
+    lastLoginState = null;
+    isCheckingLogin = false;
+    
+    // 현재 열린 메뉴 시트가 있다면 즉시 업데이트
+    const sheet = document.getElementById('commonMenuSheet');
+    if (sheet && sheet.getAttribute('aria-hidden') === 'false') {
+      updateMenuForLoginState(sheet);
+    }
+  };
+
+  // 로그인 성공 후 호출할 수 있는 함수 추가
+  window.onLoginSuccess = function() {
+    lastLoginState = true; // 로그인 성공 상태로 캐시 업데이트
+    
+    const sheet = document.getElementById('commonMenuSheet');
+    if (sheet) {
+      updateMenuButtonOnly(sheet, true);
+    }
+  };
+
   // 초기화 함수
-  function initUnifiedTabbar() {
+  async function initUnifiedTabbar() {
     injectUnifiedStyles();
     createUnifiedTabbar();
-    createUnifiedMenuSheet();
+    await createUnifiedMenuSheet();
   }
 
   // DOM 준비 시 초기화

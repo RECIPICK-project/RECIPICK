@@ -47,7 +47,8 @@ public class MyPageService {
         pr.getProfileImg(),
         myRecipeCount,
         totalLikesOnMyPosts,
-        reviewCount + commentCount
+        reviewCount + commentCount,
+        null
     );
   }
 

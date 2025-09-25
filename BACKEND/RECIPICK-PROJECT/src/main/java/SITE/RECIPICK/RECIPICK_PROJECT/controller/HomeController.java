@@ -8,7 +8,12 @@ public class HomeController {
 
     @GetMapping("/") // 이거만 유지하거나 redirect 용으로 남길 수 있음
     public String root() {
-        return "redirect:/home.html";
+        return "redirect:/main.html"; // 메인 페이지로 변경
+    }
+
+    @GetMapping("/test") // 테스트 페이지 추가
+    public String test() {
+        return "home"; // templates/home.html 렌더링
     }
 
     @GetMapping("/signup")

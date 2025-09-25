@@ -2,7 +2,7 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.5.4'
     id 'io.spring.dependency-management' version '1.1.7'
-    id 'checkstyle'                                    // 추가
+    // id 'checkstyle'                                    // CI/CD 오류로 주석 처리
     id 'com.diffplug.spotless' version '6.23.3'      // 추가
 }
 

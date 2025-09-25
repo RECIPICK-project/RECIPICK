@@ -67,8 +67,6 @@ jobs:
     - name: Create deployment package
       run: |
         mkdir -p deploy
-        cp build/libs/*.jar deploy/
-        cp .env deploy/
         cp scripts/deploy.sh deploy/
         chmod +x deploy/deploy.sh
         tar -czf recipick-deployment.tar.gz -C deploy .

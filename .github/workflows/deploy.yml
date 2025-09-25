@@ -56,10 +56,13 @@
           echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env
 
       - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+        run: chmod +x BACKEND/RECIPICK-PROJECT/gradlew
 
       - name: Build application
-        run: ./gradlew clean build -x test
+        run: |
+          cd BACKEND/RECIPICK-PROJECT
+          ./gradlew clean build -x test
+
 
       - name: Deploy to EC2 (Git Pull Method)
         uses: appleboy/ssh-action@v1.0.3

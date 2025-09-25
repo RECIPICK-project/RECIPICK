@@ -1,4 +1,4 @@
-// admin_users.js — 최종본
+// admin_users.js — 실서버 연동(더미 비활성), 공통 인증/CSRF 헤더 적용
 (() => {
   'use strict';
 
@@ -9,12 +9,39 @@
       .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
       .replaceAll('"','&quot;').replaceAll("'",'&#39;');
 
+  // ==== Auth / CSRF ====
+  function getCookie(name){
+    return document.cookie.split('; ').map(v=>v.trim()).find(r=>r.startsWith(name+'='))?.split('=')[1];
+  }
+  function authHeader(){
+    const t = localStorage.getItem('ACCESS_TOKEN'); // 네가 쓰던 키 그대로
+    return t ? { Authorization: `Bearer ${t}` } : {};
+  }
+  function csrfHeader(){
+    const token = getCookie('XSRF-TOKEN') || getCookie('X-CSRF-TOKEN');
+    return token ? { 'X-XSRF-TOKEN': decodeURIComponent(token) } : {};
+  }
+  async function jfetch(url, opt={}){
+    const base = opt || {};
+    base.method  = base.method || 'GET';
+    base.headers = {
+      'Accept': 'application/json',
+      ...(base.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
+      ...authHeader(),
+      ...csrfHeader(),
+      ...(base.headers || {})
+    };
+    base.credentials = 'include';
+    const res = await fetch(url, base);
+    return res;
+  }
+
   /* ========= API =========
    * GET   /admin/users?offset=&limit=      -> List<UserSummaryDTO>
    * PATCH /admin/users/{id}/grade           body {grade: BRONZE|SILVER|GOLD|PLATINUM|DIAMOND}
    * PATCH /admin/users/{id}/active          body {active: true|false}
-   * (선택) PATCH /admin/users/{id}/suspend  body {days:int, reason?:string}  // 0=영구
-   * (선택) PATCH /admin/users/{id}/unsuspend body {}
+   * PATCH /admin/users/{id}/suspend         body {days:int, reason?:string}  // 0=영구
+   * PATCH /admin/users/{id}/unsuspend       body {}
    */
   const API = {
     list     : (o, l) => `/admin/users?offset=${o}&limit=${l}`,
@@ -26,9 +53,8 @@
 
   /* ========= Fetchers ========= */
   async function patchGrade(userId, grade){
-    const res = await fetch(API.grade(userId), {
+    const res = await jfetch(API.grade(userId), {
       method:'PATCH',
-      headers:{ 'Content-Type':'application/json' },
       body: JSON.stringify({ grade: String(grade||'').toUpperCase() })
     });
     if(!res.ok){
@@ -38,9 +64,8 @@
     }
   }
   async function patchActive(userId, active){
-    const res = await fetch(API.active(userId), {
+    const res = await jfetch(API.active(userId), {
       method:'PATCH',
-      headers:{ 'Content-Type':'application/json' },
       body: JSON.stringify({ active: !!active })
     });
     if(!res.ok){
@@ -51,9 +76,8 @@
   }
   // 기간 정지(3/7/15일) / 영구(0)
   async function patchSuspend(userId, days, reason){
-    const res = await fetch(API.suspend(userId), {
+    const res = await jfetch(API.suspend(userId), {
       method:'PATCH',
-      headers:{ 'Content-Type':'application/json' },
       body: JSON.stringify({ days, reason })
     });
     if(!res.ok){
@@ -61,11 +85,10 @@
       try{ const e = await res.json(); if(e?.message) msg += `: ${e.message}` }catch{}
       throw new Error(msg);
     }
-    // { suspendedUntil: "2025-09-30T12:00:00", permanent: false } 형태를 권장
     try { return await res.json(); } catch { return null; }
   }
   async function patchUnsuspend(userId){
-    const res = await fetch(API.unsuspend(userId), { method:'PATCH' });
+    const res = await jfetch(API.unsuspend(userId), { method:'PATCH' });
     if(!res.ok) throw new Error(`정지 해제 실패 (HTTP ${res.status})`);
   }
 
@@ -155,31 +178,16 @@
   function renderPagination(){
     $('#pageInfo') && ($('#pageInfo').textContent = `${state.page+1}`);
     $('#prevPage') && ($('#prevPage').disabled = state.page <= 0);
+    // "다음" 비활성 기준: 페이지 사이즈보다 적게 오면 마지막
     $('#nextPage') && ($('#nextPage').disabled = (state.list.length < state.size));
   }
 
   /* ========= Load ========= */
   async function load(){
-    if (window.USERS_USE_DUMMY){
-      const dummy = Array.from({length: 23}).map((_,i)=>({
-        userId: 1000+i,
-        nicknameOrEmail: i%2? `user${i}@mail.com` : `닉네임${i}`,
-        createdAt: `2025-08-${String((i%28)+1).padStart(2,'0')}T12:00:00`,
-        points: i%5===0 ? -3 : (i*10)%700,
-        reportCount: i%4===0 ? 4 : (i%3),
-        grade: ['BRONZE','SILVER','GOLD','PLATINUM','DIAMOND'][i%5],
-        active: i%7!==0,
-        suspendedUntil: '' // 예: '2025-09-30T12:00:00'
-      }));
-      state.list = dummy.slice(state.page*state.size, (state.page+1)*state.size);
-      renderList(state.list);
-      return;
-    }
-
     const offset = state.page * state.size;
-    const res = await fetch(API.list(offset, state.size), { headers:{ 'Accept':'application/json' }});
+    const res = await jfetch(API.list(offset, state.size), { headers:{ 'Accept':'application/json' }});
     if (!res.ok) throw new Error('HTTP '+res.status);
-    const list = await res.json(); // List<UserSummaryDTO> (확장 시 필드 매핑 필요)
+    const list = await res.json(); // List<UserSummaryDTO>
     state.list = Array.isArray(list) ? list : [];
     renderList(state.list);
   }
@@ -199,7 +207,7 @@
     $$('#userList .js-view').forEach(btn=>{
       btn.onclick = (e)=>{
         const li = e.target.closest('.user-item');
-        alert(`사용자 상세(더미): ${li.dataset.uid}`);
+        alert(`사용자 상세: ${li.dataset.uid}`);
       };
     });
     $$('#userList .js-edit').forEach(btn=>{
@@ -215,7 +223,7 @@
 
         $('#mUid')      && ($('#mUid').textContent = uid);
         $('#mName')     && ($('#mName').textContent = title);
-        $('#mTier')     && ($('#mTier').value = tier);         // BRONZE~DIAMOND
+        $('#mTier')     && ($('#mTier').value = tier);
         $('#mActive')   && ($('#mActive').checked = active);
         $('#mReports')  && ($('#mReports').textContent = `최근 30일: ${reps}건`);
 
@@ -225,7 +233,6 @@
     });
   }
 
-  // 모달 내 정지 상태 표시
   function showBanStatus(li){
     const statusEl = $('#mBanStatus'); if (!statusEl || !li) return;
     const until = li.dataset.suspendedUntil || '';
@@ -243,7 +250,7 @@
     }
   }
 
-  // 저장: 등급 + 활성(정지/해제 플래그)
+  // 저장: 등급 + 활성
   $('#saveUser') && ($('#saveUser').onclick = async ()=>{
     if (!currentUser) return;
     const userId   = currentUser.uid;

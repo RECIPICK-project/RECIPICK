@@ -1,177 +1,199 @@
 <!doctype html>
 <html lang="ko">
-
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <title>레시피 상세 페이지</title>
   <link rel="stylesheet" href="../css/post_detail.css">
   <link rel="stylesheet" href="../css/review_detail.css">
-  <script src="../js/post_detail.js"></script>
-  <script src="../js/review_detail.js"></script>
+
+  <!-- 모달이 반드시 사라지도록 최소 CSS 보강 -->
+  <style>
+    .report-modal { position: fixed; inset: 0; z-index: 9999; }
+    .report-modal.hidden { display: none; }
+    .report-overlay { position: absolute; inset: 0; background: rgba(0,0,0,.45); z-index: 1; }
+    .report-dialog { position: absolute; left:50%; top:50%; transform: translate(-50%,-50%); z-index: 2; }
+  </style>
+
+  <script src="../js/post_detail.js" defer></script>
+  <script src="../js/review_detail.js" defer></script>
   <script src="../js/common_tabbar.js" defer></script>
 </head>
-
 <body class="detail">
-  <!-- SVG 정의 (별점 반쪽 채우기용) -->
-  <svg style="position: absolute; width: 0; height: 0; opacity: 0;">
-    <defs>
-      <linearGradient id="half-fill" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="50%" style="stop-color:#ffc107;stop-opacity:1" />
-        <stop offset="50%" style="stop-color:#e0e0e0;stop-opacity:1" />
-      </linearGradient>
-      <linearGradient id="half-fill-small" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="50%" style="stop-color:#ffc107;stop-opacity:1" />
-        <stop offset="50%" style="stop-color:#e0e0e0;stop-opacity:1" />
-      </linearGradient>
-    </defs>
-  </svg>
+<!-- SVG 정의 (별점 반쪽 채우기용) -->
+<svg style="position: absolute; width: 0; height: 0; opacity: 0;">
+  <defs>
+    <linearGradient id="half-fill" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="50%" style="stop-color:#ffc107;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#e0e0e0;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="half-fill-small" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="50%" style="stop-color:#ffc107;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#e0e0e0;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+</svg>
 
-  <div class="phone detail-page">
-    <!-- 헤더 -->
-    <header class="head">
-      <button class="back" onclick="history.back()">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M15 6l-6 6 6 6" />
-        </svg>
-      </button>
-      <h1>레시피 상세 페이지</h1>
-      <div class="spacer"></div>
-    </header>
+<div class="phone detail-page">
+  <!-- 헤더 -->
+  <header class="head">
+    <button class="back" onclick="history.back()">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M15 6l-6 6 6 6" />
+      </svg>
+    </button>
+    <h1>레시피 상세 페이지</h1>
+    <div class="spacer"></div>
+  </header>
 
-    <div class="wrap">
-      <!-- 로고 -->
-          <div class="logo">
+  <div class="wrap">
+    <!-- 로고 -->
+    <div class="logo">
       <img src="/image/logo-simple.png" class="logo-img" alt="로고" />
     </div>
 
-      <!-- 썸네일 이미지 -->
-      <section class="card">
-        <div class="thumbnail" id="thumbnailBox">
-          <div class="thumbnail-placeholder">썸네일 이미지</div>
-        </div>
-      </section>
+    <!-- 썸네일 이미지 -->
+    <section class="card">
+      <div class="thumbnail" id="thumbnailBox">
+        <div class="thumbnail-placeholder">썸네일 이미지</div>
+      </div>
+    </section>
 
-      <!-- 레시피 기본 정보 -->
-      <section class="card">
-        <div class="recipe-header">
-          <h1 class="recipe-title" id="recipeTitle">Burger Bistro</h1>
-          <button class="like-button" id="likeButton" onclick="toggleLike()">
+    <!-- 레시피 기본 정보 -->
+    <section class="card">
+      <div class="recipe-header">
+        <h1 class="recipe-title" id="recipeTitle">Burger Bistro</h1>
+
+        <div class="actions" style="display:flex; gap:8px; align-items:center;">
+          <!-- 신고 -->
+          <button type="button" class="report-button" id="reportButton" onclick="openReportModal()">신고</button>
+
+          <!-- 좋아요 (런타임 바인딩) -->
+          <button type="button" class="like-button" id="likeButton" aria-pressed="false">
             <svg class="heart-icon" viewBox="0 0 24 24" width="24" height="24">
               <path class="heart-outline" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" fill="none" stroke="currentColor" stroke-width="2"/>
-              <path class="heart-filled" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" fill="currentColor" style="display: none;"/>
+              <path class="heart-filled" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" fill="currentColor" style="display:none;"/>
             </svg>
           </button>
         </div>
+      </div>
 
-        <div class="author-info">
-          <svg class="location-icon" viewBox="0 0 24 24">
-            <path
-              d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
-          </svg>
-          <span class="author-name" id="authorName">Rose Garden</span>
+      <div class="author-info">
+        <svg class="location-icon" viewBox="0 0 24 24">
+          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+        </svg>
+        <span class="author-name" id="authorName">Rose Garden</span>
+      </div>
+
+      <div class="meta-info">
+        <div class="meta-item">
+          <svg class="meta-icon star-icon" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <span class="meta-text" id="difficulty">3</span>
         </div>
+        <div class="meta-item">
+          <svg class="meta-icon person-icon" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+          <span class="meta-text" id="servings">3</span>
+        </div>
+        <div class="meta-item">
+          <svg class="meta-icon time-icon" viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm4.2 14.2L11 13V7h1.5v5.2l4.5 2.7-.8 1.3z"/></svg>
+          <span class="meta-text" id="cookingTime">20 min</span>
+        </div>
+      </div>
+    </section>
 
-        <div class="meta-info">
-          <div class="meta-item">
-            <svg class="meta-icon star-icon" viewBox="0 0 24 24">
-              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-            </svg>
-            <span class="meta-text" id="difficulty">3</span>
+    <!-- 재료 섹션 -->
+    <section class="card">
+      <h2 class="section-title">재료</h2>
+      <div id="ingredientsList"></div>
+    </section>
+
+    <!-- 조리순서 섹션 -->
+    <section class="card">
+      <h2 class="section-title">조리순서</h2>
+      <div class="cooking-steps" id="cookingStepsList"></div>
+    </section>
+
+    <!-- 댓글 섹션 -->
+    <section class="card">
+      <h2 class="section-title">댓글</h2>
+      <div class="comment-form" id="commentForm">
+        <div class="comment-form-title">이 레시피는 어떠셨나요?</div>
+
+        <div class="rating-section">
+          <label class="rating-label">별점</label>
+          <div class="star-rating" id="starRating">
+            <div class="star" data-rating="1"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
+            <div class="star" data-rating="2"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
+            <div class="star" data-rating="3"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
+            <div class="star" data-rating="4"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
+            <div class="star" data-rating="5"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
           </div>
-          <div class="meta-item">
-            <svg class="meta-icon person-icon" viewBox="0 0 24 24">
-              <path
-                d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-            </svg>
-            <span class="meta-text" id="servings">3</span>
-          </div>
-          <div class="meta-item">
-            <svg class="meta-icon time-icon" viewBox="0 0 24 24">
-              <path
-                d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm4.2 14.2L11 13V7h1.5v5.2l4.5 2.7-.8 1.3z" />
-            </svg>
-            <span class="meta-text" id="cookingTime">20 min</span>
-          </div>
-        </div>
-      </section>
-
-      <!-- 재료 섹션 -->
-      <section class="card">
-        <h2 class="section-title">재료</h2>
-        <div id="ingredientsList">
-          <!-- JavaScript로 동적 생성 -->
-        </div>
-      </section>
-
-      <!-- 조리순서 섹션 -->
-      <section class="card">
-        <h2 class="section-title">조리순서</h2>
-        <div class="cooking-steps" id="cookingStepsList">
-          <!-- JavaScript로 동적 생성 -->
-        </div>
-      </section>
-
-      <!-- 댓글 섹션 -->
-      <section class="card">
-        <h2 class="section-title">댓글</h2>
-
-        <!-- 댓글 입력 폼 -->
-        <div class="comment-form" id="commentForm">
-          <div class="comment-form-title">이 레시피는 어떠셨나요?</div>
-
-          <!-- 별점 입력 -->
-          <div class="rating-section">
-            <label class="rating-label">별점</label>
-            <div class="star-rating" id="starRating">
-              <div class="star" data-rating="1">
-                <svg viewBox="0 0 24 24">
-                  <path
-                    d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                </svg>
-              </div>
-              <div class="star" data-rating="2">
-                <svg viewBox="0 0 24 24">
-                  <path
-                    d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                </svg>
-              </div>
-              <div class="star" data-rating="3">
-                <svg viewBox="0 0 24 24">
-                  <path
-                    d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                </svg>
-              </div>
-              <div class="star" data-rating="4">
-                <svg viewBox="0 0 24 24">
-                  <path
-                    d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                </svg>
-              </div>
-              <div class="star" data-rating="5">
-                <svg viewBox="0 0 24 24">
-                  <path
-                    d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                </svg>
-              </div>
-            </div>
-            <span class="rating-text" id="ratingText">별점을 선택해주세요</span>
-          </div>
-
-          <!-- 댓글 입력 -->
-          <textarea class="comment-input" id="commentText" placeholder="이 레시피에 대한 경험을 공유해주세요..."></textarea>
-
-          <!-- 제출 버튼 -->
-          <button class="comment-submit" id="submitComment">댓글 등록</button>
+          <span class="rating-text" id="ratingText">별점을 선택해주세요</span>
         </div>
 
-        <!-- 댓글 목록 -->
-        <div class="comments-list" id="commentsList">
-          <!-- JavaScript로 동적 생성 -->
-        </div>
-      </section>
+        <textarea class="comment-input" id="commentText" placeholder="이 레시피에 대한 경험을 공유해주세요..."></textarea>
+        <button class="comment-submit" id="submitComment">댓글 등록</button>
+      </div>
+
+      <div class="comments-list" id="commentsList"></div>
+    </section>
+  </div>
+
+  <!-- 신고 모달 -->
+  <div id="reportModal" class="report-modal hidden" role="dialog" aria-modal="true" aria-labelledby="reportTitle">
+    <div class="report-overlay" data-close="1"></div>
+    <div class="report-dialog">
+      <header class="report-head">
+        <h3 id="reportTitle">게시글 신고</h3>
+        <button class="report-close" data-close="1" aria-label="닫기">×</button>
+      </header>
+      <div class="report-body">
+        <label class="report-label">사유</label>
+        <select id="reportReason" class="report-input">
+          <option value="">선택하세요</option>
+          <option value="스팸/홍보">스팸/홍보</option>
+          <option value="욕설/혐오">욕설/혐오</option>
+          <option value="저작권 침해">저작권 침해</option>
+          <option value="부적절한 내용">부적절한 내용</option>
+          <option value="기타">기타</option>
+        </select>
+
+        <label class="report-label">세부 내용(선택)</label>
+        <textarea id="reportDetail" class="report-textarea" placeholder="상세 사유를 적어주세요(선택)"></textarea>
+      </div>
+      <footer class="report-foot">
+        <button class="report-btn ghost" data-close="1">취소</button>
+        <button class="report-btn warn" id="submitReportBtn">신고하기</button>
+      </footer>
     </div>
   </div>
-</body>
+</div>
 
+<!-- 🔒 백업용: 외부 JS가 실패해도 최소한 모달은 동작 -->
+<script>
+  (function () {
+    function _open() {
+      var m = document.getElementById('reportModal');
+      if (!m) return;
+      m.classList.remove('hidden');
+    }
+    function _close() {
+      var m = document.getElementById('reportModal');
+      if (!m) return;
+      m.classList.add('hidden');
+    }
+    // 외부 JS가 동일 이름을 덮어써도 되고, 없으면 이 함수가 사용됨
+    window.openReportModal = window.openReportModal || _open;
+    window.closeReportModal = window.closeReportModal || _close;
+
+    var modal = document.getElementById('reportModal');
+    if (modal) {
+      var closers = modal.querySelectorAll('[data-close], .report-overlay');
+      closers.forEach(function (el) { el.addEventListener('click', window.closeReportModal, { passive: true }); });
+      var submit = document.getElementById('submitReportBtn');
+      if (submit && typeof window.submitReport === 'function') submit.addEventListener('click', window.submitReport, { passive: true });
+    }
+  })();
+</script>
+</body>
 </html>

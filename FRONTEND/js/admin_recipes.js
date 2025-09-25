@@ -206,11 +206,7 @@
     applyRuleToCards();
     bindPostRowActions();
   }
-<<<<<<< HEAD
 
-
-=======
->>>>>>> bf1dcd43ac34e3ceb50d458650edadcb06c4f628
 
   function applyRuleToCards(){
     const rule = readRule();

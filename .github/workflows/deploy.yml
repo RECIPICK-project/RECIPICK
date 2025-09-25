@@ -1,0 +1,119 @@
+name: Deploy to AWS EC2
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+    types: [ closed ]
+
+jobs:
+  deploy:
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Cache Gradle packages
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+
+    - name: Create .env file
+      run: |
+        echo "DB_URL=${{ secrets.DB_URL }}" > .env
+        echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> .env
+        echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+        echo "DB_DRIVER=${{ secrets.DB_DRIVER }}" >> .env
+        echo "JPA_SHOW_SQL=${{ secrets.JPA_SHOW_SQL }}" >> .env
+        echo "JPA_HIBERNATE_DDL=${{ secrets.JPA_HIBERNATE_DDL }}" >> .env
+        echo "SERVER_PORT=${{ secrets.SERVER_PORT }}" >> .env
+        echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> .env
+        echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env
+        echo "SPRING_MAIL_USERNAME=${{ secrets.SPRING_MAIL_USERNAME }}" >> .env
+        echo "SPRING_MAIL_PASSWORD=${{ secrets.SPRING_MAIL_PASSWORD }}" >> .env
+        echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> .env
+        echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> .env
+        echo "AWS_REGION=${{ secrets.AWS_REGION }}" >> .env
+        echo "AWS_S3_BUCKET_NAME=${{ secrets.AWS_S3_BUCKET_NAME }}" >> .env
+        echo "NAVER_CLOVA_OCR_API_URL=${{ secrets.NAVER_CLOVA_OCR_API_URL }}" >> .env
+        echo "NAVER_CLOVA_OCR_SECRET_KEY=${{ secrets.NAVER_CLOVA_OCR_SECRET_KEY }}" >> .env
+        echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env
+
+    - name: Grant execute permission for gradlew
+      run: chmod +x BACKEND/RECIPICK-PROJECT/gradlew
+      working-directory: ./
+
+    - name: Run tests
+      run: ./gradlew test
+      working-directory: BACKEND/RECIPICK-PROJECT
+
+    - name: Build application
+      run: ./gradlew clean build -x test
+      working-directory: BACKEND/RECIPICK-PROJECT
+
+    - name: Create deployment package
+      run: |
+        mkdir -p deploy
+        cp BACKEND/RECIPICK-PROJECT/build/libs/*.jar deploy/
+        cp .env deploy/
+        cp deploy.sh deploy/
+        chmod +x deploy/deploy.sh
+        tar -czf recipick-deployment.tar.gz -C deploy .
+
+    - name: Deploy to EC2
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USER }}
+        key: ${{ secrets.EC2_SSH_KEY }}
+        script: |
+          # Create deployment directory
+          sudo mkdir -p /opt/recipick
+          sudo chown ${{ secrets.EC2_USER }}:${{ secrets.EC2_USER }} /opt/recipick
+          cd /opt/recipick
+
+          # Clean old files
+          rm -rf recipick-deployment.tar.gz deploy/
+
+          # Download new deployment package
+          wget https://github.com/${{ github.repository }}/releases/download/latest/recipick-deployment.tar.gz || echo "Release not found, using artifacts"
+
+    - name: Upload deployment package
+      uses: appleboy/scp-action@v0.1.7
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USER }}
+        key: ${{ secrets.EC2_SSH_KEY }}
+        source: "recipick-deployment.tar.gz"
+        target: "/opt/recipick/"
+
+    - name: Deploy application
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USER }}
+        key: ${{ secrets.EC2_SSH_KEY }}
+        script: |
+          cd /opt/recipick
+
+          # Extract deployment package
+          tar -xzf recipick-deployment.tar.gz
+
+          # Run deployment script
+          ./deploy.sh

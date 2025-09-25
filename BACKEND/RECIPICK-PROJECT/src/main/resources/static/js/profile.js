@@ -8,7 +8,7 @@
     window.__origNickname = document.querySelector('[name="nickname"]')?.value?.trim() || '';
   });
 
-  // ✅ 폼 있을 때만 등록
+  // 폼 있을 때만 등록
   const profileForm = document.getElementById('profileForm');
   if (profileForm) profileForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -21,7 +21,7 @@
       const newNickname   = nicknameInput?.value?.trim() || '';
       const file          = document.getElementById('profileImageInput')?.files?.[0];
 
-      // 변경된 필드만
+      // 변경될 필드만
       const payload = {};
       if (newNickname && newNickname !== window.__origNickname) {
         payload.nickname = newNickname;
@@ -32,7 +32,7 @@
       }
 
       if (!Object.keys(payload).length) {
-        alert('변경된 내용이 없습니다.');
+        alert('변경될 내용이 없습니다.');
         return;
       }
 
@@ -88,8 +88,8 @@
   const API = (p) => `${API_BASE}${p}`;
 
   function authHeader() {
-    const token = localStorage.getItem('ACCESS_TOKEN');
-    return token ? { Authorization: `Bearer ${token}` } : {};
+    // Spring Security 세션 기반에서는 JWT 토큰 헤더 불필요
+    return {};
   }
 
   function getCookie(name) {
@@ -226,7 +226,7 @@
     const isAdminStr = (v) => toU(v).includes('ADMIN'); // ROLE_ADMIN, ADMINISTRATOR 등 전부 OK
     const asNum = (v) => { const n = Number(v); return Number.isFinite(n) ? n : null; };
 
-    // 1) 숫자 코드 (조직마다 다름) — 필요시 규칙 바꿔
+    // 1) 숫자 코드 (조직마다 다름) – 필요시 규칙 바꿔
     const numRole =
         asNum(userLike.role) ??
         asNum(userLike.userRole) ??
@@ -276,15 +276,12 @@
     return null;
   }
 
-
-
   function applyAdminButtonFrom(userLike) {
     const status = getAdminStatus(userLike);
     if (status === true)  showAdminBtn();
     if (status === false) hideAdminBtn();
     return status; // true / false / null
   }
-
 
   // === JWT 페이로드에서 권한 읽기 (fallback) ===
   function decodeJwt(token) {
@@ -351,49 +348,95 @@
     return applyAdminButtonFrom(userLike);
   }
 
-
-
+  // 로그인되지 않은 상태의 프로필 초기화
+  function initNotLoggedInProfile() {
+    window.initProfile?.({
+      nickname: '로그인해주세요',
+      avatarUrl: '/image/no-image.png', // 기본 이미지 경로
+      grade: null, // grade 숨김
+    });
+    
+    // 모든 탭을 비활성화하거나 로그인 유도 메시지 표시
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    tabBtns.forEach(btn => {
+      btn.style.pointerEvents = 'none';
+      btn.style.opacity = '0.5';
+    });
+    
+    // 탭 패널들을 로그인 유도 메시지로 교체
+    const tabPanels = document.querySelectorAll('.tab-panel');
+    tabPanels.forEach(panel => {
+      panel.innerHTML = `
+        <div class="login-required" style="text-align: center; padding: 40px 20px; color: #666;">
+          <p>로그인이 필요한 서비스입니다.</p>
+          <a href="/pages/login.html" style="color: #007bff; text-decoration: none;">로그인하러 가기</a>
+        </div>
+      `;
+    });
+  }
 
   async function loadProfile() {
     try {
+      // Spring Security 세션 기반에서는 바로 API 호출로 확인
       const res = await fx('/me/profile');
-      if (res.status === 401) { location.href = '/pages/login.html'; return; }
+      
+      if (res.status === 401 || res.status === 403) { 
+        initNotLoggedInProfile();
+        return; 
+      }
       if (res.status === 404) { console.warn('PROFILE_NOT_FOUND'); return; }
       if (res.status === 405) { console.warn('PROFILE_ENDPOINT_NO_GET'); return; }
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
       const p = await res.json();
+
       if (JSON.stringify(p).toUpperCase().includes('ROLE_ADMIN')) {
         const el = document.getElementById('adminBtn');
         if (el) { el.hidden = false; el.removeAttribute('hidden'); el.style.display = ''; }
       }
 
-
-
+      // grade가 있을 때만 표시, 없으면 숨김
+      console.log('[DEBUG] Initializing profile with data:', {
+        nickname: p.nickname,
+        profileImg: p.profileImg,
+        grade: p.grade
+      });
+      
       window.initProfile?.({
         nickname: p.nickname,
-        avatarUrl: p.profileImg || 'https://placehold.co/128x128?text=User',
-        grade: p.grade,
+        avatarUrl: p.profileImg || '/image/no-image.png',
+        grade: p.grade || null, // null이면 setTier에서 숨김 처리
       });
 
       // 1) /me/profile 응답으로 관리자 판정 (정수/문자열/배열 모두 대응)
       let status = applyAdminButtonFrom(p);
 
-      // 2) 그래도 모르면 JWT에서 권한 읽어 판정
+      // 2) 그래도 모르면 JWT에서 권한 읽어 판정 (Spring Security에서는 불필요하지만 유지)
       if (status === null) {
         applyAdminButtonFromJwt();
       }
+
+      // 로그인된 상태이므로 탭 활성화
+      const tabBtns = document.querySelectorAll('.tab-btn');
+      tabBtns.forEach(btn => {
+        btn.style.pointerEvents = '';
+        btn.style.opacity = '';
+      });
+
     } catch (err) {
       console.error('프로필 로드 실패:', err);
+      // API 실패시 로그인 안된 것으로 간주
+      initNotLoggedInProfile();
     }
   }
-
-
 
   async function loadMine() {
     try {
       const r = await fx('/me/posts?type=temp&limit=20');
-      if (r.status === 401) { location.href = '/pages/login.html'; return; }
+      if (r.status === 401 || r.status === 403) { 
+        initNotLoggedInProfile();
+        return; 
+      }
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       const items = await r.json();
       if (Array.isArray(items) && items[0]) {
@@ -401,16 +444,18 @@
       }
       window.renderMine?.(items || []);
     } catch (e) {
-      console.warn('내 레시피 로드 실패:', e);
       window.renderMine?.([]);
     }
   }
 
-  // ✅ 변경 1: 저장한 레시피 → /me/likes 호출 + 필드 보정
+  // 저장한 레시피 → /me/likes 호출 + 필드 보정
   async function loadSaved() {
     try {
       const r = await fx('/me/likes?offset=0&limit=20');
-      if (r.status === 401) { location.href = '/pages/login.html'; return; }
+      if (r.status === 401 || r.status === 403) { 
+        initNotLoggedInProfile();
+        return; 
+      }
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       const raw = await r.json(); // List<PostDto>
 
@@ -429,17 +474,20 @@
   }
 
   async function loadActivity() {
-  try {
-    const r = await fx('/me/reviews?offset=0&limit=20');
-    if (r.status === 401) { location.href = '/pages/login.html'; return; }
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    const items = await r.json();
-    window.renderActivityList?.('listActivity', items || [], loadActivity);
-  } catch (e) {
-    console.warn('리뷰 활동 로드 실패:', e);
-    window.renderActivityList?.('listActivity', [], loadActivity);
+    try {
+      const r = await fx('/me/reviews?offset=0&limit=20');
+      if (r.status === 401 || r.status === 403) { 
+        initNotLoggedInProfile();
+        return; 
+      }
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const items = await r.json();
+      window.renderActivityList?.('listActivity', items || [], loadActivity);
+    } catch (e) {
+      console.warn('리뷰 활동 로드 실패:', e);
+      window.renderActivityList?.('listActivity', [], loadActivity);
+    }
   }
-}
 
   /* ================================
    * 2) 탭 전환
@@ -504,7 +552,7 @@
   }
 
   /* ================================
-   * 4) 프로필 편집 모달 + 저장 (수정판)
+   * 4) 프로필 편집 모달 + 저장
    * ================================ */
   let savingProfile = false;
 
@@ -562,14 +610,7 @@
       }
     });
 
-
-    document.getElementById('openEdit')?.addEventListener('click', () => {
-      const cur = document.getElementById('userName')?.textContent?.trim() || '';
-      const input = wrap.querySelector('#editName');
-      if (input) input.value = cur;
-      openModal();
-    });
-
+    document.getElementById('openEdit')?.addEventListener('click', openModal);
 
     wrap.addEventListener('change', (e) => {
       if (e.target && e.target.id === 'editAvatar') {
@@ -585,6 +626,7 @@
 
     async function onSaveProfile() {
       if (savingProfile) return;
+      
       savingProfile = true;
 
       const btn = saveBtn;
@@ -646,7 +688,7 @@
     }
   }
 
-// === 프로필 아바타 업로드 (S3 presign → PUT → 서버에 URL 저장) ===
+  // === 프로필 아바타 업로드 (S3 presign → PUT → 서버에 URL 저장) ===
   async function uploadAvatar(file) {
     if (!file) return { ok: false, status: 0 }; // 파일 없으면 사진 없이 진행
 
@@ -685,19 +727,27 @@
     }
   }
 
-
-
-
-
   /* ================================
    * 5) 등급 표시 & 프로필 초기화
    * ================================ */
   window.setTier = function (grade) {
     const el = document.getElementById('userTier');
     if (!el) return;
+    
+    // grade가 null이거나 빈 값이면 등급 요소를 숨김
+    if (!grade) {
+      el.style.display = 'none';
+      return;
+    }
+    
     const key = String(grade || '').toUpperCase();
     const shown = { BRONZE:'Bronze', SILVER:'Silver', GOLD:'Gold', PLATINUM:'Platinum', DIAMOND:'Diamond' }[key];
-    if (!shown) return;
+    if (!shown) {
+      el.style.display = 'none';
+      return;
+    }
+    
+    el.style.display = '';
     el.dataset.tier = key;
     el.textContent = shown;
   };
@@ -711,7 +761,9 @@
       const img = document.getElementById('avatarImg');
       if (img) img.src = avatarUrl;
     }
-    if (grade) window.setTier(grade);
+    
+    // grade 처리 (null이면 숨김)
+    window.setTier(grade);
   };
 
   /* ================================
@@ -772,7 +824,7 @@
       let id = btn.dataset.id && btn.dataset.id.trim() !== '' ? btn.dataset.id : (card?.dataset.id || '');
       let isOfficial = (card?.dataset.official === '1');
 
-      // 2) 여전히 id 없으면, items[idx]에서 다시 파생
+      // 2) 여전히 id 없으면, items[idx]에서 다시 파싱
       if ((!id || id === '') && idx >= 0 && (items || [])[idx]) {
         const backId = getPostId(items[idx]);
         if (backId != null) {
@@ -796,7 +848,7 @@
       }
 
       if (btn.classList.contains('btn-edit')) {
-        if (isOfficial) location.href = `${OFFICIAL_DETAIL_PAGE}?postId=${encodeURIComponent(id)}`; // ✅ 변경 2: ?postId=
+        if (isOfficial) location.href = `${OFFICIAL_DETAIL_PAGE}?postId=${encodeURIComponent(id)}`;
         else            location.href = `post_upload.html?edit=${encodeURIComponent(id)}`;
         return;
       }
@@ -823,7 +875,6 @@
     };
   };
 
-  // ✅ 변경 3: 상세 링크를 official_detail.html?postId= 로 통일
   window.renderLinkList = function (listId, items) {
     const ul = document.getElementById(listId);
     if (!ul) return;
@@ -850,69 +901,70 @@
     });
   };
 
-window.renderActivityList = function (listId, items, onListChange) {
-  const ul = document.getElementById(listId);
-  if (!ul) return;
-  ul.innerHTML = '';
+  window.renderActivityList = function (listId, items, onListChange) {
+    const ul = document.getElementById(listId);
+    if (!ul) return;
+    ul.innerHTML = '';
 
-  const emptyEl = document.querySelector('[data-empty-activity]');
-  if (emptyEl) emptyEl.hidden = (Array.isArray(items) && items.length > 0);
+    const emptyEl = document.querySelector('[data-empty-activity]');
+    if (emptyEl) emptyEl.hidden = (Array.isArray(items) && items.length > 0);
 
-  (items || []).forEach((it) => {
-    const li = document.createElement('li');
-    li.className = 'card';
+    (items || []).forEach((it) => {
+      const li = document.createElement('li');
+      li.className = 'card';
 
-    const post = it?.post || {};
-    const thumbUrl = post.rcpImgUrl || '';
-    const titleText = post.title || '원본 레시피';
-    const postId = post.postId ?? it.postId;
-    
-    const reviewId = it.reviewId;
-    const rating = it.reviewRating?.toFixed(1) || '0.0';
-    const comment = it.comment || '';
-    
-    const safeBg = thumbUrl.replace(/'/g, '&#39;');
+      const post = it?.post || {};
+      const thumbUrl = post.rcpImgUrl || '';
+      const titleText = post.title || '원본 레시피';
+      const postId = post.postId ?? it.postId;
+      
+      const reviewId = it.reviewId;
+      const rating = it.reviewRating?.toFixed(1) || '0.0';
+      const comment = it.comment || '';
+      
+      const safeBg = thumbUrl.replace(/'/g, '&#39;');
 
-    // 3단 구조 (thumb | meta+rating | actions)
-    li.innerHTML = `
-      <div class="thumb" style="background-image:url('${safeBg}')"></div>
-      <div class="meta">
-        <div class="title">${comment}</div>
-        <div class="sub">⭐ ${rating} · ${titleText}</div>
-      </div>
-      <div class="actions">
-        <button class="icon btn-view" data-post-id="${postId}" title="원본 레시피 보기">👁️</button>
-        <button class="icon btn-del" data-review-id="${reviewId}" title="리뷰 삭제">🗑️</button>
-      </div>`;
-    ul.appendChild(li);
-  });
+      // 3단 구조 (thumb | meta+rating | actions)
+      li.innerHTML = `
+        <div class="thumb" style="background-image:url('${safeBg}')"></div>
+        <div class="meta">
+          <div class="title">${comment}</div>
+          <div class="sub">⭐ ${rating} · ${titleText}</div>
+        </div>
+        <div class="actions">
+          <button class="icon btn-view" data-post-id="${postId}" title="원본 레시피 보기">👁️</button>
+          <button class="icon btn-del" data-review-id="${reviewId}" title="리뷰 삭제">🗑️</button>
+        </div>`;
+      ul.appendChild(li);
+    });
 
-  ul.onclick = async (e) => {
-    const btn = e.target.closest('button');
-    if (!btn) return;
+    ul.onclick = async (e) => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
 
-    if (btn.classList.contains('btn-view')) {
-      const postId = btn.dataset.postId;
-      if (postId) location.href = `/pages/post_detail.html?postId=${encodeURIComponent(postId)}`;
-      return;
-    }
-
-    if (btn.classList.contains('btn-del')) {
-      const reviewId = btn.dataset.reviewId;
-      if (!reviewId) { toast('잘못된 리뷰 ID입니다.'); return; }
-      if (!await confirmAsync('리뷰를 삭제하시겠어요?')) return;
-
-      try {
-        const res = await fx(`/api/reviews/${reviewId}`, { method: 'DELETE' });
-        if (!res.ok) throw new Error('삭제 실패');
-        toast('리뷰가 삭제되었습니다.');
-        if (typeof onListChange === 'function') onListChange();
-      } catch (err) {
-        toast('삭제에 실패했습니다.');
+      if (btn.classList.contains('btn-view')) {
+        const postId = btn.dataset.postId;
+        if (postId) location.href = `/pages/post_detail.html?postId=${encodeURIComponent(postId)}`;
+        return;
       }
-    }
+
+      if (btn.classList.contains('btn-del')) {
+        const reviewId = btn.dataset.reviewId;
+        if (!reviewId) { toast('잘못된 리뷰 ID입니다.'); return; }
+        if (!await confirmAsync('리뷰를 삭제하시겠어요?')) return;
+
+        try {
+          const res = await fx(`/api/reviews/${reviewId}`, { method: 'DELETE' });
+          if (!res.ok) throw new Error('삭제 실패');
+          toast('리뷰가 삭제되었습니다.');
+          if (typeof onListChange === 'function') onListChange();
+        } catch (err) {
+          toast('삭제에 실패했습니다.');
+        }
+      }
+    };
   };
-};
+
   /* ================================
    * 7) 하단 하트 → 저장 탭
    * ================================ */

@@ -17,21 +17,23 @@ echo "📦 발견된 JAR 파일: $JAR_FILE"
 
 # 기존 서비스 중지
 echo "⏹️  기존 서비스 중지 중..."
-systemctl stop $SERVICE_NAME || echo "서비스가 실행 중이 아닙니다"
+sudo systemctl stop $SERVICE_NAME || echo "서비스가 실행 중이 아닙니다"
 
 # 기존 JAR 파일 백업
 if [ -f "$DEPLOY_DIR/current.jar" ]; then
     echo "💾 기존 JAR 파일 백업..."
-    mv "$DEPLOY_DIR/current.jar" "$DEPLOY_DIR/backup-$(date +%Y%m%d_%H%M%S).jar"
+    sudo mv "$DEPLOY_DIR/current.jar" "$DEPLOY_DIR/backup-$(date +%Y%m%d_%H%M%S).jar"
 fi
 
 # 새 JAR 파일 복사
 echo "📁 새 JAR 파일 설치..."
-cp "$JAR_FILE" "$DEPLOY_DIR/current.jar"
-cp .env "$DEPLOY_DIR/.env"
+sudo cp "$JAR_FILE" "$DEPLOY_DIR/current.jar"
+sudo cp .env "$DEPLOY_DIR/.env"
 
 # 권한 설정
-chmod +x "$DEPLOY_DIR/current.jar"
+sudo chown ubuntu:ubuntu "$DEPLOY_DIR/current.jar"
+sudo chown ubuntu:ubuntu "$DEPLOY_DIR/.env"
+sudo chmod +x "$DEPLOY_DIR/current.jar"
 
 # systemd 서비스 파일이 없으면 생성
 if [ ! -f "/etc/systemd/system/$SERVICE_NAME.service" ]; then
@@ -56,23 +58,23 @@ RestartSec=5
 WantedBy=multi-user.target
 EOF
 
-    systemctl daemon-reload
-    systemctl enable $SERVICE_NAME
+    sudo systemctl daemon-reload
+    sudo systemctl enable $SERVICE_NAME
 fi
 
 # 서비스 시작
 echo "🔄 서비스 시작 중..."
-systemctl start $SERVICE_NAME
+sudo systemctl start $SERVICE_NAME
 
 # 서비스 상태 확인
 sleep 5
-if systemctl is-active --quiet $SERVICE_NAME; then
+if sudo systemctl is-active --quiet $SERVICE_NAME; then
     echo "✅ 배포 성공! 서비스가 정상적으로 실행 중입니다."
-    systemctl status $SERVICE_NAME --no-pager -l
+    sudo systemctl status $SERVICE_NAME --no-pager -l
 else
     echo "❌ 배포 실패! 서비스 시작에 실패했습니다."
     echo "로그 확인:"
-    journalctl -u $SERVICE_NAME --no-pager -l -n 20
+    sudo journalctl -u $SERVICE_NAME --no-pager -l -n 20
     exit 1
 fi
 

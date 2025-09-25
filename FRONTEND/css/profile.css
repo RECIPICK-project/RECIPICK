@@ -223,6 +223,30 @@ body.detail{
   margin-top:2px;
 }
 
+.card.clickable-card{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:12px;
+  transition: all 0.2s ease;
+}
+
+.card.clickable-card:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* ===== 저장한 레시피(링크 카드)에도 동일한 호버 효과 ===== */
+.cards.linkable .card{
+  transition: all 0.2s ease;
+}
+
+.cards.linkable .card:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+
 /* ===== 하단 탭바(고정) ===== */
 .tabbar{
   position:fixed; left:50%; transform:translateX(-50%);

@@ -200,12 +200,19 @@
           <span class="badge ${status === 'official' ? 'ok'
           : 'warn'} status-badge">${status === 'official' ? '정식' : '임시'}</span>
           <span class="promote-chip wait">대기</span>
+<<<<<<< HEAD
           <button class="btn-ghost small promote-btn"${status === 'official'
           ? ' disabled' : ''}>승격</button>
          <button type="button"
    class="btn-ghost small js-open-detail"
    data-url="/pages/post_detail.html?postId=${encodeURIComponent(id)}"
    style="text-decoration:none; color:inherit;">보기</button>
+=======
+          <button class="btn-ghost small promote-btn"${status==='official'?' disabled':''}>승격</button>
+         <a class="btn-ghost small"
+   href="/pages/post_detail.html?postId=${encodeURIComponent(id)}"
+   style="text-decoration:none; color:inherit;">보기</a>
+>>>>>>> bf1dcd43ac34e3ceb50d458650edadcb06c4f628
 
         </div>
       `;
@@ -216,7 +223,11 @@
     bindPostRowActions();
   }
 
+<<<<<<< HEAD
   function applyRuleToCards() {
+=======
+  function applyRuleToCards(){
+>>>>>>> bf1dcd43ac34e3ceb50d458650edadcb06c4f628
     const rule = readRule();
     $('#ruleSummary') && ($('#ruleSummary').textContent = ruleSummaryText(
         rule));

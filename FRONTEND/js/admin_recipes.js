@@ -195,7 +195,6 @@
           <span class="promote-chip wait">대기</span>
           <button class="btn-ghost small promote-btn"${status==='official'?' disabled':''}>승격</button>
          <a class="btn-ghost small"
-   data-detail-link
    href="/pages/post_detail.html?postId=${encodeURIComponent(id)}"
    style="text-decoration:none; color:inherit;">보기</a>
 
@@ -207,8 +206,11 @@
     applyRuleToCards();
     bindPostRowActions();
   }
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> bf1dcd43ac34e3ceb50d458650edadcb06c4f628
 
   function applyRuleToCards(){
     const rule = readRule();

@@ -151,7 +151,6 @@
          <a class="btn-ghost small"
    data-detail-link
    href="/pages/post_detail.html?postId=${encodeURIComponent(id)}"
-   target="_blank" rel="noopener"
    style="text-decoration:none; color:inherit;">보기</a>
 
         </div>
@@ -172,11 +171,7 @@
     e.stopImmediatePropagation();
 
     const url = a.getAttribute('href');
-    if (a.getAttribute('target') === '_blank') {
-      window.open(url, '_blank', 'noopener');
-    } else {
       location.assign(url);
-    }
   }, true); // ← 여기 true (capture)
 
 

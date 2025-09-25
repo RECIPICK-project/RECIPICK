@@ -172,6 +172,57 @@ body.detail{
   margin:24px 0; text-align:center; color:var(--muted); font-size:14px;
 }
 
+.card.clickable-card{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:12px;
+  transition: all 0.2s ease;
+}
+
+.card.clickable-card:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.card.clickable-card .card-content{
+  flex:1;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  cursor:pointer;
+  min-width:0;
+}
+
+.card.clickable-card .actions{
+  flex-shrink:0;
+  display:flex;
+  gap:6px;
+}
+
+/* 클릭 가능한 카드 내부의 메타 정보 */
+.card.clickable-card .meta{
+  flex:1;
+  min-width:0;
+}
+
+.card.clickable-card .meta .title{
+  font-size:14px;
+  font-weight:700;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.card.clickable-card .meta .sub{
+  font-size:12px;
+  color:var(--muted);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  margin-top:2px;
+}
+
 /* ===== 하단 탭바(고정) ===== */
 .tabbar{
   position:fixed; left:50%; transform:translateX(-50%);

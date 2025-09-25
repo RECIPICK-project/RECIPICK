@@ -64,11 +64,11 @@ public class PointController {
     public ResponseEntity<Map<String, Object>> getGradeSystemInfo() {
         Map<String, Object> gradeSystem = Map.of(
                 "grades", Map.of(
-                        "BRONZE", Map.of("points", 0, "display", "브론즈", "color", "#CD7F32"),
-                        "SILVER", Map.of("points", 100, "display", "실버", "color", "#C0C0C0"),
-                        "GOLD", Map.of("points", 300, "display", "골드", "color", "#FFD700"),
-                        "PLATINUM", Map.of("points", 800, "display", "플래티넘", "color", "#E5E4E2"),
-                        "DIAMOND", Map.of("points", 2000, "display", "다이아몬드", "color", "#B9F2FF")
+                        "BRONZE", Map.of("points", 0, "display", "BRONZE", "color", "#CD7F32"),
+                        "SILVER", Map.of("points", 100, "display", "SILVER", "color", "#C0C0C0"),
+                        "GOLD", Map.of("points", 300, "display", "GOLD", "color", "#FFD700"),
+                        "PLATINUM", Map.of("points", 800, "display", "PLATINUM", "color", "#E5E4E2"),
+                        "DIAMOND", Map.of("points", 2000, "display", "DIAMOND", "color", "#B9F2FF")
                 ),
                 "pointActions", Map.of(
                         "POST_CREATE", Map.of("points", 20, "description", "게시글 작성"),

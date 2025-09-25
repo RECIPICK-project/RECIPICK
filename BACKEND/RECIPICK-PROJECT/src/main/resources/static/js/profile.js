@@ -911,7 +911,7 @@
 
     (items || []).forEach((it) => {
       const li = document.createElement('li');
-      li.className = 'card';
+      li.className = 'card clickable-card';
 
       const post = it?.post || {};
       const thumbUrl = post.rcpImgUrl || '';
@@ -924,31 +924,25 @@
       
       const safeBg = thumbUrl.replace(/'/g, '&#39;');
 
-      // 3단 구조 (thumb | meta+rating | actions)
+      // 카드 전체를 클릭 가능하게 만들고, 삭제 버튼만 별도 처리
       li.innerHTML = `
-        <div class="thumb" style="background-image:url('${safeBg}')"></div>
-        <div class="meta">
-          <div class="title">${comment}</div>
-          <div class="sub">⭐ ${rating} · ${titleText}</div>
+        <div class="card-content" data-post-id="${postId}" style="cursor: pointer; flex: 1; display: flex; align-items: center; gap: 10px;">
+          <div class="thumb" style="background-image:url('${safeBg}')"></div>
+          <div class="meta" style="flex: 1; min-width: 0;">
+            <div class="title">${comment}</div>
+            <div class="sub">⭐ ${rating} · ${titleText}</div>
+          </div>
         </div>
         <div class="actions">
-          <button class="icon btn-view" data-post-id="${postId}" title="원본 레시피 보기">👁️</button>
           <button class="icon btn-del" data-review-id="${reviewId}" title="리뷰 삭제">🗑️</button>
         </div>`;
       ul.appendChild(li);
     });
 
     ul.onclick = async (e) => {
-      const btn = e.target.closest('button');
-      if (!btn) return;
-
-      if (btn.classList.contains('btn-view')) {
-        const postId = btn.dataset.postId;
-        if (postId) location.href = `/pages/post_detail.html?postId=${encodeURIComponent(postId)}`;
-        return;
-      }
-
-      if (btn.classList.contains('btn-del')) {
+      // 삭제 버튼을 클릭한 경우
+      if (e.target.closest('.btn-del')) {
+        const btn = e.target.closest('.btn-del');
         const reviewId = btn.dataset.reviewId;
         if (!reviewId) { toast('잘못된 리뷰 ID입니다.'); return; }
         if (!await confirmAsync('리뷰를 삭제하시겠어요?')) return;
@@ -961,6 +955,17 @@
         } catch (err) {
           toast('삭제에 실패했습니다.');
         }
+        return;
+      }
+
+      // 카드 내용을 클릭한 경우 (삭제 버튼이 아닌 경우)
+      const cardContent = e.target.closest('.card-content');
+      if (cardContent) {
+        const postId = cardContent.dataset.postId;
+        if (postId) {
+          location.href = `/pages/post_detail.html?postId=${encodeURIComponent(postId)}`;
+        }
+        return;
       }
     };
   };

@@ -28,12 +28,18 @@ fi
 # 새 JAR 파일 복사
 echo "📁 새 JAR 파일 설치..."
 sudo cp "$JAR_FILE" "$DEPLOY_DIR/current.jar"
-sudo cp .env "$DEPLOY_DIR/.env"
+
+# .env 파일은 서버에서 직접 관리 (보안상 이유)
+echo "ℹ️  .env 파일은 서버에서 직접 관리합니다"
 
 # 권한 설정
 sudo chown ubuntu:ubuntu "$DEPLOY_DIR/current.jar"
-sudo chown ubuntu:ubuntu "$DEPLOY_DIR/.env"
 sudo chmod +x "$DEPLOY_DIR/current.jar"
+
+# .env 파일이 존재할 경우 권한만 확인
+if [ -f "$DEPLOY_DIR/.env" ]; then
+    sudo chown ubuntu:ubuntu "$DEPLOY_DIR/.env"
+fi
 
 # systemd 서비스 파일이 없으면 생성
 if [ ! -f "/etc/systemd/system/$SERVICE_NAME.service" ]; then

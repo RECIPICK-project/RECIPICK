@@ -67,7 +67,6 @@ jobs:
       run: |
         mkdir -p deploy
         cp BACKEND/RECIPICK-PROJECT/build/libs/*.jar deploy/
-        cp .env deploy/
         cp deploy.sh deploy/
         chmod +x deploy/deploy.sh
         tar -czf recipick-deployment.tar.gz -C deploy .

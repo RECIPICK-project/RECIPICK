@@ -8,7 +8,7 @@ public class HomeController {
 
     @GetMapping("/") // 이거만 유지하거나 redirect 용으로 남길 수 있음
     public String root() {
-        return "redirect:/main.html"; // 메인 페이지로 변경
+        return "redirect:/pages/main.html"; // pages 폴더의 메인 페이지로 변경
     }
 
     @GetMapping("/test") // 테스트 페이지 추가

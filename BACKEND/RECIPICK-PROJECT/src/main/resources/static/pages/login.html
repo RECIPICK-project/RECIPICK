@@ -19,7 +19,7 @@
 
 
     <!-- ✨ 로컬 로그인: 폼 제출로 /login 에 POST -->
-    <form id="loginForm" class="field" action="../login" method="post">
+    <form id="loginForm" class="field" action="/login" method="post">
       <!-- 스프링 시큐리티 설정: usernameParameter("email"), passwordParameter("password") -->
       <input id="email" class="input" type="email" name="email" autocomplete="username" inputmode="email"
         placeholder="아이디(이메일) 입력" aria-label="아이디 입력" required />
@@ -53,7 +53,7 @@
     <!-- 소셜 로그인 아이콘 버튼들 -->
     <div class="socials">
       <!-- ✅ Google: 실제 동작 (백엔드 OAuth2 엔드포인트로 이동) -->
-      <a class="sbtn google" href="../oauth2/authorization/google" aria-label="Google로 로그인" title="Google">
+      <a class="sbtn google" href="/oauth2/authorization/google" aria-label="Google로 로그인" title="Google">
         <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <path fill="#FFC107"
             d="M43.6 20.5H42V20H24v8h11.3C33.4 32.9 29 36 24 36c-6.6 0-12-5.4-12-12S17.4 12 24 12c3 0 5.7 1.1 7.7 3l5.7-5.7C34 7.2 29.3 5.3 24 5.3 15.9 5.3 8.8 9.9 6.3 14.7z" />

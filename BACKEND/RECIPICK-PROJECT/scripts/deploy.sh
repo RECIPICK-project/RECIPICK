@@ -27,7 +27,7 @@ git pull origin main
 # 백엔드 디렉토리로 이동하여 빌드
 echo "🔨 프로젝트 빌드 중..."
 cd $BACKEND_DIR
-./gradlew clean build -x test
+./gradlew clean copyFrontend build -x test
 
 # 서비스 시작
 echo "🔄 서비스 시작 중..."

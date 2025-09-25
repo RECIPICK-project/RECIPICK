@@ -84,20 +84,4 @@ else
     exit 1
 fi
 
-# 헬스 체크 (선택적)
-echo "🏥 헬스 체크 중..."
-for i in {1..30}; do
-    if curl -f -s http://localhost:8080/actuator/health > /dev/null 2>&1; then
-        echo "✅ 애플리케이션이 정상적으로 응답합니다!"
-        break
-    elif [ $i -eq 30 ]; then
-        echo "⚠️  헬스 체크 타임아웃 (애플리케이션이 응답하지 않습니다)"
-        echo "하지만 서비스는 실행 중입니다. 수동으로 확인해주세요."
-        break
-    else
-        echo "헬스 체크 시도 $i/30..."
-        sleep 2
-    fi
-done
-
 echo "🎉 배포 완료!"

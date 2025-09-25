@@ -30,6 +30,50 @@
     return res;
   }
 
+  // === 전역 새탭 방지 (우리 링크는 무조건 같은 탭) ===
+  (function(){
+    // 혹시 레이아웃에 <base target="_blank">가 있으면 제거
+    const base = document.querySelector('base[target]');
+    if (base) base.removeAttribute('target');
+
+    // 원본 보관 후 후킹
+    const _open = window.open;
+    window.__forceSameTab = { active: false };
+
+    window.open = function(url, target, feat){
+      // 우리 링크 클릭 직후엔 새창 금지하고 같은 탭으로
+      if (window.__forceSameTab.active) {
+        window.__forceSameTab.active = false;
+        if (url) location.assign(url);
+        return null;
+      }
+      return _open.call(window, url, target, feat);
+    };
+
+    // 캡처 단계에서 가장 먼저 플래그 ON + 기본동작 차단
+    const arm = (e) => {
+      const a = e.target?.closest?.('a[data-detail-link]');
+      if (!a) return;
+      // 다른 리스너보다 먼저 먹자
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+
+      // 우리 링크는 같은 탭으로
+      window.__forceSameTab.active = true;
+      const url = a.getAttribute('href') || a.href;
+      location.assign(url);
+      // 다음 틱에 플래그 자동 해제(혹시 중복 방지)
+      setTimeout(()=> window.__forceSameTab.active = false, 0);
+    };
+
+    // click뿐 아니라 auxclick(휠/중클릭), mousedown도 선점
+    window.addEventListener('click', arm, true);
+    window.addEventListener('auxclick', arm, true);
+    window.addEventListener('mousedown', arm, true);
+  })();
+
+
   /* =========================
    * API (컨트롤러 시그니처 맞춤)
    * ========================= */
@@ -92,6 +136,8 @@
     if(+m.views  < +r.minViews)   fails.push('views');
     return fails.length === 0;
   }
+
+
 
   /* =========================
    * 렌더: 레시피 카드
@@ -161,18 +207,6 @@
     applyRuleToCards();
     bindPostRowActions();
   }
-  // 전역 라우터/위임 클릭이 href를 바꾸지 못하도록 '캡처 단계'에서 강제 네비게이션
-  document.getElementById('postList')?.addEventListener('click', (e) => {
-    const a = e.target.closest('a[data-detail-link]');
-    if (!a) return;
-
-    e.preventDefault();
-    e.stopPropagation();
-    e.stopImmediatePropagation();
-
-    const url = a.getAttribute('href');
-      location.assign(url);
-  }, true); // ← 여기 true (capture)
 
 
 

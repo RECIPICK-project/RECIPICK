@@ -149,7 +149,6 @@
           <span class="promote-chip wait">대기</span>
           <button class="btn-ghost small promote-btn"${status==='official'?' disabled':''}>승격</button>
          <a class="btn-ghost small"
-   data-detail-link
    href="/pages/post_detail.html?postId=${encodeURIComponent(id)}"
    style="text-decoration:none; color:inherit;">보기</a>
 
@@ -161,20 +160,6 @@
     applyRuleToCards();
     bindPostRowActions();
   }
-  // 전역 라우터/위임 클릭이 href를 바꾸지 못하도록 '캡처 단계'에서 강제 네비게이션
-  document.getElementById('postList')?.addEventListener('click', (e) => {
-    const a = e.target.closest('a[data-detail-link]');
-    if (!a) return;
-
-    e.preventDefault();
-    e.stopPropagation();
-    e.stopImmediatePropagation();
-
-    const url = a.getAttribute('href');
-      location.assign(url);
-  }, true); // ← 여기 true (capture)
-
-
 
   function applyRuleToCards(){
     const rule = readRule();

@@ -72,3 +72,6 @@ server:
   tomcat:
     max-http-form-post-size: -1
   forward-headers-strategy: framework
+
+kma:
+  apiKey: ${KMA_API_KEY}

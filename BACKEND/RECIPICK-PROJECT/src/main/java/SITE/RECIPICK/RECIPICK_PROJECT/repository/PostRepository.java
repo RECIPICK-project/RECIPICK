@@ -18,11 +18,11 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface PostRepository extends JpaRepository<PostEntity, Integer> {
 
-  List<PostEntity> findTop5ByRcpImgUrlIsNotNullOrderByLikeCountDescViewCountDescCreatedAtDesc();
+  // 오늘의 추천 보충용 (최대 30개만)
+  List<PostEntity> findTop30ByRcpImgUrlIsNotNullAndRcpImgUrlNotOrderByLikeCountDescViewCountDescCreatedAtDesc(String empty);
 
-  // 인기 그리드: TOP 8
-  List<PostEntity> findTop8ByRcpImgUrlIsNotNullOrderByLikeCountDescViewCountDescCreatedAtDesc();
-
+  // 인기 그리드용 (최대 40개만)
+  List<PostEntity> findTop40ByRcpImgUrlIsNotNullAndRcpImgUrlNotOrderByLikeCountDescViewCountDescCreatedAtDesc(String empty);
   // 공식 레시피 개수
   long countByRcpIsOfficial(int official);
 
@@ -83,4 +83,75 @@ public interface PostRepository extends JpaRepository<PostEntity, Integer> {
 
     long getCnt();
   }
+  // 날씨 기반 추천
+  // 비 오는 날: 전 / 부침
+  @Query("""
+  SELECT p FROM PostEntity p
+  WHERE p.rcpImgUrl IS NOT NULL AND p.rcpImgUrl <> ''
+    AND (
+       lower(p.title)    LIKE lower(concat('%', :kw1, '%'))
+    OR lower(p.title)    LIKE lower(concat('%', :kw2, '%'))
+    OR lower(p.foodName) LIKE lower(concat('%', :kw1, '%'))
+    OR lower(p.foodName) LIKE lower(concat('%', :kw2, '%'))
+    )
+  ORDER BY p.likeCount DESC, p.viewCount DESC, p.createdAt DESC
+""")
+  List<PostEntity> findRainy(Pageable pageable, @Param("kw1") String kw1, @Param("kw2") String kw2);
+
+  @Query("""
+  SELECT p FROM PostEntity p
+  WHERE p.rcpImgUrl IS NOT NULL AND p.rcpImgUrl <> ''
+    AND (
+       lower(p.title)    LIKE lower(concat('%', :kw1, '%'))
+    OR lower(p.title)    LIKE lower(concat('%', :kw2, '%'))
+    OR lower(p.title)    LIKE lower(concat('%', :kw3, '%'))
+    OR lower(p.foodName) LIKE lower(concat('%', :kw1, '%'))
+    OR lower(p.foodName) LIKE lower(concat('%', :kw2, '%'))
+    OR lower(p.foodName) LIKE lower(concat('%', :kw3, '%'))
+    )
+  ORDER BY p.likeCount DESC, p.viewCount DESC, p.createdAt DESC
+""")
+  List<PostEntity> findHot(Pageable pageable,
+      @Param("kw1") String kw1, @Param("kw2") String kw2, @Param("kw3") String kw3);
+
+  @Query("""
+  SELECT p FROM PostEntity p
+  WHERE p.rcpImgUrl IS NOT NULL AND p.rcpImgUrl <> ''
+    AND (
+       lower(p.title)    LIKE lower(concat('%', :kw1, '%'))
+    OR lower(p.title)    LIKE lower(concat('%', :kw2, '%'))
+    OR lower(p.title)    LIKE lower(concat('%', :kw3, '%'))
+    OR lower(p.title)    LIKE lower(concat('%', :kw4, '%'))
+    OR lower(p.foodName) LIKE lower(concat('%', :kw1, '%'))
+    OR lower(p.foodName) LIKE lower(concat('%', :kw2, '%'))
+    OR lower(p.foodName) LIKE lower(concat('%', :kw3, '%'))
+    OR lower(p.foodName) LIKE lower(concat('%', :kw4, '%'))
+    )
+  ORDER BY p.likeCount DESC, p.viewCount DESC, p.createdAt DESC
+""")
+  List<PostEntity> findCold(Pageable pageable,
+      @Param("kw1") String kw1, @Param("kw2") String kw2,
+      @Param("kw3") String kw3, @Param("kw4") String kw4);
+
+  @Query("""
+  SELECT p FROM PostEntity p
+  WHERE p.rcpImgUrl IS NOT NULL AND p.rcpImgUrl <> ''
+    AND (
+       lower(p.title)    LIKE lower(concat('%', :kw1, '%'))
+    OR lower(p.title)    LIKE lower(concat('%', :kw2, '%'))
+    OR lower(p.title)    LIKE lower(concat('%', :kw3, '%'))
+    OR lower(p.title)    LIKE lower(concat('%', :kw4, '%'))
+    OR lower(p.title)    LIKE lower(concat('%', :kw5, '%'))
+    OR lower(p.foodName) LIKE lower(concat('%', :kw1, '%'))
+    OR lower(p.foodName) LIKE lower(concat('%', :kw2, '%'))
+    OR lower(p.foodName) LIKE lower(concat('%', :kw3, '%'))
+    OR lower(p.foodName) LIKE lower(concat('%', :kw4, '%'))
+    OR lower(p.foodName) LIKE lower(concat('%', :kw5, '%'))
+    )
+  ORDER BY p.likeCount DESC, p.viewCount DESC, p.createdAt DESC
+""")
+  List<PostEntity> findSnowy(Pageable pageable,
+      @Param("kw1") String kw1, @Param("kw2") String kw2,
+      @Param("kw3") String kw3, @Param("kw4") String kw4, @Param("kw5") String kw5);
+
 }

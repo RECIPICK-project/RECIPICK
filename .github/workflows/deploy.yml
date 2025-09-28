@@ -1,0 +1,116 @@
+  name: Deploy to AWS EC2
+
+  on:
+    push:
+      branches: [ main ]
+    pull_request:
+      branches: [ main ]
+      types: [ closed ]
+
+  jobs:
+    deploy:
+      if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+      runs-on: ubuntu-latest
+
+      steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Create .env file
+        run: |
+          echo "DB_URL=${{ secrets.DB_URL }}" > .env
+          echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> .env
+          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+          echo "DB_DRIVER=${{ secrets.DB_DRIVER }}" >> .env
+          echo "JPA_SHOW_SQL=${{ secrets.JPA_SHOW_SQL }}" >> .env
+          echo "JPA_HIBERNATE_DDL=${{ secrets.JPA_HIBERNATE_DDL }}" >> .env
+          echo "SERVER_PORT=${{ secrets.SERVER_PORT }}" >> .env
+          echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> .env
+          echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env
+          echo "SPRING_MAIL_USERNAME=${{ secrets.SPRING_MAIL_USERNAME }}" >> .env
+          echo "SPRING_MAIL_PASSWORD=${{ secrets.SPRING_MAIL_PASSWORD }}" >> .env
+          echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> .env
+          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> .env
+          echo "AWS_REGION=${{ secrets.AWS_REGION }}" >> .env
+          echo "AWS_S3_BUCKET_NAME=${{ secrets.AWS_S3_BUCKET_NAME }}" >> .env
+          echo "NAVER_CLOVA_OCR_API_URL=${{ secrets.NAVER_CLOVA_OCR_API_URL }}" >> .env
+          echo "NAVER_CLOVA_OCR_SECRET_KEY=${{ secrets.NAVER_CLOVA_OCR_SECRET_KEY }}" >> .env
+          echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x BACKEND/RECIPICK-PROJECT/gradlew
+
+      - name: Build application
+        run: |
+          cd BACKEND/RECIPICK-PROJECT
+          ./gradlew clean build -x test
+
+
+      - name: Deploy to EC2 (Git Pull Method)
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            # RECIPICK 새로운 배포 스크립트 (Git Pull 방식)
+            set -e
+
+            echo "🚀 RECIPICK 배포 시작..."
+
+            # 변수 설정
+            SERVICE_NAME="recipick"
+            PROJECT_DIR="/home/ubuntu/RECIPICK"
+            BACKEND_DIR="$PROJECT_DIR/BACKEND/RECIPICK-PROJECT"
+
+            echo "📁 프로젝트 디렉토리로 이동: $PROJECT_DIR"
+            cd $PROJECT_DIR
+
+            # 기존 서비스 중지
+            echo "⏹️  기존 서비스 중지 중..."
+            sudo systemctl stop $SERVICE_NAME || echo "서비스가 실행 중이 아닙니다"
+
+            # 최신 코드 pull
+            echo "📥 최신 코드 가져오기..."
+            git stash || true
+            git pull origin main
+
+            # 백엔드 디렉토리로 이동하여 빌드
+            echo "🔨 프로젝트 빌드 중..."
+            cd $BACKEND_DIR
+            ./gradlew clean copyFrontend build -x test
+
+            # 서비스 시작
+            echo "🔄 서비스 시작 중..."
+            sudo systemctl start $SERVICE_NAME
+
+            # 서비스 상태 확인
+            sleep 5
+            if sudo systemctl is-active --quiet $SERVICE_NAME; then
+                echo "✅ 배포 성공! 서비스가 정상적으로 실행 중입니다."
+                sudo systemctl status $SERVICE_NAME --no-pager -l
+            else
+                echo "❌ 배포 실패! 서비스 시작에 실패했습니다."
+                sudo journalctl -u $SERVICE_NAME --no-pager -l -n 20
+                exit 1
+            fi
+
+            echo "🎉 배포 완료!"

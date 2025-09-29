@@ -5,6 +5,7 @@ import SITE.RECIPICK.RECIPICK_PROJECT.entity.UserEntity;
 import SITE.RECIPICK.RECIPICK_PROJECT.repository.ProfileRepository;
 import SITE.RECIPICK.RECIPICK_PROJECT.repository.UserRepository;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -107,6 +108,8 @@ public class UserService {
       return "비활성화된 계정입니다.";
     }
 
+    touchLatest(userEntity.getUserId());
+
     // ROLE 체크 후 반환
     if ("ROLE_ADMIN".equalsIgnoreCase(userEntity.getRole())) {
       return "관리자 로그인";
@@ -175,4 +178,19 @@ public class UserService {
       log.info("사용자 {} active 상태 변경: {}", email, active);
     }
   }
+
+  /**
+   * 로그인/활동 시 최신 접속 시각 갱신 (DB를 UTC로 저장한다면 UTC 기준 now)
+   */
+  @Transactional
+  public void touchLatest(Integer userId) {
+    userRepository.findById(userId).ifPresent(u -> {
+      // DB가 UTC 저장이면 ↓
+//      u.setLatestAt(LocalDateTime.now(ZoneOffset.UTC));
+
+      // 만약 DB에 KST로 저장한다면 위 한 줄을 아래로 교체:
+      u.setLatestAt(LocalDateTime.now(ZoneId.of("Asia/Seoul")));
+    });
+  }
+
 }

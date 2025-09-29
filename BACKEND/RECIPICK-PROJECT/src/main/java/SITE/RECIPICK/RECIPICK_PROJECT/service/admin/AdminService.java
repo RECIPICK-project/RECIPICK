@@ -35,7 +35,8 @@ public class AdminService {
 
   @Transactional(readOnly = true)
   public AdminDashboardResponse getDashboard(int days, int minReports, int top) {
-    var now = LocalDate.now();
+    // ===== 공통 집계 =====
+    var now = LocalDate.now(); // 기존 코드 유지 (카테고리 집계 등에서 사용)
     var fromDate = now.minusDays(days - 1).atStartOfDay();
     var toDate = now.plusDays(1).atStartOfDay();
 
@@ -45,52 +46,60 @@ public class AdminService {
     // 임계치 이상 신고 누적 레시피 수 (레시피 테이블의 reportCount 사용)
     long reportedRecipesOverThreshold = postRepo.countByReportCountGreaterThanEqual(minReports);
 
-    // 방문자 추이 (데이터 소스 없으면 빈 시리즈)
-    var visitorSeries =
-        new AdminDashboardResponse.Series(
-            java.util.stream.IntStream.range(0, days)
-                .mapToObj(i -> now.minusDays(days - 1 - i))
-                .toList(),
-            java.util.stream.IntStream.range(0, days)
-                .mapToObj(i -> 0L) // 추후 연동 시 실제 값
-                .toList());
+    // ===== 방문자 추이(DAU) - KST 기준, DISTINCT userId =====
+    // DB가 UTC 저장이라면: KST 경계를 UTC LocalDateTime으로 변환해서 between 조회
+    var KST = java.time.ZoneId.of("Asia/Seoul");
+    var todayKst = java.time.LocalDate.now(KST);
 
-    // 카테고리별 업로드 (기간 내)
-    var catAgg = postRepo.countByCategoryBetween(fromDate, toDate); // 아래 레포 쿼리 참조
+    var labels = new java.util.ArrayList<java.time.LocalDate>(days);
+    var data = new java.util.ArrayList<Long>(days);
+
+    for (int i = days - 1; i >= 0; i--) {
+      var day = todayKst.minusDays(i); // KST의 해당 일자
+      var zStart = day.atStartOfDay(KST);                              // KST 00:00:00
+      var zEnd = day.plusDays(1).atStartOfDay(KST).minusNanos(1);      // KST 23:59:59.999999999
+
+      // DB 타임스탬프가 UTC라면 UTC로 변환해서 질의
+      var startUtc = java.time.LocalDateTime.ofInstant(zStart.toInstant(),
+          java.time.ZoneOffset.UTC);
+      var endUtc = java.time.LocalDateTime.ofInstant(zEnd.toInstant(), java.time.ZoneOffset.UTC);
+
+      long dau = userRepo.countDistinctActiveBetween(startUtc, endUtc);
+
+      labels.add(day);               // LocalDate → JSON에서 "yyyy-MM-dd"로 직렬화됨
+      data.add(dau);
+    }
+
+    var visitorSeries = new AdminDashboardResponse.Series(labels, data);
+
+    // ===== 카테고리별 업로드 (기간 내) =====
+    var catAgg = postRepo.countByCategoryBetween(fromDate, toDate); // 기존 그대로
     var categoryUploads =
         catAgg.stream()
-            .map(
-                a ->
-                    new AdminDashboardResponse.CategoryCount(
-                        a.getCategory() == null
-                            ? null
-                            : a.getCategory().getDescription(),
-                        a.getCnt()))
+            .map(a -> new AdminDashboardResponse.CategoryCount(
+                a.getCategory() == null ? null : a.getCategory().getDescription(),
+                a.getCnt()))
             .toList();
 
-    // 최근 신고 top개
+    // ===== 최근 신고 top개 =====
     var recentReports =
         reportRepo.findTopNByOrderByCreatedAtDesc(top).stream()
-            .map(
-                r ->
-                    new AdminDashboardResponse.RecentReportItem(
-                        r.getId(),
-                        r.getTargetType().name(),
-                        r.getTargetId(),
-                        r.getReason(),
-                        r.getStatus().name(),
-                        r.getCreatedAt().toLocalDate()))
+            .map(r -> new AdminDashboardResponse.RecentReportItem(
+                r.getId(),
+                r.getTargetType().name(),
+                r.getTargetId(),
+                r.getReason(),
+                r.getStatus().name(),
+                r.getCreatedAt().toLocalDate()))
             .toList();
 
-    // 최근 가입 top개
+    // ===== 최근 가입 top개 =====
     var recentSignups =
         userRepo.findTopNByOrderByCreatedAtDesc(top).stream()
-            .map(
-                u ->
-                    new AdminDashboardResponse.RecentSignupItem(
-                        u.getUserId(),
-                        safeNickOrEmail(u), // 닉네임 없으면 이메일
-                        u.getCreatedAt().toLocalDate()))
+            .map(u -> new AdminDashboardResponse.RecentSignupItem(
+                u.getUserId(),
+                safeNickOrEmail(u), // 닉네임 없으면 이메일
+                u.getCreatedAt().toLocalDate()))
             .toList();
 
     return new AdminDashboardResponse(
@@ -102,6 +111,7 @@ public class AdminService {
         recentReports,
         recentSignups);
   }
+
 
   private String safeNickOrEmail(UserEntity u) {
     String nick = u.getNickname();

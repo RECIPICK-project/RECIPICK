@@ -261,10 +261,10 @@ document.getElementById("uploadForm").addEventListener("submit", async (e) => {
         }
 
         // 재료 데이터 수집 - 3개 배열로 분리
-        const ingredients = [];           // Post 저장용 (기존 유지)
-        const ingredientNames = [];       // Ingredient 테이블용
-        const ingredientQuantities = [];  // RecipeIngredient amount용
-        const ingredientUnits = [];       // RecipeIngredient amount용
+        const ingredients = [];           
+        const ingredientNames = [];       
+        const ingredientQuantities = [];  
+        const ingredientUnits = [];       
 
         const rows = document.querySelectorAll("[data-row]");
         rows.forEach((row) => {
@@ -272,11 +272,8 @@ document.getElementById("uploadForm").addEventListener("submit", async (e) => {
             const quantity = row.querySelector("[data-quantity]").value.trim();
             const unit = row.querySelector("[data-unit]").value.trim();
 
-            if (name) { // 재료명만 있으면 추가
-                // Post용 - 기존 형태 유지 (레시피 표시용)
+            if (name) {
                 ingredients.push(`${name} ${quantity}${unit}`);
-
-                // 분리된 데이터 - Ingredient, RecipeIngredient용
                 ingredientNames.push(name);
                 ingredientQuantities.push(quantity);
                 ingredientUnits.push(unit);
@@ -306,7 +303,7 @@ document.getElementById("uploadForm").addEventListener("submit", async (e) => {
                 stepImageUrls.push(stepImageUrl);
                 console.log(`${i + 1}단계 업로드 완료:`, stepImageUrl);
             } else {
-                stepImageUrls.push(""); // 이미지가 없는 단계는 빈 문자열
+                stepImageUrls.push("");
             }
         }
 
@@ -318,81 +315,49 @@ document.getElementById("uploadForm").addEventListener("submit", async (e) => {
         });
 
         // 레시피 데이터 구성 (PostDto 형식에 맞게)
-        const formData = new FormData();
-
-        // 기본 정보
-        formData.append("title", document.querySelector('[name="title"]')?.value || "제목 없음");
-        formData.append(
-            "foodName",
-            document.querySelector('[name="foodName"]')?.value || "음식명 없음"
-        );
-
-        // 드롭다운에서 선택된 값 읽기
         const methodSelect = document.querySelector('select[name="ckgMth"]');
         const categorySelect = document.querySelector('select[name="ckgCategory"]');
         const kindSelect = document.querySelector('select[name="ckgKnd"]');
-
-        formData.append("ckgMth", methodSelect?.value || "OTHER"); // 조리방법
-        formData.append("ckgCategory", categorySelect?.value || "OTHER"); // 카테고리
-        formData.append("ckgKnd", kindSelect?.value || "OTHER"); // 요리 종류
-
-        // Integer 필드들 - 드롭다운에서 선택된 값 또는 기본값
         const inbunSelect = document.querySelector('select[name="CKG_INBUN"]');
         const levelSelect = document.querySelector('select[name="CKG_LEVEL"]');
         const timeSelect = document.querySelector('select[name="CKG_TIME"]');
 
-        formData.append("ckgInbun", inbunSelect?.value || "1"); // 기본: 1인분
-        formData.append("ckgLevel", levelSelect?.value || "1"); // 기본: 1 (★)
-        formData.append("ckgTime", timeSelect?.value || "30"); // 기본: 30분이내
+        const requestBody = {
+            title: document.querySelector('[name="title"]')?.value || "제목 없음",
+            foodName: document.querySelector('[name="foodName"]')?.value || "음식명 없음",
+            ckgMth: methodSelect?.value || "OTHER",
+            ckgCategory: categorySelect?.value || "OTHER",
+            ckgKnd: kindSelect?.value || "OTHER",
+            ckgInbun: parseInt(inbunSelect?.value) || 1,
+            ckgLevel: parseInt(levelSelect?.value) || 1,
+            ckgTime: parseInt(timeSelect?.value) || 30,
+            ckgMtrlCn: ingredients,
+            ingredientNames: ingredientNames,
+            ingredientQuantities: ingredientQuantities,
+            ingredientUnits: ingredientUnits,
+            rcpImgUrl: thumbnailUrl,
+            rcpSteps: stepDescriptions,
+            rcpStepsImg: stepImageUrls
+        };
 
-        // 재료 (List<String> 형태로) - Post 표시용
-        ingredients.forEach((ingredient) => {
-            formData.append("ckgMtrlCn", ingredient);
-        });
-
-        // 분리된 재료 데이터 - Ingredient, RecipeIngredient용
-        ingredientNames.forEach((name) => {
-            formData.append("ingredientNames", name);
-        });
-        ingredientQuantities.forEach((quantity) => {
-            formData.append("ingredientQuantities", quantity);
-        });
-        ingredientUnits.forEach((unit) => {
-            formData.append("ingredientUnits", unit);
-        });
-
-        // 인네일 이미지 URL (빈 문자열이면 기본 이미지로 대체)
-        formData.append(
-            "rcpImgUrl",
-            thumbnailUrl || "https://via.placeholder.com/300x200?text=No+Image"
-        );
-
-        // 조리 단계별 설명 (List<String> 형태로)
-        stepDescriptions.forEach((step) => {
-            formData.append("rcpSteps", step);
-        });
-
-        // 단계별 이미지 URLs (List<String> 형태로)
-        stepImageUrls.forEach((imageUrl) => {
-            formData.append("rcpStepsImg", imageUrl);
-        });
-
-        // 디버깅을 위한 로그
         console.log("수집된 재료 데이터:");
         console.log("- Post용 ingredients:", ingredients);
         console.log("- 재료명 배열:", ingredientNames);
         console.log("- 수량 배열:", ingredientQuantities);
         console.log("- 단위 배열:", ingredientUnits);
 
-        console.log("저장할 레시피 데이터:", Object.fromEntries(formData));
-
-        // 백엔드 API로 레시피 저장 (올바른 엔드포인트 사용)
+        // 백엔드 API로 레시피 저장
         const saveResponse = await fetch("/post/save", {
             method: "POST",
-            body: formData,
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(requestBody)
         });
 
         if (!saveResponse.ok) {
+            const errorText = await saveResponse.text();
+            console.error("서버 응답:", errorText);
             throw new Error(`레시피 저장 실패: ${saveResponse.status}`);
         }
 
@@ -402,7 +367,6 @@ document.getElementById("uploadForm").addEventListener("submit", async (e) => {
         if (result && result.data && result.data.postId) {
             postId = result.data.postId;
         } else if (result && result.data && result.data.id) {
-            // PostDto의 getId() 메서드로 반환되는 경우
             postId = result.data.id;
         } else {
             console.error("응답에서 postId를 찾을 수 없습니다:", result);
@@ -418,7 +382,6 @@ document.getElementById("uploadForm").addEventListener("submit", async (e) => {
         if (postId) {
             window.location.href = `/pages/post_detail.html?postId=${postId}`;
         } else {
-            // postId가 없으면 메인 페이지로 이동
             console.warn("postId를 찾을 수 없어 메인 페이지로 이동합니다.");
             window.location.href = '/pages/main.html';
         }

@@ -471,7 +471,7 @@ function updateLikeButtonState() {
 }
 
 /* ===============================
- * 신고(Report)
+ * 신고 (Report)
  * =============================== */
 const REPORT_API = '/admin/reports';
 const REPORT_TARGET = 'POST';
@@ -488,7 +488,8 @@ function closeReportModal() {
   modal.classList.add('hidden');
 }
 
-(function bindReportModalEvents(){
+// ★ 즉시 실행 함수를 일반 함수로 변경
+function wireReportModal() {
   const modal = document.getElementById('reportModal');
   if (!modal) return;
 
@@ -509,13 +510,13 @@ function closeReportModal() {
   if (submitBtn) {
     submitBtn.addEventListener('click', submitReport);
   }
-})();
+}
 
 async function submitReport() {
   const postId = getPostIdFromUrl();
   if (!postId) return alert('잘못된 접근입니다.');
 
-  const token = localStorage.getItem('ACCESS_TOKEN'); // ← 철자 정확히
+  const token = localStorage.getItem('ACCESS_TOKEN');
   if (!token) {
     alert('로그인이 필요합니다.');
     console.warn('[REPORT] ACCESS_TOKEN not found in localStorage');
@@ -561,4 +562,3 @@ async function submitReport() {
     else alert('신고 처리 중 오류가 발생했습니다.');
   }
 }
-

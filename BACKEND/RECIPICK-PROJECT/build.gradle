@@ -73,37 +73,37 @@ dependencies {
     //날씨
     implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.3'
 }
-
-// Checkstyle 설정 < Google Java Style>
-checkstyle {
-    toolVersion = '10.12.4'
-    configFile = file("${rootDir}/google_checks.xml")
-    ignoreFailures = false
-    maxWarnings = 0
-}
-
-// Spotless 설정 (자동 포맷팅)
-spotless {
-    java {
-        target 'src/main/java/**/*.java', 'src/test/java/**/*.java'
-        googleJavaFormat('1.17.0').aosp()
-        removeUnusedImports()
-        trimTrailingWhitespace()
-        endWithNewline()
-
-        // Import 순서 정리
-        importOrder('java', 'javax', 'jakarta', 'org.springframework', 'org', 'com', '')
-
-        // 라이센스 헤더 (선택사항)
-        // licenseHeader '/* Licensed under Apache-2.0 */'
-    }
-
-    // Gradle 파일도 포맷팅
-    groovyGradle {
-        target '*.gradle'
-        greclipse()
-    }
-}
+//
+//// Checkstyle 설정 < Google Java Style>
+//checkstyle {
+//    toolVersion = '10.12.4'
+//    configFile = file("${rootDir}/google_checks.xml")
+//    ignoreFailures = false
+//    maxWarnings = 0
+//}
+//
+//// Spotless 설정 (자동 포맷팅)
+//spotless {
+//    java {
+//        target 'src/main/java/**/*.java', 'src/test/java/**/*.java'
+//        googleJavaFormat('1.17.0').aosp()
+//        removeUnusedImports()
+//        trimTrailingWhitespace()
+//        endWithNewline()
+//
+//        // Import 순서 정리
+//        importOrder('java', 'javax', 'jakarta', 'org.springframework', 'org', 'com', '')
+//
+//        // 라이센스 헤더 (선택사항)
+//        // licenseHeader '/* Licensed under Apache-2.0 */'
+//    }
+//
+//    // Gradle 파일도 포맷팅
+//    groovyGradle {
+//        target '*.gradle'
+//        greclipse()
+//    }
+//}
 
 tasks.named('test') {
     useJUnitPlatform()

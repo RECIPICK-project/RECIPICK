@@ -102,7 +102,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
                 user.setActive(true);
                 userRepository.save(user);
             }
-            response.sendRedirect("/main.html");
+            response.sendRedirect("/pages/main.html");
             return;
         }
 

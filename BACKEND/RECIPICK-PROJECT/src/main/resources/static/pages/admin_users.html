@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="ko">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -8,139 +9,152 @@
   <link rel="stylesheet" href="../css/admin_users.css" />
   <script defer src="../js/admin_users.js"></script>
 </head>
+
 <body class="admin">
-<div class="admin-layout">
-  <!-- 사이드바 -->
-  <aside class="side">
-    <div class="logo">LOGO</div>
-    <nav class="sidemenu">
-      <a class="m" href="admin.html">대시보드</a>
-      <a class="m" href="admin_reports.html">신고 관리</a>
-      <a class="m" href="admin_recipes.html">레시피/댓글 관리</a>
-      <a class="m active" href="admin_users.html">유저 관리</a>
-    </nav>
-  </aside>
+  <div class="admin-layout">
+    <!-- 사이드바 -->
+    <aside class="side">
+      <a href="main.html" class="logo">
+        <img src="../image/logo-main.png" alt="로고" />
+      </a>
+      <nav class="sidemenu">
+        <a class="m" href="admin.html">대시보드</a>
+        <a class="m" href="admin_reports.html">신고 관리</a>
+        <a class="m" href="admin_recipes.html">레시피/댓글 관리</a>
+        <a class="m active" href="admin_users.html">유저 관리</a>
+      </nav>
+    </aside>
 
-  <!-- 보드 -->
-  <main class="board">
-    <div class="topbar">
-      <h1>유저 관리</h1>
-      <div class="actions">
-        <input class="input" type="search" id="search" placeholder="이메일/닉네임 검색" />
-        <button class="btn" id="searchBtn">검색</button>
-      </div>
-    </div>
-
-    <!-- 리스크 필터 -->
-    <section class="card" aria-labelledby="riskTitle">
-      <h2 class="card-title" id="riskTitle">리스크 필터</h2>
-      <div class="pills">
-        <button class="pill is-active" data-filter="all">전체</button>
-        <button class="pill" data-filter="reported">신고 다수(≥3)</button>
-        <button class="pill" data-filter="lowPoint">포인트 저점(≤0)</button>
-      </div>
-      <p class="desc">신고 임계값은 아래 정책에서 조정할 수 있어.</p>
-    </section>
-
-    <!-- 유저 리스트 -->
-    <section class="card" aria-labelledby="listTitle">
-      <h2 class="card-title" id="listTitle">유저 목록</h2>
-      <div class="user-list">
-        <ul id="userList"></ul>
+    <!-- 보드 -->
+    <main class="board">
+      <div class="topbar">
+        <h1>유저 관리</h1>
+        <div class="actions">
+          <input class="input" type="search" id="search" placeholder="이메일/닉네임 검색" />
+          <button class="btn" id="searchBtn">검색</button>
+        </div>
       </div>
 
-      <!-- 페이지네이션 -->
-      <div class="pagination">
-        <button class="mini" id="prevPage" disabled>이전</button>
-        <span class="page-info" id="pageInfo">1 / 1</span>
-        <button class="mini" id="nextPage" disabled>다음</button>
+      <!-- 리스크 필터 -->
+      <section class="card" aria-labelledby="riskTitle">
+        <h2 class="card-title" id="riskTitle">리스크 필터</h2>
+        <div class="pills">
+          <button class="pill is-active" data-filter="all">전체</button>
+          <button class="pill" data-filter="reported">신고 다수(≥3)</button>
+          <button class="pill" data-filter="lowPoint">포인트 저점(≤0)</button>
+        </div>
+        <p class="desc">신고 임계값은 아래 정책에서 조정할 수 있어.</p>
+      </section>
+
+      <!-- 유저 리스트 -->
+      <section class="card" aria-labelledby="listTitle">
+        <h2 class="card-title" id="listTitle">유저 목록</h2>
+        <div class="user-list">
+          <ul id="userList"></ul>
+        </div>
+
+        <!-- 페이지네이션 -->
+        <div class="pagination">
+          <button class="mini" id="prevPage" disabled>이전</button>
+          <span class="page-info" id="pageInfo">1 / 1</span>
+          <button class="mini" id="nextPage" disabled>다음</button>
+        </div>
+      </section>
+
+      <!-- 등급/토큰/포인트 정책 (로컬 저장) -->
+      <section class="card" aria-labelledby="policyTitle">
+        <h2 class="card-title" id="policyTitle">등급/토큰/포인트 정책</h2>
+        <p class="desc">저장은 브라우저 로컬에만 적용(백 연동 아님). 신고 임계값은 필터에 바로 반영.</p>
+        <div class="form-grid">
+          <div class="row"><label>Bronze 토큰/일</label><input class="input" id="tokBronze" type="number" min="0" step="10"
+              value="200" style="max-width:140px" /></div>
+          <div class="row"><label>Silver 토큰/일</label><input class="input" id="tokSilver" type="number" min="0" step="10"
+              value="500" style="max-width:140px" /></div>
+          <div class="row"><label>Gold 토큰/일</label><input class="input" id="tokGold" type="number" min="0" step="10"
+              value="1000" style="max-width:140px" /></div>
+
+          <div class="row"><label>댓글 1개</label><input class="input" id="ptComment" type="number" min="0" step="1"
+              value="1" style="max-width:140px" /></div>
+          <div class="row"><label>레시피 등록</label><input class="input" id="ptRecipe" type="number" min="0" step="1"
+              value="10" style="max-width:140px" /></div>
+          <div class="row"><label>승격 보너스</label><input class="input" id="ptPromote" type="number" min="0" step="1"
+              value="100" style="max-width:140px" /></div>
+
+          <div class="row"><label>신고 임계(주의)</label><input class="input" id="reportThreshold" type="number" min="1"
+              step="1" value="3" style="max-width:140px" /></div>
+
+          <div class="row" style="grid-column:1/-1">
+            <div class="actions">
+              <button class="btn" id="savePolicy">저장</button>
+              <button class="btn-ghost" id="resetPolicy">초기화</button>
+              <span class="badge ok" id="policySaved" style="display:none">저장됨</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- 유저 수정 모달 -->
+  <div class="modal" id="userModal" aria-hidden="true">
+    <div class="overlay" data-close></div>
+    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="userTitle">
+      <div class="dialog-head">
+        <h3 id="userTitle">유저 정보</h3>
+        <button class="close" data-close aria-label="닫기">×</button>
       </div>
-    </section>
+      <div class="dialog-body">
+        <div class="row"><strong style="min-width:88px; color:var(--muted)">UID</strong> <span id="mUid">-</span></div>
+        <div class="row"><strong style="min-width:88px; color:var(--muted)">닉네임/이메일</strong> <span id="mName">-</span>
+        </div>
 
-    <!-- 등급/토큰/포인트 정책 (로컬 저장) -->
-    <section class="card" aria-labelledby="policyTitle">
-      <h2 class="card-title" id="policyTitle">등급/토큰/포인트 정책</h2>
-      <p class="desc">저장은 브라우저 로컬에만 적용(백 연동 아님). 신고 임계값은 필터에 바로 반영.</p>
-      <div class="form-grid">
-        <div class="row"><label>Bronze 토큰/일</label><input class="input" id="tokBronze" type="number" min="0" step="10" value="200" style="max-width:140px"/></div>
-        <div class="row"><label>Silver 토큰/일</label><input class="input" id="tokSilver" type="number" min="0" step="10" value="500" style="max-width:140px"/></div>
-        <div class="row"><label>Gold 토큰/일</label><input class="input" id="tokGold" type="number" min="0" step="10" value="1000" style="max-width:140px"/></div>
+        <label class="row">
+          <span style="min-width:88px; color:var(--muted)">등급</span>
+          <select class="input" id="mTier" style="max-width:160px">
+            <option>BRONZE</option>
+            <option>SILVER</option>
+            <option>GOLD</option>
+            <option>PLATINUM</option>
+            <option>DIAMOND</option>
+          </select>
+        </label>
 
-        <div class="row"><label>댓글 1개</label><input class="input" id="ptComment" type="number" min="0" step="1" value="1" style="max-width:140px"/></div>
-        <div class="row"><label>레시피 등록</label><input class="input" id="ptRecipe" type="number" min="0" step="1" value="10" style="max-width:140px"/></div>
-        <div class="row"><label>승격 보너스</label><input class="input" id="ptPromote" type="number" min="0" step="1" value="100" style="max-width:140px"/></div>
+        <label class="row">
+          <span style="min-width:88px; color:var(--muted)">활성</span>
+          <input type="checkbox" id="mActive" />
+        </label>
+        <label class="row">
+          <span style="min-width:88px; color:var(--muted)">정지</span>
+          <div class="col" style="display:flex; flex-direction:column; gap:6px">
+            <div style="display:flex; gap:10px; flex-wrap:wrap">
+              <label><input type="radio" name="banPeriod" value="3"> 3일</label>
+              <label><input type="radio" name="banPeriod" value="7"> 7일</label>
+              <label><input type="radio" name="banPeriod" value="15"> 15일</label>
+              <label><input type="radio" name="banPeriod" value="0"> 영구</label>
+            </div>
 
-        <div class="row"><label>신고 임계(주의)</label><input class="input" id="reportThreshold" type="number" min="1" step="1" value="3" style="max-width:140px"/></div>
-
-        <div class="row" style="grid-column:1/-1">
-          <div class="actions">
-            <button class="btn" id="savePolicy">저장</button>
-            <button class="btn-ghost" id="resetPolicy">초기화</button>
-            <span class="badge ok" id="policySaved" style="display:none">저장됨</span>
+            <label class="row">
+              <span style="min-width:88px; color:var(--muted)">사유</span>
+              <input class="input" id="mBanReason" type="text" placeholder="선택 입력" />
+            </label>
+          </div>
+        </label>
+        <div class="row col" style="gap:6px">
+          <strong style="min-width:88px; color:var(--muted)">신고</strong>
+          <div id="mReports" class="soft"
+            style="background:#F9FBE7; border:1px solid var(--line); border-radius:8px; padding:10px">
+            최근 30일: 0건
           </div>
         </div>
       </div>
-    </section>
-  </main>
-</div>
-
-<!-- 유저 수정 모달 -->
-<div class="modal" id="userModal" aria-hidden="true">
-  <div class="overlay" data-close></div>
-  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="userTitle">
-    <div class="dialog-head">
-      <h3 id="userTitle">유저 정보</h3>
-      <button class="close" data-close aria-label="닫기">×</button>
-    </div>
-    <div class="dialog-body">
-      <div class="row"><strong style="min-width:88px; color:var(--muted)">UID</strong> <span id="mUid">-</span></div>
-      <div class="row"><strong style="min-width:88px; color:var(--muted)">닉네임/이메일</strong> <span id="mName">-</span></div>
-
-      <label class="row">
-        <span style="min-width:88px; color:var(--muted)">등급</span>
-        <select class="input" id="mTier" style="max-width:160px">
-          <option>BRONZE</option>
-          <option>SILVER</option>
-          <option>GOLD</option>
-          <option>PLATINUM</option>
-          <option>DIAMOND</option>
-        </select>
-      </label>
-
-      <label class="row">
-        <span style="min-width:88px; color:var(--muted)">활성</span>
-        <input type="checkbox" id="mActive" />
-      </label>
-      <label class="row">
-        <span style="min-width:88px; color:var(--muted)">정지</span>
-        <div class="col" style="display:flex; flex-direction:column; gap:6px">
-          <div style="display:flex; gap:10px; flex-wrap:wrap">
-            <label><input type="radio" name="banPeriod" value="3"> 3일</label>
-            <label><input type="radio" name="banPeriod" value="7"> 7일</label>
-            <label><input type="radio" name="banPeriod" value="15"> 15일</label>
-            <label><input type="radio" name="banPeriod" value="0"> 영구</label>
-          </div>
-
-          <label class="row">
-            <span style="min-width:88px; color:var(--muted)">사유</span>
-            <input class="input" id="mBanReason" type="text" placeholder="선택 입력" />
-          </label>
-        </div>
-      </label>
-      <div class="row col" style="gap:6px">
-        <strong style="min-width:88px; color:var(--muted)">신고</strong>
-        <div id="mReports" class="soft" style="background:#F9FBE7; border:1px solid var(--line); border-radius:8px; padding:10px">
-          최근 30일: 0건
-        </div>
+      <div class="dialog-foot">
+        <button class="btn-ghost" data-close>취소</button>
+        <button class="btn danger" id="liftSuspendBtn" style="display:none">정지 해제</button>
+        <button class="btn success" id="applySuspendBtn">정지 적용</button>
+        <button class="btn success" id="saveUser">저장</button>
       </div>
-    </div>
-    <div class="dialog-foot">
-      <button class="btn-ghost" data-close>취소</button>
-      <button class="btn danger" id="liftSuspendBtn" style="display:none">정지 해제</button>
-      <button class="btn success" id="applySuspendBtn">정지 적용</button>
-      <button class="btn success" id="saveUser">저장</button>
     </div>
   </div>
-</div>
 </body>
+
 </html>

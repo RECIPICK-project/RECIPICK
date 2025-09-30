@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="ko">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -10,107 +11,113 @@
   <!-- 신고 전용 스타일 -->
   <link rel="stylesheet" href="../css/admin_reports.css" />
 </head>
+
 <body class="admin">
-<div class="admin-layout">
-  <!-- 사이드바 -->
-  <aside class="side">
-    <div class="logo">LOGO</div>
-    <nav class="sidemenu">
-      <a class="m" href="admin.html">대시보드</a>
-      <a class="m active" href="admin_reports.html">신고 관리</a>
-      <a class="m" href="admin_recipes.html">레시피/댓글 관리</a>
-      <a class="m" href="admin_users.html">유저 관리</a>
-    </nav>
-  </aside>
+  <div class="admin-layout">
+    <!-- 사이드바 -->
+    <aside class="side">
+      <a href="main.html" class="logo">
+        <img src="../image/logo-main.png" alt="로고" />
+      </a>
+      <nav class="sidemenu">
+        <a class="m" href="admin.html">대시보드</a>
+        <a class="m active" href="admin_reports.html">신고 관리</a>
+        <a class="m" href="admin_recipes.html">레시피/댓글 관리</a>
+        <a class="m" href="admin_users.html">유저 관리</a>
+      </nav>
+    </aside>
 
-  <!-- 보드 -->
-  <main class="board">
-    <div class="topbar">
-      <h1>신고 관리</h1>
-      <div class="filters" style="display:flex; gap:8px; align-items:center;">
-        <label>
-          <span class="sr-only">상태</span>
-          <select id="f-status" class="input">
-            <option value="PENDING" selected>대기</option>
-            <option value="ACCEPTED">수리</option>
-            <option value="REJECTED">반려</option>
-          </select>
-        </label>
-        <label>
-          <span class="sr-only">타입</span>
-          <select id="f-type" class="input">
-            <option value="">전체</option>
-            <option value="POST">레시피</option>
-            <option value="REVIEW">리뷰</option>
-            <option value="COMMENT">댓글</option>
-            <option value="USER">유저</option>
-          </select>
-        </label>
-      </div>
-    </div>
-
-    <!-- KPI(선택) : JS에서 채움. 못 채우면 '-' -->
-    <section class="card" aria-labelledby="kpiTitle">
-      <h2 class="card-title" id="kpiTitle">오늘 신고 현황</h2>
-      <div class="kpi-grid">
-        <div class="kpi">
-          <span class="k-label">오늘 신고</span>
-          <span class="k-num" id="kpi-today">-</span>
-        </div>
-        <div class="kpi">
-          <span class="k-label">미처리</span>
-          <span class="k-num" id="kpi-pending">-</span>
+    <!-- 보드 -->
+    <main class="board">
+      <div class="topbar">
+        <h1>신고 관리</h1>
+        <div class="filters" style="display:flex; gap:8px; align-items:center;">
+          <label>
+            <span class="sr-only">상태</span>
+            <select id="f-status" class="input">
+              <option value="PENDING" selected>대기</option>
+              <option value="ACCEPTED">수리</option>
+              <option value="REJECTED">반려</option>
+            </select>
+          </label>
+          <label>
+            <span class="sr-only">타입</span>
+            <select id="f-type" class="input">
+              <option value="">전체</option>
+              <option value="POST">레시피</option>
+              <option value="REVIEW">리뷰</option>
+              <option value="COMMENT">댓글</option>
+              <option value="USER">유저</option>
+            </select>
+          </label>
         </div>
       </div>
-    </section>
 
-    <!-- 전체 신고 목록(테이블) -->
-    <section class="card" aria-labelledby="listTitle">
-      <h2 class="card-title" id="listTitle">전체 신고 목록</h2>
-      <table class="tbl">
-        <thead>
-        <tr>
-          <th style="width:80px;">ID</th>
-          <th>사유</th>
-          <th style="width:220px;">대상</th>
-          <th style="width:160px;">생성일</th>
-          <th style="width:100px;">상태</th>
-          <th style="width:180px;"></th>
-        </tr>
-        </thead>
-        <tbody id="reportsTbody"></tbody>
-      </table>
-      <div class="pagination" style="margin-top:12px;"></div>
-    </section>
+      <!-- KPI(선택) : JS에서 채움. 못 채우면 '-' -->
+      <section class="card" aria-labelledby="kpiTitle">
+        <h2 class="card-title" id="kpiTitle">오늘 신고 현황</h2>
+        <div class="kpi-grid">
+          <div class="kpi">
+            <span class="k-label">오늘 신고</span>
+            <span class="k-num" id="kpi-today">-</span>
+          </div>
+          <div class="kpi">
+            <span class="k-label">미처리</span>
+            <span class="k-num" id="kpi-pending">-</span>
+          </div>
+        </div>
+      </section>
 
-    <footer class="foot">© RECIPICK Admin</footer>
-  </main>
-</div>
+      <!-- 전체 신고 목록(테이블) -->
+      <section class="card" aria-labelledby="listTitle">
+        <h2 class="card-title" id="listTitle">전체 신고 목록</h2>
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th style="width:80px;">ID</th>
+              <th>사유</th>
+              <th style="width:220px;">대상</th>
+              <th style="width:160px;">생성일</th>
+              <th style="width:100px;">상태</th>
+              <th style="width:180px;"></th>
+            </tr>
+          </thead>
+          <tbody id="reportsTbody"></tbody>
+        </table>
+        <div class="pagination" style="margin-top:12px;"></div>
+      </section>
 
-<!-- 신고 상세 모달 -->
-<div id="reportModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="reportTitle">
-  <div class="overlay" data-close></div>
-  <div class="dialog">
-    <header class="dialog-head">
-      <h3 id="reportTitle">신고 상세</h3>
-      <button class="close" data-close aria-label="닫기">×</button>
-    </header>
-    <div class="dialog-body">
-      <div class="row"><strong>신고 ID</strong> <span id="m-id">-</span></div>
-      <div class="row"><strong>사유</strong> <span id="m-reason">-</span></div>
-      <div class="row"><strong>신고자</strong> <span id="m-user">-</span></div>
-      <div class="row"><strong>시간</strong> <span id="m-time">-</span></div>
-      <div class="row col"><strong>세부</strong> <p id="m-detail">-</p></div>
-    </div>
-    <footer class="dialog-foot">
-      <button class="mini warn" id="modal-accept">수리</button>
-      <button class="mini ghost" id="modal-reject">반려</button>
-      <button class="mini" data-close>닫기</button>
-    </footer>
+      <footer class="foot">© RECIPICK Admin</footer>
+    </main>
   </div>
-</div>
 
-<!-- 스크립트 -->
-<script defer src="../js/admin_reports.js"></script>
+  <!-- 신고 상세 모달 -->
+  <div id="reportModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="reportTitle">
+    <div class="overlay" data-close></div>
+    <div class="dialog">
+      <header class="dialog-head">
+        <h3 id="reportTitle">신고 상세</h3>
+        <button class="close" data-close aria-label="닫기">×</button>
+      </header>
+      <div class="dialog-body">
+        <div class="row"><strong>신고 ID</strong> <span id="m-id">-</span></div>
+        <div class="row"><strong>사유</strong> <span id="m-reason">-</span></div>
+        <div class="row"><strong>신고자</strong> <span id="m-user">-</span></div>
+        <div class="row"><strong>시간</strong> <span id="m-time">-</span></div>
+        <div class="row col"><strong>세부</strong>
+          <p id="m-detail">-</p>
+        </div>
+      </div>
+      <footer class="dialog-foot">
+        <button class="mini warn" id="modal-accept">수리</button>
+        <button class="mini ghost" id="modal-reject">반려</button>
+        <button class="mini" data-close>닫기</button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- 스크립트 -->
+  <script defer src="../js/admin_reports.js"></script>
 </body>
+
 </html>

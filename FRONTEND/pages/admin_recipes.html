@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="ko">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -13,90 +14,94 @@
 
   <script defer src="../js/admin_recipes.js"></script>
 </head>
+
 <body class="admin">
-<div class="admin-layout">
-  <!-- 사이드바 -->
-  <aside class="side">
-    <div class="logo">LOGO</div>
-    <nav class="sidemenu">
-      <a class="m" href="admin.html">대시보드</a>
-      <a class="m" href="admin_reports.html">신고 관리</a>
-      <a class="m active" href="admin_recipes.html">레시피/댓글 관리</a>
-      <a class="m" href="admin_users.html">유저 관리</a>
-    </nav>
-  </aside>
+  <div class="admin-layout">
+    <!-- 사이드바 -->
+    <aside class="side">
+      <a href="main.html" class="logo">
+        <img src="../image/logo-main.png" alt="로고" />
+      </a>
+      <nav class="sidemenu">
+        <a class="m" href="admin.html">대시보드</a>
+        <a class="m" href="admin_reports.html">신고 관리</a>
+        <a class="m active" href="admin_recipes.html">레시피/댓글 관리</a>
+        <a class="m" href="admin_users.html">유저 관리</a>
+      </nav>
+    </aside>
 
-  <!-- 보드 -->
-  <main class="board">
-    <div class="topbar">
-      <h1>레시피 / 댓글 관리</h1>
-      <div class="actions">
-        <input id="q" class="input" type="search" placeholder="제목/작성자/내용 검색" />
-        <button id="btnSearch" class="btn">검색</button>
-      </div>
-    </div>
-
-    <!-- ▣ 규칙 요약 (세팅과 연동) -->
-    <section class="card" aria-labelledby="ruleTitle">
-      <h2 class="card-title" id="ruleTitle">승격 규칙 요약</h2>
-      <p class="desc">세팅에서 정의한 임시→정식 기준입니다. (자동/수동, 기간/좋아요/저장/평점/참여/조회/쿨다운)</p>
-      <div id="ruleSummary" class="desc" style="font-weight:700;">-</div>
-    </section>
-
-    <!-- 📌 레시피 게시글 -->
-    <section class="card" aria-labelledby="recipesTitle">
-      <h2 class="card-title" id="recipesTitle">레시피 게시글</h2>
-
-      <div class="toolbar">
-        <label class="chk"><input type="checkbox" id="checkAllPosts" /> 전체선택</label>
-        <button class="btn-ghost" id="bulkPromote">선택 승격</button>
-        <button class="btn-ghost" id="hidePosts">선택 비공개</button>
-        <button class="btn-ghost" id="delPosts">선택 삭제</button>
+    <!-- 보드 -->
+    <main class="board">
+      <div class="topbar">
+        <h1>레시피 / 댓글 관리</h1>
+        <div class="actions">
+          <input id="q" class="input" type="search" placeholder="제목/작성자/내용 검색" />
+          <button id="btnSearch" class="btn">검색</button>
+        </div>
       </div>
 
-      <div class="post-list">
-        <ul id="postList"><!-- JS 렌더 --></ul>
+      <!-- ▣ 규칙 요약 (세팅과 연동) -->
+      <section class="card" aria-labelledby="ruleTitle">
+        <h2 class="card-title" id="ruleTitle">승격 규칙 요약</h2>
+        <p class="desc">세팅에서 정의한 임시→정식 기준입니다. (자동/수동, 기간/좋아요/저장/평점/참여/조회/쿨다운)</p>
+        <div id="ruleSummary" class="desc" style="font-weight:700;">-</div>
+      </section>
+
+      <!-- 📌 레시피 게시글 -->
+      <section class="card" aria-labelledby="recipesTitle">
+        <h2 class="card-title" id="recipesTitle">레시피 게시글</h2>
+
+        <div class="toolbar">
+          <label class="chk"><input type="checkbox" id="checkAllPosts" /> 전체선택</label>
+          <button class="btn-ghost" id="bulkPromote">선택 승격</button>
+          <button class="btn-ghost" id="hidePosts">선택 비공개</button>
+          <button class="btn-ghost" id="delPosts">선택 삭제</button>
+        </div>
+
+        <div class="post-list">
+          <ul id="postList"><!-- JS 렌더 --></ul>
+        </div>
+
+        <!-- 페이지네이션 -->
+        <div class="pagination" id="postPager"><!-- JS 렌더 --></div>
+      </section>
+
+      <!-- 📌 댓글 / 리뷰 -->
+      <section class="card" aria-labelledby="commentsTitle">
+        <h2 class="card-title" id="commentsTitle">댓글 / 리뷰</h2>
+
+        <div class="toolbar">
+          <label class="chk"><input type="checkbox" id="checkAllComments" /> 전체선택</label>
+          <button class="btn-ghost" id="delComments">선택 삭제</button>
+        </div>
+
+        <div class="comment-list">
+          <ul id="commentList"><!-- JS 렌더 --></ul>
+        </div>
+
+        <!-- 페이지네이션 -->
+        <div class="pagination" id="commentPager"><!-- JS 렌더 --></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- 승격 확인 모달 -->
+  <div class="modal" id="promoteModal" aria-hidden="true">
+    <div class="overlay" data-close></div>
+    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="promoteTitle">
+      <div class="dialog-head">
+        <h3 id="promoteTitle">승격 확인</h3>
+        <button class="close" data-close aria-label="닫기">×</button>
       </div>
-
-      <!-- 페이지네이션 -->
-      <div class="pagination" id="postPager"><!-- JS 렌더 --></div>
-    </section>
-
-    <!-- 📌 댓글 / 리뷰 -->
-    <section class="card" aria-labelledby="commentsTitle">
-      <h2 class="card-title" id="commentsTitle">댓글 / 리뷰</h2>
-
-      <div class="toolbar">
-        <label class="chk"><input type="checkbox" id="checkAllComments" /> 전체선택</label>
-        <button class="btn-ghost" id="delComments">선택 삭제</button>
+      <div class="dialog-body">
+        <div id="promoteInfo">선택된 레시피를 정식으로 승격하시겠습니까?</div>
       </div>
-
-      <div class="comment-list">
-        <ul id="commentList"><!-- JS 렌더 --></ul>
+      <div class="dialog-foot">
+        <button class="btn-ghost" data-close>취소</button>
+        <button class="btn success" id="confirmPromote">승격</button>
       </div>
-
-      <!-- 페이지네이션 -->
-      <div class="pagination" id="commentPager"><!-- JS 렌더 --></div>
-    </section>
-  </main>
-</div>
-
-<!-- 승격 확인 모달 -->
-<div class="modal" id="promoteModal" aria-hidden="true">
-  <div class="overlay" data-close></div>
-  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="promoteTitle">
-    <div class="dialog-head">
-      <h3 id="promoteTitle">승격 확인</h3>
-      <button class="close" data-close aria-label="닫기">×</button>
-    </div>
-    <div class="dialog-body">
-      <div id="promoteInfo">선택된 레시피를 정식으로 승격하시겠습니까?</div>
-    </div>
-    <div class="dialog-foot">
-      <button class="btn-ghost" data-close>취소</button>
-      <button class="btn success" id="confirmPromote">승격</button>
     </div>
   </div>
-</div>
 </body>
+
 </html>

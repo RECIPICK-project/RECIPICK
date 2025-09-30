@@ -151,31 +151,40 @@ async function checkUserReviewStatus(postId) {
       lockCommentForm("로그인 후 리뷰를 작성할 수 있습니다.");
       return;
     }
+   
+    let post = window.currentPostData;
     
-    // 1. 본인이 작성한 레시피인지 확인 (이메일/닉네임 기반)
-    try {
-      const postRes = await fx(`/post/${encodeURIComponent(postId)}`);
-      if (postRes.ok) {
-        const postData = await postRes.json();
-        const post = (postData && typeof postData === "object" && "data" in postData) ? postData.data : postData;
-        
-        console.log("Post data:", post); 
-        console.log("Current user:", currentUser); 
-        
-        // 닉네임 또는 이메일 기반으로 본인 게시글 확인
-        const isOwnPost = (post.nickname && currentUser.nickname && post.nickname === currentUser.nickname) ||
-                         (post.userEmail && currentUser.email && post.userEmail === currentUser.email) ||
-                         (post.author && currentUser.nickname && post.author === currentUser.nickname);
-        
-        if (isOwnPost) {
-          lockCommentForm("본인이 작성한 레시피에는 댓글을 작성할 수 없습니다.");
-          return;
+    // 데이터가 없으면 한 번만 요청
+    if (!post) {
+      try {
+        const postRes = await fx(`/post/${encodeURIComponent(postId)}`);
+        if (postRes.ok) {
+          const postData = await postRes.json();
+          post = (postData && typeof postData === "object" && "data" in postData) ? postData.data : postData;
+          window.currentPostData = post; // 저장
         }
+      } catch (postError) {
+        console.warn("게시글 정보 조회 실패:", postError);
       }
-    } catch (postError) {
-      console.warn("게시글 정보 조회 실패:", postError);
     }
     
+    // 본인이 작성한 레시피인지 확인
+    if (post) {
+      console.log("Post data:", post); 
+      console.log("Current user:", currentUser); 
+      
+      // 닉네임 또는 이메일 기반으로 본인 게시글 확인
+      const isOwnPost = (post.nickname && currentUser.nickname && post.nickname === currentUser.nickname) ||
+                       (post.userEmail && currentUser.email && post.userEmail === currentUser.email) ||
+                       (post.author && currentUser.nickname && post.author === currentUser.nickname);
+      
+      if (isOwnPost) {
+        lockCommentForm("본인이 작성한 레시피에는 댓글을 작성할 수 없습니다.");
+        return;
+      }
+    }
+    
+    // 이미 리뷰를 작성했는지 확인
     const res = await fx(`/api/reviews/post/${postId}/user-status`);
     if (res.status === 401) {
       lockCommentForm("로그인 후 리뷰를 작성할 수 있습니다.");

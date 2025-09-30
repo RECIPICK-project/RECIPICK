@@ -1,6 +1,8 @@
 // ====== post_detail.js (최종본) ======
 
 let isLiked = false;
+let isLoading = false;
+window.currentPostData = null;
 
 /* -------------------------------
  * 공통 유틸 (토큰/CSRF/Fetch)
@@ -75,23 +77,30 @@ document.addEventListener("DOMContentLoaded", async function () {
 /* -------------------------------
  * 상세 불러오기
  * ------------------------------- */
+
+
 async function loadRecipeData(postId) {
+  if (isLoading) return;
+  isLoading = true; 
+
   try {
     const res = await fx(`/post/${encodeURIComponent(postId)}`);
-    if (res.status === 401) {
-      console.warn("401 Unauthorized");
-    }
+    if (res.status === 401) console.warn("401 Unauthorized");
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    
     const json = await res.json();
-
     const dto = (json && typeof json === "object" && "data" in json) ? json.data : json;
     if (!dto || typeof dto !== "object") throw new Error("응답 형식이 올바르지 않습니다.");
 
+    window.currentPostData = dto; 
+    
     const view = normalizeRecipe(dto);
     renderRecipeData(view);
   } catch (e) {
     console.error("레시피 로드 에러:", e);
     alert("레시피를 불러올 수 없습니다.");
+  } finally {
+    isLoading = false;
   }
 }
 

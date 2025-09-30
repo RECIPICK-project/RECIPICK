@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
@@ -54,6 +55,9 @@ public class SecurityConfig {
                         // OAuth2 관련 엔드포인트 허용
                         .requestMatchers("/oauth2/**", "/login/oauth2/**", "/oauth2/authorization/**").permitAll()
 
+                        // 로그인 체크 API (인증 필요)
+                        .requestMatchers("/api/users/review_check").authenticated()
+
                         // 관리용 API
                         .requestMatchers("/api/users/all", "/api/users/set-active").hasRole("ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
@@ -62,30 +66,34 @@ public class SecurityConfig {
                         .anyRequest().hasAnyRole("USER", "ADMIN")
                 )
                 .formLogin(form -> form
-                        .loginPage("/pages/login.html")  // pages 폴더 경로로 수정
+                        .loginPage("/pages/login.html")
                         .loginProcessingUrl("/login")
                         .usernameParameter("email")
                         .passwordParameter("password")
-                        .successHandler(
-                                (req, res, auth) -> res.sendRedirect("/pages/main.html"))  // pages 폴더 경로로 수정
+                        .successHandler((req, res, auth) -> {
+                            // 일반 로그인 성공 시에도 세션 저장 확인
+                            req.getSession().setAttribute(
+                                    org.springframework.security.web.context.HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
+                                    org.springframework.security.core.context.SecurityContextHolder.getContext()
+                            );
+                            res.sendRedirect("/pages/main.html");
+                        })
                         .failureHandler((req, res, ex) -> {
                             ex.printStackTrace();
                             String msg = URLEncoder.encode(
                                     String.valueOf(ex.getMessage()),
                                     StandardCharsets.UTF_8
                             );
-                            res.sendRedirect("/pages/login.html?error=" + msg);  // pages 폴더 경로로 수정
+                            res.sendRedirect("/pages/login.html?error=" + msg);
                         })
                         .permitAll()
                 )
-
                 .oauth2Login(oauth -> oauth
-                        .loginPage("/pages/login.html")  // pages 폴더 경로로 수정
+                        .loginPage("/pages/login.html")
                         .userInfoEndpoint(u -> u.userAuthoritiesMapper(authorities -> {
                             java.util.Set<org.springframework.security.core.GrantedAuthority> result = new java.util.HashSet<>();
                             result.addAll(authorities);
-                            result.add(new org.springframework.security.core.authority.SimpleGrantedAuthority(
-                                    "ROLE_USER"));
+                            result.add(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_USER"));
                             return result;
                         }))
                         .failureHandler((req, res, ex) -> {
@@ -94,13 +102,21 @@ public class SecurityConfig {
                                     ex.getClass().getSimpleName() + ": " + ex.getMessage(),
                                     StandardCharsets.UTF_8
                             );
-                            res.sendRedirect("/pages/login.html?error=" + msg);  // pages 폴더 경로로 수정
+                            res.sendRedirect("/pages/login.html?error=" + msg);
                         })
                         .successHandler(oAuth2LoginSuccessHandler)
                 )
-                .logout(
-                        logout -> logout.logoutSuccessUrl("/pages/login.html").permitAll())  // pages 폴더 경로로 수정
-        ;
+                .logout(logout -> logout
+                        .logoutSuccessUrl("/pages/login.html")
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
+                        .permitAll()
+                )
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                        .maximumSessions(1)
+                        .maxSessionsPreventsLogin(false)
+                );
 
         return http.build();
     }
@@ -112,8 +128,8 @@ public class SecurityConfig {
         c.setAllowedOriginPatterns(List.of(
                 "http://127.0.0.1:5500",
                 "http://localhost:5500",
-                "http://localhost:8080",  // 추가
-                "http://localhost:9999"   // 추가 (혹시 필요할 경우)
+                "http://localhost:8080",
+                "http://localhost:9999"
         ));
         c.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         c.setAllowedHeaders(List.of("*"));

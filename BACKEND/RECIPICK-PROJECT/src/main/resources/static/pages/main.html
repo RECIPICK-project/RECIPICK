@@ -20,9 +20,9 @@
 
     <!-- 헤더 -->
     <header class="top">
-       <div class="logo">
-    	<img src="/image/logo-main.png" class="logo-img" alt="로고" />
-       </div>
+      <div class="logo">
+        <img src="/image/logo-main.png" class="logo-img" alt="로고" />
+      </div>
       <button class="notif" aria-label="알림">
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 0 0-12 0v3.2c0 .5-.2 1-.6 1.4L4 17h5" />
@@ -40,7 +40,7 @@
     </section>
 
     <!-- 오늘의 추천 -->
-        <section class="section" id="featuredSection">
+    <section class="section" id="featuredSection">
       <div class="sec-head">
         <h2>오늘의 추천</h2>
         <a class="more" href="search_home.html?sort=hot">더보기</a>
@@ -113,7 +113,7 @@
         { name: '소고기', icon: '🥩' }, { name: '돼지고기', icon: '🍖' }, { name: '닭고기', icon: '🍗' },
         { name: '달걀/유제품', icon: '🥚' }, { name: '곡류', icon: '🌾' },
         { name: '과일류', icon: '🍎' }, { name: '가공식품류', icon: '🥫' }, { name: '건어물류', icon: '🐟' },
-        { name: '버섯류', icon: '🍄' }, { name: '밀가루', icon: '🧂' }, { name: '곡류', icon: '🍚' },
+        { name: '버섯류', icon: '🍄' }, { name: '밀가루', icon: '🧂' },
         { name: '채소류', icon: '🥦' }, { name: '콩/견과류', icon: '🥜' }, { name: '해물류', icon: '🦐' },
       ];
       const grid = document.getElementById('categoryGrid');
@@ -147,7 +147,7 @@
     function resetAutoSlide() { clearInterval(autoSlideInterval); if (totalSlides > 1) { autoSlideInterval = setInterval(nextSlide, 4000); } }
 
     /* 오늘의 추천 */
-        (async () => {
+    (async () => {
       try {
         const r = await fetch(`${BASE}/api/main/today`, { cache: 'no-store' });
         if (!r.ok) throw new Error(`HTTP ${r.status}`);

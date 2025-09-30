@@ -1,16 +1,18 @@
 // ====== post_detail.js (최종본) ======
 
 let isLiked = false;
+let isLoading = false;
+window.currentPostData = null;
 
 /* -------------------------------
  * 공통 유틸 (토큰/CSRF/Fetch)
  * ------------------------------- */
 function getCookie(name) {
   return document.cookie
-      .split("; ")
-      .map((s) => s.trim())
-      .find((row) => row.startsWith(name + "="))
-      ?.split("=")[1];
+    .split("; ")
+    .map((s) => s.trim())
+    .find((row) => row.startsWith(name + "="))
+    ?.split("=")[1];
 }
 
 function authHeader() {
@@ -75,23 +77,30 @@ document.addEventListener("DOMContentLoaded", async function () {
 /* -------------------------------
  * 상세 불러오기
  * ------------------------------- */
+
+
 async function loadRecipeData(postId) {
+  if (isLoading) return;
+  isLoading = true; 
+
   try {
     const res = await fx(`/post/${encodeURIComponent(postId)}`);
-    if (res.status === 401) {
-      console.warn("401 Unauthorized");
-    }
+    if (res.status === 401) console.warn("401 Unauthorized");
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    
     const json = await res.json();
-
     const dto = (json && typeof json === "object" && "data" in json) ? json.data : json;
     if (!dto || typeof dto !== "object") throw new Error("응답 형식이 올바르지 않습니다.");
 
+    window.currentPostData = dto; 
+    
     const view = normalizeRecipe(dto);
     renderRecipeData(view);
   } catch (e) {
     console.error("레시피 로드 에러:", e);
     alert("레시피를 불러올 수 없습니다.");
+  } finally {
+    isLoading = false;
   }
 }
 
@@ -123,10 +132,10 @@ function normalizeRecipe(dto) {
     for (let i = 1; i <= 3; i++) {
       const k2 = String(i).padStart(2, "0");
       if (o["MANUAL" + k2] || o["manual" + k2] || o["MANUAL_" + k2] || o["manual_" + k2] ||
-          o["Step" + k2] || o["step" + k2]) return true;
+        o["Step" + k2] || o["step" + k2]) return true;
       if (o["MANUAL_IMG" + k2] || o["MANUAL_IMG_" + k2] || o["manual_img" + k2] ||
-          o["manual_img_" + k2] || o["manualImg" + k2] || o["ManualImg" + k2] ||
-          o["stepImg" + k2] || o["StepImg" + k2]) return true;
+        o["manual_img_" + k2] || o["manualImg" + k2] || o["ManualImg" + k2] ||
+        o["stepImg" + k2] || o["StepImg" + k2]) return true;
     }
     return false;
   }
@@ -154,8 +163,8 @@ function normalizeRecipe(dto) {
   }
 
   const isStepsEmpty = stepsRaw == null ||
-      (Array.isArray(stepsRaw) && stepsRaw.length === 0) ||
-      (typeof stepsRaw === "string" && !stepsRaw.trim());
+    (Array.isArray(stepsRaw) && stepsRaw.length === 0) ||
+    (typeof stepsRaw === "string" && !stepsRaw.trim());
 
   if (isStepsEmpty && hasManualFields(dto)) {
     const { stepsList, imgList } = collectManualFields(dto);
@@ -172,9 +181,9 @@ function parseSteps(stepsRaw, stepImagesRaw) {
   const stripLeadingNumber = (txt) => String(txt).replace(/^\s*\d+[.)]\s*/, "").trim();
 
   const explodePipe = (txt) =>
-      String(txt)
-          .split("|").map((t) => t.trim()).filter(Boolean)
-          .map((t) => ({ description: stripLeadingNumber(t), imageUrl: "" }));
+    String(txt)
+      .split("|").map((t) => t.trim()).filter(Boolean)
+      .map((t) => ({ description: stripLeadingNumber(t), imageUrl: "" }));
 
   function normalizeImages(imgRaw) {
     if (!imgRaw) return [];
@@ -184,7 +193,7 @@ function parseSteps(stepsRaw, stepImagesRaw) {
       try {
         const arr = JSON.parse(s);
         if (Array.isArray(arr)) return arr.map((x) => String(x ?? "").trim()).filter(Boolean);
-      } catch (_) {}
+      } catch (_) { }
     }
     return s.split(/[|,]/).map((t) => t.trim()).filter(Boolean);
   }
@@ -266,16 +275,16 @@ function renderIngredients(ingredientsValue) {
   container.innerHTML = "";
   if (!ingredientsValue) return;
 
-  const FRAC_MAP = { "½":"1/2","⅓":"1/3","⅔":"2/3","¼":"1/4","¾":"3/4","⅕":"1/5","⅖":"2/5","⅗":"3/5","⅘":"4/5","⅙":"1/6","⅚":"5/6","⅛":"1/8","⅜":"3/8","⅝":"5/8","⅞":"7/8" };
+  const FRAC_MAP = { "½": "1/2", "⅓": "1/3", "⅔": "2/3", "¼": "1/4", "¾": "3/4", "⅕": "1/5", "⅖": "2/5", "⅗": "3/5", "⅘": "4/5", "⅙": "1/6", "⅚": "5/6", "⅛": "1/8", "⅜": "3/8", "⅝": "5/8", "⅞": "7/8" };
   const normalizeFractions = (s) => s.replace(/[\u00BC-\u00BE\u2150-\u215E]/g, (ch) => FRAC_MAP[ch] || ch);
 
   const normalized = normalizeFractions(String(ingredientsValue))
-      .replace(/[\x00-\x1F\x7F]/g, "")
-      .replace(/\[재료\]/g, "")
-      .replace(/\[[^\]]*\]/g, "|")
-      .replace(/[,\u3001\uFF0C\u00B7\u2022\u2219;]/g, "|")
-      .replace(/}$/g, "")
-      .replace(/^\|+|\|+$/g, "");
+    .replace(/[\x00-\x1F\x7F]/g, "")
+    .replace(/\[재료\]/g, "")
+    .replace(/\[[^\]]*\]/g, "|")
+    .replace(/[,\u3001\uFF0C\u00B7\u2022\u2219;]/g, "|")
+    .replace(/}$/g, "")
+    .replace(/^\|+|\|+$/g, "");
 
   const tokens = normalized.split("|").map(s => s.trim()).filter(Boolean);
 
@@ -333,9 +342,8 @@ function renderCookingSteps(steps) {
       <div class="step-header">${idx + 1}단계</div>
       <div class="step-content">
         <div class="step-description">${desc}</div>
-        <div class="step-image">${
-        img ? `<img src="${img}" alt="${idx + 1}단계 이미지">` : '<div class="step-image-placeholder">사진</div>'
-    }</div>
+        <div class="step-image">${img ? `<img src="${img}" alt="${idx + 1}단계 이미지">` : '<div class="step-image-placeholder">사진</div>'
+      }</div>
       </div>
     `;
     const imgEl = el.querySelector(".step-image img");
@@ -364,33 +372,33 @@ function getSubstituteIngredient(buttonElement) {
     method: 'GET',
     headers: { 'Accept': 'application/json, text/plain, */*', 'Content-Type': 'application/json' }
   })
-      .then(response => {
-        if (!response.ok) {
-          if (response.status === 404) throw new Error('API 엔드포인트를 찾을 수 없습니다.');
-          if (response.status === 500) throw new Error('서버 내부 오류가 발생했습니다.');
-          throw new Error(`서버 응답 오류: ${response.status} ${response.statusText}`);
-        }
-        return response.text();
-      })
-      .then(data => {
-        if (data.startsWith('[에러]') || data.startsWith('[예외 발생]')) throw new Error(data);
-        buttonElement.innerText = data || '대체재료 없음';
-        buttonElement.disabled = false;
-        buttonElement.style.backgroundColor = '#28a745';
-        buttonElement.style.color = 'white';
-        setTimeout(() => { buttonElement.style.backgroundColor = ''; buttonElement.style.color = ''; }, 3000);
-      })
-      .catch(error => {
-        let errorMessage = '오류 발생';
-        if (error.message.includes('404')) errorMessage = 'API 없음';
-        else if (error.message.includes('500')) errorMessage = '서버 오류';
-        else if (error.message.includes('Failed to fetch')) errorMessage = '네트워크 오류';
-        buttonElement.innerText = errorMessage;
-        buttonElement.disabled = false;
-        buttonElement.style.backgroundColor = '#dc3545';
-        buttonElement.style.color = 'white';
-        setTimeout(() => { buttonElement.innerText = '대체'; buttonElement.style.backgroundColor = ''; buttonElement.style.color = ''; }, 5000);
-      });
+    .then(response => {
+      if (!response.ok) {
+        if (response.status === 404) throw new Error('API 엔드포인트를 찾을 수 없습니다.');
+        if (response.status === 500) throw new Error('서버 내부 오류가 발생했습니다.');
+        throw new Error(`서버 응답 오류: ${response.status} ${response.statusText}`);
+      }
+      return response.text();
+    })
+    .then(data => {
+      if (data.startsWith('[에러]') || data.startsWith('[예외 발생]')) throw new Error(data);
+      buttonElement.innerText = data || '대체재료 없음';
+      buttonElement.disabled = false;
+      buttonElement.style.backgroundColor = '#28a745';
+      buttonElement.style.color = 'white';
+      setTimeout(() => { buttonElement.style.backgroundColor = ''; buttonElement.style.color = ''; }, 3000);
+    })
+    .catch(error => {
+      let errorMessage = '오류 발생';
+      if (error.message.includes('404')) errorMessage = 'API 없음';
+      else if (error.message.includes('500')) errorMessage = '서버 오류';
+      else if (error.message.includes('Failed to fetch')) errorMessage = '네트워크 오류';
+      buttonElement.innerText = errorMessage;
+      buttonElement.disabled = false;
+      buttonElement.style.backgroundColor = '#dc3545';
+      buttonElement.style.color = 'white';
+      setTimeout(() => { buttonElement.innerText = '대체'; buttonElement.style.backgroundColor = ''; buttonElement.style.color = ''; }, 5000);
+    });
 }
 
 /* -------------------------------
@@ -494,14 +502,14 @@ function wireReportModal() {
   if (!modal) return;
 
   // 닫기 처리 (X, 취소, 오버레이)
-  modal.addEventListener('click', (e)=>{
+  modal.addEventListener('click', (e) => {
     if (e.target.matches('[data-close], [data-close] *') || e.target.classList.contains('report-overlay')) {
       closeReportModal();
     }
   });
 
   // Esc로 닫기
-  document.addEventListener('keydown', (e)=>{
+  document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeReportModal();
   });
 
@@ -543,12 +551,12 @@ async function submitReport() {
 
     console.log('[REPORT] status =', res.status);
     if (res.status === 401) {
-      const body = await res.text().catch(()=> '');
+      const body = await res.text().catch(() => '');
       console.warn('[REPORT] 401 body =', body);
       throw new Error('401');
     }
     if (!res.ok) {
-      const body = await res.text().catch(()=> '');
+      const body = await res.text().catch(() => '');
       console.warn('[REPORT] non-OK body =', body);
       throw new Error('HTTP ' + res.status);
     }
@@ -561,4 +569,11 @@ async function submitReport() {
     if (String(e.message).includes('401')) alert('로그인이 필요합니다.');
     else alert('신고 처리 중 오류가 발생했습니다.');
   }
+}
+
+function goToCoupang(ingredient) {
+  if (!ingredient) return;
+  const query = encodeURIComponent(ingredient);
+  // 쿠팡 검색 페이지로 이동
+  window.open(`https://www.coupang.com/np/search?q=${query}`, "_blank");
 }

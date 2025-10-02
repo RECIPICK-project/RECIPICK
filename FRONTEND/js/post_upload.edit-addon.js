@@ -324,15 +324,23 @@
 
       // 1) 재료 문자열 구성 (사용자가 입력했으면 그 값, 아니면 기존값 유지)
       const ingRows = $all('[data-row]');
-      let ingJoined = '';
-      const ingParts = [];
+      const ingredientNames = [];
+      const ingredientQuantities = [];
+      const ingredientUnits = [];
+      const ckgMtrlCnParts = [];
+
       for (const row of ingRows) {
         const name = row.querySelector('[data-name]')?.value?.trim() || '';
         const qty  = row.querySelector('[data-quantity]')?.value?.trim() || '';
         const unit = row.querySelector('[data-unit]')?.value?.trim() || '';
-        if (name && qty && unit) ingParts.push(`${name} ${qty}${unit}`);
+  
+        if (name && qty && unit) {
+          ingredientNames.push(name);
+          ingredientQuantities.push(qty);
+          ingredientUnits.push(unit);
+          ckgMtrlCnParts.push(`${name} ${qty}${unit}`);
+        }
       }
-      if (ingParts.length) ingJoined = ingParts.join('|');
 
       // 2) 단계 설명/이미지 수집 + 필요 시 S3 업로드
       const stepItems = $all('.step-item');
@@ -371,16 +379,19 @@
       const body = {
         title:       val('title') || undefined,
         foodName:    val('foodName') || undefined,
-        ckgMth:      val('ckgMth') || undefined,       // 한글/영문 둘 다 허용
+        ckgMth:      val('ckgMth') || undefined,
         ckgCategory: val('ckgCategory') || undefined,
         ckgKnd:      val('ckgKnd') || undefined,
-        ckgMtrlCn:   ingJoined || loaded.ckgMtrlCn || undefined,
+        ckgMtrlCn:   ckgMtrlCnParts.length ? ckgMtrlCnParts : (loaded.ckgMtrlCn ? loaded.ckgMtrlCn.split('|') : undefined),
+        ingredientNames:      ingredientNames.length ? ingredientNames : undefined,
+        ingredientQuantities: ingredientQuantities.length ? ingredientQuantities : undefined,
+        ingredientUnits:      ingredientUnits.length ? ingredientUnits : undefined,
         ckgInbun:    num('CKG_INBUN'),
         ckgLevel:    num('CKG_LEVEL'),
         ckgTime:     num('CKG_TIME'),
         rcpImgUrl:   thumbUrl || undefined,
-        rcpSteps:    (stepTexts.length ? stepTexts.join('|') : (loaded.rcpSteps || '')) || undefined,
-        rcpStepsImg: (stepImgs.length ? stepImgs.join('|')  : (loaded.rcpStepsImgArr.join('|') || '')) || undefined
+        rcpSteps:    (stepTexts.length ? stepTexts : (loaded.rcpSteps ? loaded.rcpSteps.split('|') : undefined)),
+        rcpStepsImg: (stepImgs.length ? stepImgs : (loaded.rcpStepsImgArr.length ? loaded.rcpStepsImgArr : undefined))
       };
 
       // 빈 값/NaN 제거 → 부분 수정만 전송

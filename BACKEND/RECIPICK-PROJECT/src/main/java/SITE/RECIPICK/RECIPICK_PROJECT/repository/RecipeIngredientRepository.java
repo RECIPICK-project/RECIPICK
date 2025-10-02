@@ -1,12 +1,11 @@
 package SITE.RECIPICK.RECIPICK_PROJECT.repository;
 
-import java.util.List;
-
+import SITE.RECIPICK.RECIPICK_PROJECT.entity.RecipeIngredient;
+import SITE.RECIPICK.RECIPICK_PROJECT.entity.RecipeIngredientId;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import SITE.RECIPICK.RECIPICK_PROJECT.entity.RecipeIngredient;
-import SITE.RECIPICK.RECIPICK_PROJECT.entity.RecipeIngredientId;
+import java.util.List;
 
 @Repository
 public interface RecipeIngredientRepository extends JpaRepository<RecipeIngredient, RecipeIngredientId> {

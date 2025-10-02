@@ -113,6 +113,109 @@
       min-height: 0; 
     }
 
+    /* 도움말 섹션 */
+    .help-section {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .help-toggle {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 18px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--green-700);
+      transition: all 0.2s ease;
+    }
+
+    .help-toggle:hover {
+      background: #f8fff8;
+    }
+
+    .help-icon {
+      flex-shrink: 0;
+      color: var(--green-600);
+    }
+
+    .help-toggle span {
+      flex: 1;
+      text-align: left;
+    }
+
+    .chevron {
+      flex-shrink: 0;
+      transition: transform 0.3s ease;
+      color: var(--muted);
+    }
+
+    .help-toggle[aria-expanded="true"] .chevron {
+      transform: rotate(180deg);
+    }
+
+    .help-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease, padding 0.3s ease;
+      padding: 0 18px;
+    }
+
+    .help-toggle[aria-expanded="true"] + .help-content {
+      max-height: 400px;
+      padding: 0 18px 18px;
+    }
+
+    .help-item {
+      display: flex;
+      gap: 14px;
+      padding: 14px 0;
+    }
+
+    .help-item:not(:last-child) {
+      border-bottom: 1px solid #f3f4f6;
+    }
+
+    .help-number {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--mint-200);
+      color: var(--green-700);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .help-text {
+      flex: 1;
+    }
+
+    .help-text strong {
+      display: block;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .help-text p {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--muted);
+    }
+
     .slot {
       display: flex;
       align-items: center;

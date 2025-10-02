@@ -498,6 +498,17 @@ function openFileDialog() {
  * 모든 이벤트 리스너 초기화
  */
 function initializeEventListeners() {
+  // 도움말 토글
+  const helpToggle = document.getElementById('helpToggle');
+  const helpContent = document.getElementById('helpContent');
+  
+  if (helpToggle && helpContent) {
+    helpToggle.addEventListener('click', () => {
+      const isExpanded = helpToggle.getAttribute('aria-expanded') === 'true';
+      helpToggle.setAttribute('aria-expanded', !isExpanded);
+    });
+  }
+
   // 재료 추가 모달 열기
   if (openPickerBtn) {
     openPickerBtn.addEventListener('click', openModal);
@@ -582,7 +593,6 @@ function initializeEventListeners() {
   }
 }
 
-// --- 초기화 ---
 
 /**
  * 앱 초기화

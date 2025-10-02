@@ -24,6 +24,44 @@
       </button>
     </header>
     <div class="wrap">
+      <!-- 도움말 섹션 -->
+      <div class="help-section" id="helpSection">
+        <button class="help-toggle" id="helpToggle" aria-expanded="false">
+          <svg class="help-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+            <circle cx="12" cy="17" r="0.5" fill="currentColor"/>
+          </svg>
+          <span>검색 방식 안내</span>
+          <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M6 9l6 6 6-6"/>
+          </svg>
+        </button>
+        <div class="help-content" id="helpContent">
+          <div class="help-item">
+            <div class="help-number">1</div>
+            <div class="help-text">
+              <strong>필수 매칭</strong>
+              <p>검색 결과에는 메인 재료가 포함된 레시피가 무조건 검색됩니다.</p>
+            </div>
+          </div>
+          <div class="help-item">
+            <div class="help-number">2</div>
+            <div class="help-text">
+              <strong>우선 검색</strong>
+              <p>검색된 레시피 중 서브 재료까지 포함된 레시피가 가장 먼저 표시됩니다.</p>
+            </div>
+          </div>
+          <div class="help-item">
+            <div class="help-number">3</div>
+            <div class="help-text">
+              <strong>대체 검색</strong>
+              <p>메인 재료가 포함되지 않은 경우, 유사한 종류의 재료가 들어있는 레시피를 검색하여 보여줍니다.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div aria-live="polite" class="slot main-slot" id="mainSlot">
         <div class="left">
           <span aria-hidden="true" class="dot"></span>
